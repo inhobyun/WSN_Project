@@ -8,7 +8,9 @@ env = Environment(
     loader=PackageLoader(__name__, 'templates'),
     autoescape=select_autoescape(['html', 'xml'])
 )
-
+"""
+Starting of sensor data monitoring and analysis application
+"""
 @app.route('/')
 def root():
     template = env.get_template('landing.html')
@@ -19,6 +21,10 @@ def dashboard():
     template = env.get_template('dashboard.html')
     return template.render()
 
+@app.route('/Ooops')
+def Ooops():
+    template = env.get_template('Ooops.html')
+    return template.render()
 
 @app.route('/post_test', methods=['POST'])
 def post_test():
