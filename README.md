@@ -8,7 +8,7 @@ Setup **venv**.
 python -m venv ./env
 ```
 
-Install all dependencies.
+Install all dependencies. (Install module stuffs after activating **venv**)
 
 ```bash
 pip install -r requirements.txt
