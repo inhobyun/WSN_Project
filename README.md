@@ -8,7 +8,7 @@ Setup **venv**.
 python -m venv ./env
 ```
 
-Install all dependencies. (Install module stuffs after activating **venv**)
+Install all dependencies. (Do this after activating **venv**)
 
 ```bash
 pip install -r requirements.txt
@@ -25,7 +25,7 @@ source ./env/bin/activate
 or in Windows:
 
 ```cmd
-\env\Scripts\activate.bat
+./env/Scripts/activate.bat
 ```
 
 And then, run server.
