@@ -1,16 +1,27 @@
 {% extends "base.html" %}
 {% block main %}
 <div class="form">
-    This is an example form.<br>
-    This example shows you a sine curve with the given amplitude.<br>
-    <label>Value</label>
-    <input type="text" id="value-input" value="1.5" />
-    <button onclick="sendValue()">Draw</button>
     <div id="chart-box"></div>
+    X & Y Axis Scaling ---------- 
+    <button onclick="sendValue()">Apply</button> <br>
+    <label>Automatic Scaling</label> <br>
+    <label>Manual Scaling</label> <br>
+    <label>Y Axis Min</label>
+    <input type="text" id="y_min" value="-200" /> <br>
+    <label>Y Axis Max</label>
+    <input type="text" id="y_max" value="200" /> <br>
+    <label>Y Axis Gridline</label>
+    <input type="text" id="y_gridline" value="40" /> <br>
+    <label>X Axis Min</label>   
+    <input type="text" id="x_min" value="-10" /> <br>
+    <label>X Axis Max</label>
+    <input type="text" id="x_max" value="0" /> <br>
+    <label>X Axis Gridline</label>
+    <input type="text" id="x_gridline" value="500" /> <br>  
 </div>
 <script>
     function sendValue() {
-        const value = document.getElementById('value-input').value;
+        const value = document.getElementById('y_max').value;
         axios.post('/post_test', {
             value: Number(value),
         }).then(response => {
@@ -27,9 +38,9 @@
         document.getElementById('chart-box').innerHTML = '';
 
         // set the dimensions and margins of the graph
-        var margin = {top: 10, right: 30, bottom: 30, left: 60},
-            width = 460 - margin.left - margin.right,
-            height = 400 - margin.top - margin.bottom;
+        var margin = {top: 100, right: 30, bottom: 30, left: 500},
+            width = 1920 - margin.left - margin.right,
+            height = 600 - margin.top - margin.bottom;
 
         // append the svg object to the body of the page
         var svg = d3.select("#chart-box")

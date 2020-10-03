@@ -1,3 +1,6 @@
+"""
+Starting of sensor data monitoring and analysis application -- 2020/10/01
+"""
 import json
 import math
 from flask import Flask, redirect, request
@@ -8,9 +11,7 @@ env = Environment(
     loader=PackageLoader(__name__, 'templates'),
     autoescape=select_autoescape(['html', 'xml'])
 )
-"""
-Starting of sensor data monitoring and analysis application
-"""
+
 @app.route('/')
 def root():
     template = env.get_template('landing.html')
