@@ -36,13 +36,17 @@ SCD_MAX_MTU = 65
 # global variables
 #
 target_device  = None
-target_STE_mode = b"\x00\x00\x00\x00 \
-                    \x08 \
-                    \x00 \
-                    \x00\x00 \
-                    \x00\x00\x00\x00 \
-                    
-                  
+target_STE_mode = bytes(35)
+target_STE_mode[ 0: 3] = b'\x00\x00\x00\x00'  # Unix time
+target_STE_mode[    4] = b'\x08'              # sensor En/Disable
+target_STE_mode[    5] = b'\x00'              # output data rate
+target_STE_mode[ 6: 7] = b'\xE4\x07'          # accelerometer threshold
+target_STE_mode[12:15] = b'\x00\x00\x00\x00'  # light sensor threshold low
+target_STE_mode[16:19] = b'\xE8\xE4\xF5\x05'  # light sensor threshold high
+target_STE_mode[20:21] = b'\x80\x57'          # magnetometer threshold
+target_STE_mode[26:27] = b'\x80\xF3'          # temperture threshold low
+target_STE_mode[28:29] = b'\x00\x2D'          # temperture threshold high
+target_STE_mode[   30] = b'\xF0'              # sensor raw value to flash
 
 #############################################
 # Define scan callback
