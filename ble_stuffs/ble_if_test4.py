@@ -36,7 +36,12 @@ SCD_MAX_MTU = 65
 # global variables
 #
 target_device  = None
-target_STE_mode = b'\x00' \
+target_STE_mode = b"\x00\x00\x00\x00 \
+                    \x08 \
+                    \x00 \
+                    \x00\x00 \
+                    \x00\x00\x00\x00 \
+                    
                   
 
 #############################################
