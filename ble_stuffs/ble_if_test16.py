@@ -185,8 +185,6 @@ def output_STE_result( result ):
 def output_STE_notify_data( result ):
     global gNotifyCount
 
-    if gNotifyCount>1 :
-        print ('\r')
     print("**** #%3d -" % gNotifyCount, end = '', flush = True)
     output_STE_data (result)
     return
