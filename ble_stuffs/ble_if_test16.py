@@ -135,7 +135,7 @@ def output_STE_data( result ):
     accel_vari_z = float( int.from_bytes(result[14:18], byteorder='little', signed=True) ) \
                    / 100.0
     print ("A: X[%4.1f][%4.2f] Y[%4.1f][%4.2f] Z[%4.1f][%4.2f] g" %\
-           ( accel_mean_x, accel_vari_x, accel_vari_y, accel_mean_y, accel_mean_z, accel_vari_z
+           ( accel_mean_x, accel_vari_x, accel_mean_y, accel_vari_y, accel_mean_z, accel_vari_z
            ), \
            end = '', flush = True \
           )
@@ -185,6 +185,8 @@ def output_STE_result( result ):
 def output_STE_notify_data( result ):
     global gNotifyCount
 
+    if gNotifyCount>1 :
+        print ('\r')
     print("**** #%3d -" % gNotifyCount, end = '', flush = True)
     output_STE_data (result)
     return
@@ -240,8 +242,8 @@ class NotifyDelegate(DefaultDelegate):
         gNotifyCount += 1
         if cHandle == SCD_STE_RESULT_HND:
             output_STE_notify_data ( data )
-        #elif cHandle == SCD_BDT_DATA_FLOW_HND:
-        #    continue
+        elif cHandle == SCD_BDT_DATA_FLOW_HND:
+            print("**** #%3d" % (gNotifyCount), end='\n', flush=True) 
         else:
             print("**** %2d-#%3d-[%s]" % (cHandle, gNotifyCount, hex_str(gNotifyLastData)), end='\n', flush = True)
 
