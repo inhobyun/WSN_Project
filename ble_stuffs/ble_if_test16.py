@@ -58,7 +58,7 @@ SCD_MAX_MTU = 65
 # global variables
 #
 SCAN_TIME           = 8.    # scanning duration for BLE devices 
-STE_RUN_TIME        = 3.    # STE rolling time in secconds
+STE_RUN_TIME        = 10.   # STE rolling time in secconds
 MAX_STE_RUN_TIME    = 60.   # max STE rolling time in seconds
 gTargetDevice       = None  # target device object 
 gScannedCount       = 0     # count of scanned BLE devices
@@ -98,7 +98,7 @@ STE_mode[26:28]  = b'\x80\xF3'          # [26~27] temperature threshold low
 STE_mode[28:30]  = b'\x00\x2D'          # [28~29] temperature threshold high
 #
 STE_bits_pattern = 240                  # [   30] F0 sensor raw value to flash
-STE_bits_pattern+= 1                    # [   30] 01 sensor raw value to flash - accelerometer
+#TE_bits_pattern+= 1                    # [   30] 01 sensor raw value to flash - accelerometer
 #TE_bits_pattern+= 2                    # [   30] 02 sensor raw value to flash - magnetometer
 #TE_bits_pattern+= 4                    # [   30] 04 sensor raw value to flash - light
 #TE_bits_pattern+= 8                    # [   30] 08 sensor raw value to flash - temperature
@@ -165,12 +165,9 @@ def output_STE_result( result ):
     global gNotifyLastTime
 
 # output time stamp
-    print ( "\tSTE configuration  : ", end = '')
-    t = ''.join(map(str, struct.unpack('f', gTargetSTEmode[0:4])))   
-    print ( datetime.datetime.fromtimestamp \
-            ( float( (t.split('.'))[0] ) + float( (t.split('.'))[1] ) \
-            ).strftime('%Y-%m-%d %H:%M:%S') \
-          )
+    tm = float( (struct.unpack('<l', gTargetSTEmode[0:4]))[0] )   
+    print ( "\tSTE config. time   : %s(%.3f)" \
+            % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
     print ( "\tNotification Start : %s(%.3f)" \
             % (datetime.datetime.fromtimestamp(gNotifyStartTime).strftime('%Y-%m-%d %H:%M:%S'), gNotifyStartTime) )
     print ( "\tNotification End   : %s(%.3f)" \
@@ -241,7 +238,8 @@ class NotifyDelegate(DefaultDelegate):
         if cHandle == SCD_STE_RESULT_HND:
             output_STE_notify_data ( data )
         elif cHandle == SCD_BDT_DATA_FLOW_HND:
-            print("**** #%3d" % (gNotifyCount), end='\n', flush=True) 
+            #print("**** #%3d" % (gNotifyCount), end='\n', flush=True)
+            print("**** >" if gNotifyCount==1 else ">", end='', flush=True) 
         else:
             print("**** %2d-#%3d-[%s]" % (cHandle, gNotifyCount, hex_str(gNotifyLastData)), end='\n', flush = True)
 
@@ -344,7 +342,7 @@ if ret_val !=  b'\x00':
 #
 # set STE Configuration
 #
-time_bytes = struct.pack('<f', time.time())
+time_bytes = struct.pack('<l', int(time.time()))
 gTargetSTEmode = bytes( time_bytes[0:4] ) + gTargetSTEmode[4:35]
 print ("\tSTE config. was\n[%s](%d)" % (hex_str(gTargetSTEmode), len(gTargetSTEmode)))
 p.writeCharacteristic( SCD_STE_CONFIG_HND, gTargetSTEmode )
