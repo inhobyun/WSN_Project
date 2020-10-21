@@ -75,18 +75,18 @@ STE_mode = bytearray(35)
 STE_mode[ 0: 4]  = b'\x00\x00\x00\x00'  # [ 0~ 3] Unix time
 #
 mode  = 241  # 01 sensor En/Disable - accelerometer
-mode |= 2    # 02 sensor En/Disable - magnetometer
-mode |= 4    # 04 sensor En/Disable - light
-mode |= 8    # 08 sensor En/Disable - temperature
+#ode |= 2    # 02 sensor En/Disable - magnetometer
+#ode |= 4    # 04 sensor En/Disable - light
+#ode |= 8    # 08 sensor En/Disable - temperature
 STE_mode[ 4: 5] = bytes(struct.pack('<h',mode))
 #
-mode  = 0    # ?0 data rate - accelerometer ODR 400Hz
-mode  = 1    # ?1 data rate - accelerometer ODR 800Hz
+#ode  = 0    # ?0 data rate - accelerometer ODR 400Hz
+#ode  = 1    # ?1 data rate - accelerometer ODR 800Hz
 mode  = 2    # ?2 data rate - accelerometer ODR 1600Hz
-mode  = 3    # ?3 data rate - accelerometer ODR 3200Hz
-mode  = 4    # ?4 data rate - accelerometer ODR 6400Hz
-mode  = 0    # 0? data rate - light sensor ODR 100ms(10Hz)
-mode |= 16   # 1? data rate - light sensor ODR 800ms(1.25Hz)
+#ode  = 3    # ?3 data rate - accelerometer ODR 3200Hz
+#ode  = 4    # ?4 data rate - accelerometer ODR 6400Hz
+#ode |= 0    # 0? data rate - light sensor ODR 100ms(10Hz)
+#ode |= 16   # 1? data rate - light sensor ODR 800ms(1.25Hz)
 STE_mode[ 5: 6] = bytes(struct.pack('<h',mode))
 #
 STE_mode[ 6: 8]  = b'\xE4\x07'          # [ 6~ 7] accelerometer threshold
@@ -309,7 +309,7 @@ ret_val = p.readCharacteristic( SCD_DEVICE_NAME_HND )
 print ("\tDevice Name is [%s]" % ret_val.decode("utf-8"))
 #
 ret_val = p.readCharacteristic( SCD_SYSTEM_ID_HND )
-print ("\tSystem ID is [%s]" % ret_val.decode("utf-8"))
+print ("\tSystem ID is [%s][%s]" % (hex_str(ret_val[0:3]), hex_str(ret_val[3:8])))
 #
 ret_val = p.readCharacteristic( SCD_SERIAL_NUM_HND )
 print ("\tSerial # is [%s]" % ret_val.decode("utf-8"))
@@ -327,7 +327,7 @@ ret_val = p.readCharacteristic( SCD_MANUFA_NAME_HND )
 print ("\tManufacturer Name is [%s]" % ret_val.decode("utf-8"))
 #
 ret_val = p.readCharacteristic( SCD_IF_VERSION_HND )
-print ("\tIF Version is [%s]" % ret_val.decode("utf-8"))
+print ("\tIF Version is [%s]" % hex_str(ret_val))
 #
 ret_val = p.readCharacteristic( SCD_TEST_RESULT_HND )
 print ("\tSelf Test Result is [%s] c0:OK, otherwise not OK!" % ret_val.hex())
