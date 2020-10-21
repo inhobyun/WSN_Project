@@ -66,7 +66,7 @@ gNotifyCount        = 0     # count of notifications from connected device
 gNotifyStartTime    = 0.    # notification start timestamp
 gNotifyLastTime     = 0.    # notification last timestamp
 gNotifyLastData     = bytes(33)     # STE result data
-gTargetSTEmode      = bytes(31)     # Sensor Mode
+gTargetSTEmode      = bytes(35)     # Sensor Mode
 
 #
 # STE mode configuration (35 bytes) 
@@ -168,7 +168,7 @@ def output_STE_result( result ):
     print ( "\tSTE configuration  : ", end = '')
     t = ''.join(map(str, struct.unpack('f', gTargetSTEmode[0:4])))   
     print ( datetime.datetime.fromtimestamp \
-            ( int( (t.split('.'))[0] ) \
+            ( float( (t.split('.'))[0] ) + float( (t.split('.'))[1] ) \
             ).strftime('%Y-%m-%d %H:%M:%S') \
           )
     print ( "\tNotification Start : %s(%.3f)" \
