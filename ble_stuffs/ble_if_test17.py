@@ -9,7 +9,7 @@ followings are the steps in this code;
 - set STE configuration
 - start STE
 - stop STE
-- get STE result
+- get STE vResult
 
 by Inho Byun
 started 2020-10-12
@@ -27,7 +27,7 @@ from bluepy.btle import Scanner, DefaultDelegate, UUID, Peripheral
 # target device identifiers
 #
 TARGET_MANUFA_UUID = "a6022158" # AD Type Value: 0xFF
-gTargetDevice_NAME = "SCD-"     # AD Type Value: 0x09
+TARGET_DEVICE_NAME = "SCD-"     # AD Type Value: 0x09
 #############################################
 # Services of BOSCH SCD
 #############################################
@@ -55,21 +55,25 @@ SCD_BDT_DATA_FLOW_HND   = 45    # RN, uuid: 02a65821-3003-1000-2000-b05cb05cb05c
 #
 SCD_MAX_MTU = 65
 #
-# global variables
+# Some constant parameters
 #
 SCAN_TIME           = 8.    # scanning duration for BLE devices 
 STE_RUN_TIME        = 3.    # STE rolling time in secconds
 MAX_STE_RUN_TIME    = 30.   # max STE rolling time in seconds
+#
+# global variables
+#
 gTargetDevice       = None  # target device object 
 gScannedCount       = 0     # count of scanned BLE devices
 gNotifyCount        = 0     # count of notifications from connected device
 gNotifyStartTime    = 0.    # notification start timestamp
 gNotifyLastTime     = 0.    # notification last timestamp
-gNotifyLastData     = bytes(33)     # STE result data
+gNotifyLastData     = bytes(33)     # STE vResult data
 gTargetSTEmode      = bytes(35)     # Sensor Mode
 
-#
-# STE mode configuration (35 bytes) 
+#############################################
+# STE(Short Time Experiment) mode configuration (35 bytes) 
+#############################################
 #
 STE_mode = bytearray(35)
 STE_mode[ 0: 4]  = b'\x00\x00\x00\x00'  # [ 0~ 3] Unix time
@@ -118,32 +122,32 @@ def hex_str( vBytes ):
 #############################################
 # output STE data
 #
-def output_STE_data( result ):
+def print_STE_data( vResult ):
 
 # output Accelerrometer X, Y, Z axis arithmetic mean & variation  
-    accel_mean_x = float( int.from_bytes(result[0:2], byteorder='little', signed=True) ) \
+    accel_mean_x = float( int.from_bytes(vResult[0:2], byteorder='little', signed=True) ) \
                   / 10.0
-    accel_vari_x = float( int.from_bytes(result[6:10], byteorder='little', signed=True) ) \
+    accel_vari_x = float( int.from_bytes(vResult[6:10], byteorder='little', signed=True) ) \
                    / 100.0
-    accel_mean_y = float( int.from_bytes(result[2:4], byteorder='little', signed=True) ) \
+    accel_mean_y = float( int.from_bytes(vResult[2:4], byteorder='little', signed=True) ) \
                   / 10.0
-    accel_vari_y = float( int.from_bytes(result[10:14], byteorder='little', signed=True) ) \
+    accel_vari_y = float( int.from_bytes(vResult[10:14], byteorder='little', signed=True) ) \
                    / 100.0
-    accel_mean_z = float( int.from_bytes(result[4:6], byteorder='little', signed=True) ) \
+    accel_mean_z = float( int.from_bytes(vResult[4:6], byteorder='little', signed=True) ) \
                   / 10.0
-    accel_vari_z = float( int.from_bytes(result[14:18], byteorder='little', signed=True) ) \
+    accel_vari_z = float( int.from_bytes(vResult[14:18], byteorder='little', signed=True) ) \
                    / 100.0
 # output temperature
-    temperature = float( int.from_bytes(result[18:20], byteorder='little', signed=True) ) \
+    temperature = float( int.from_bytes(vResult[18:20], byteorder='little', signed=True) ) \
                   * 0.0078
 # output light
-    light = float( int.from_bytes(result[20:24], byteorder='little', signed=True) )
+    light = float( int.from_bytes(vResult[20:24], byteorder='little', signed=True) )
 # output Magnetometer X, Y, Z axis raw data 
-    magneto_x = float( int.from_bytes(result[24:26], byteorder='little', signed=True) ) \
+    magneto_x = float( int.from_bytes(vResult[24:26], byteorder='little', signed=True) ) \
                   / 16.0
-    magneto_y = float( int.from_bytes(result[26:28], byteorder='little', signed=True) ) \
+    magneto_y = float( int.from_bytes(vResult[26:28], byteorder='little', signed=True) ) \
                   / 16.0
-    magneto_z = float( int.from_bytes(result[28:30], byteorder='little', signed=True) ) \
+    magneto_z = float( int.from_bytes(vResult[28:30], byteorder='little', signed=True) ) \
                   / 16.0
 # print    
     print ("A: X[%4.1f][%4.2f] Y[%4.1f][%4.2f] Z[%4.1f][%4.2f] g" %\
@@ -157,9 +161,9 @@ def output_STE_data( result ):
     return
 
 #############################################    
-# output STE result
+# print STE result
 #
-def output_STE_result( result ):
+def print_STE_result( vResult ):
     global gTargetSTEmode
     global gNotifyStartTime
     global gNotifyLastTime
@@ -173,17 +177,17 @@ def output_STE_result( result ):
     print ( "\tNotification End   : %s(%.3f)" \
             % (datetime.datetime.fromtimestamp(gNotifyLastTime).strftime('%Y-%m-%d %H:%M:%S'), gNotifyLastTime) )      
     print ("\t")
-    output_STE_data (result)
+    print_STE_data (vResult)
     return
 
 #############################################
-# output STE notify data
+# print STE notify data
 #
-def output_STE_notify_data( result ):
+def print_STE_notify_data( vResult ):
     global gNotifyCount
 
     print("**** #%3d -" % gNotifyCount, end = '', flush = True)
-    output_STE_data (result)
+    print_STE_data (vResult)
     return
   
 #############################################
@@ -236,7 +240,7 @@ class NotifyDelegate(DefaultDelegate):
         gNotifyLastData = data    
         gNotifyCount += 1
         if cHandle == SCD_STE_RESULT_HND:
-            output_STE_notify_data ( data )
+            print_STE_notify_data ( data )
         elif cHandle == SCD_BDT_DATA_FLOW_HND:
             #print("**** #%3d" % (gNotifyCount), end='\n', flush=True)
             print("**** >" if gNotifyCount==1 else ">", end='', flush=True) 
@@ -266,7 +270,7 @@ for dev in devices:
         if adtype == 255 and TARGET_MANUFA_UUID in value:
             matching_count += 1
             print("\tfound target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value))            
-        if adtype == 9 and gTargetDevice_NAME in value:
+        if adtype == 9 and TARGET_DEVICE_NAME in value:
             matching_count += 1
             print("\tfound target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value))            
         if matching_count >= 2:
@@ -337,6 +341,14 @@ print ("\tMode is [%s] 00:STE, ff:Mode Selection" % ret_val.hex())
 #
 ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
 print ("\tFlash memory remain is [%s] MAX:0b0000" % ret_val[31:34].hex())
+if (struct.unpack('i', ret_val[31:35]))[0] < 11*16**4: # 0b.00.00, 720896, 704K
+    print ("\t\t=> flash memory is not empty...cleanning-up flash and re-connect device")
+    p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x30' ) # erase sensor data
+    print ("+--- Erase flash wait for seconds...")
+    time.sleep(0.7)
+    p.disconnect()
+    time.sleep(10.)
+    p = Peripheral(gTargetDevice.addr, gTargetDevice.addrType)
 #
 STE_result_0 = p.readCharacteristic( SCD_STE_RESULT_HND )
 time.sleep(1.)
@@ -406,7 +418,7 @@ ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
 print ("+--- Last notification data is as below...rolling Time [%.3f], Count [%d]"\
 	% ( (gNotifyLastTime-gNotifyStartTime), gNotifyCount))
 print ("\t     [%s]" % hex_str(gNotifyLastData))
-output_STE_result(gNotifyLastData)
+print_STE_result(gNotifyLastData)
 #############################################
 #
 # bulk data transfer 
@@ -426,7 +438,7 @@ while True:
     if ret_val != b'x01':
         break
 time.sleep(5.0)
-print ("+--- Bulk Data Transfer completed...status is [%s]" % ret_val.hex(), end = '\n', flush = True)
+print ("\n+--- Bulk Data Transfer completed...status is [%s]" % ret_val.hex(), end = '\n', flush = True)
 
 #############################################
 #
@@ -438,7 +450,7 @@ p.writeCharacteristic( SCD_SET_MODE_HND, b'\xFF' )    # mode selection
 time.sleep(0.7)
 p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x30' ) # erase sensor data
 print ("+--- Erase flash wait for seconds...")
-time.sleep(8.)
+time.sleep(10.)
 #
 # disconnect
 #

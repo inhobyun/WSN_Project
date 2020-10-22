@@ -51,9 +51,12 @@ SCD_BDT_CONTROL_HND     = 41    # W,  uuid: 02a65821-3001-1000-2000-b05cb05cb05c
 SCD_BDT_STATUS_HND      = 43    # R,  uuid: 02a65821-3002-1000-2000-b05cb05cb05c
 SCD_BDT_DATA_FLOW_HND   = 45    # RN, uuid: 02a65821-3003-1000-2000-b05cb05cb05c
 #
-# MAX MTU of BOSCH SCD
+# MAX constant of BOSCH SCD
 #
-SCD_MAX_MTU = 65
+SCD_MAX_MTU     = 65                # MAX SCD Comm. Packet size
+SCD_MAX_FLASH   = 720896            # (0x0b0000, 11*16**4)
+SCD_MAX_NOTIFY  = SCD_MAX_FLASH>>4  # int(SCD_MAX_FLASH / 16)
+
 #
 # Some constant parameters
 #
@@ -70,6 +73,12 @@ gNotifyStartTime    = 0.    # notification start timestamp
 gNotifyLastTime     = 0.    # notification last timestamp
 gNotifyLastData     = bytes(33)     # STE vResult data
 gTargetSTEmode      = bytes(35)     # Sensor Mode
+#
+# SCD flash memeory block
+# MAX: 0x0b0000 bytes = 45056 x 16 bytes packet
+#
+gSCDflashCount      = 0
+gSCDflashPacket     = bytearray(SCD_MAX_FLASH)
 
 #############################################
 # STE(Short Time Experiment) mode configuration (35 bytes) 
@@ -101,7 +110,7 @@ STE_mode[26:28]  = b'\x80\xF3'          # [26~27] temperature threshold low
 STE_mode[28:30]  = b'\x00\x2D'          # [28~29] temperature threshold high
 #
 mode  = 240  # [   30] F0 sensor raw value to flash
-#ode |= 1    # [   30] 01 sensor raw value to flash - accelerometer
+mode |= 1    # [   30] 01 sensor raw value to flash - accelerometer
 #ode |= 2    # [   30] 02 sensor raw value to flash - magnetometer
 #ode |= 4    # [   30] 04 sensor raw value to flash - light
 #ode |= 8    # [   30] 08 sensor raw value to flash - temperature
@@ -232,6 +241,8 @@ class NotifyDelegate(DefaultDelegate):
         global gNotifyStartTime
         global gNotifyLastTime
         global gNotifyLastData
+        global gSCDflashCount
+        global gSCDflashPacket
 
         if gNotifyCount < 1:
             gNotifyLastTime = gNotifyStartTime = time.time()
@@ -242,8 +253,10 @@ class NotifyDelegate(DefaultDelegate):
         if cHandle == SCD_STE_RESULT_HND:
             print_STE_notify_data ( data )
         elif cHandle == SCD_BDT_DATA_FLOW_HND:
-            #print("**** #%3d" % (gNotifyCount), end='\n', flush=True)
-            print("**** >" if gNotifyCount==1 else ">", end='', flush=True) 
+            #print("**** >" if gNotifyCount==1 else ">", end='', flush=True)
+            gSCDflashCount = gNotifyCount
+            idx = gSCDflashCount*16
+            gSCDflashPacket[idx:idx+16] = data[4:20]
         else:
             print("**** %2d-#%3d-[%s]" % (cHandle, gNotifyCount, hex_str(gNotifyLastData)), end='\n', flush = True)
 
@@ -341,11 +354,11 @@ print ("\tMode is [%s] 00:STE, ff:Mode Selection" % ret_val.hex())
 #
 ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
 print ("\tFlash memory remain is [%s] MAX:0b0000" % ret_val[31:34].hex())
-if ret_val[31:34] != b'x\00x\00x\0b':
+if (struct.unpack('i', ret_val[31:35]))[0] < SCD_MAX_FLASH:
     print ("\t\t=> flash memory is not empty...cleanning-up flash and re-connect device")
     p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x30' ) # erase sensor data
     print ("+--- Erase flash wait for seconds...")
-    time,sleep(0.7)
+    time.sleep(0.7)
     p.disconnect()
     time.sleep(10.)
     p = Peripheral(gTargetDevice.addr, gTargetDevice.addrType)
@@ -438,7 +451,7 @@ while True:
     if ret_val != b'x01':
         break
 time.sleep(5.0)
-print ("+--- Bulk Data Transfer completed...status is [%s]" % ret_val.hex(), end = '\n', flush = True)
+print ("\n+--- Bulk Data Transfer completed...status is [%s]" % ret_val.hex(), end = '\n', flush = True)
 
 #############################################
 #
@@ -455,6 +468,26 @@ time.sleep(10.)
 # disconnect
 #
 p.disconnect()
+#
+#############################################
+
+#############################################
+#
+# write time series data file
+#
+print ("+--- Save data to file...")
+n = 1
+f = open("~/SCD_result_log.csv", "w")
+for i in range(0, gSCDflashCount+16, 16):
+    for j in range(0, 16, 2):
+        idx = i*16 + j
+        val = (struct.unpack("<i", gSCDflashPack[idx: idx+2]))[0]
+        f.write ( "%5.1f", val/10.)
+        f.write ( "," if n%3 != 0 else "\r\n" )
+        n += 1
+f.write ("total %d line recorded" % n)            
+f.close()
+print ("+--- All done !")
 #
 #############################################
 
