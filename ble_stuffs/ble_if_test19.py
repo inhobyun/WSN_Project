@@ -391,10 +391,6 @@ ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
 print ("\tFlash memory remain is [%s] MAX:0b0000" % ret_val[31:34].hex())
 if (struct.unpack('i', ret_val[31:35]))[0] < SCD_MAX_FLASH:  
     print ("\t\t=> flash memory is not empty...cleanning-up flash and re-try")
-'''      
-    p.disconnect()
-    sys.exit(0)
-'''
     print ("+--- Erase flash wait for seconds...")
     p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x30' ) # erase sensor data
     p.disconnect()
@@ -467,7 +463,7 @@ if gNotifyCount > 0 :
         	% ( (gNotifyLastTime-gNotifyStartTime), gNotifyCount))
     print ("\t     [%s]" % hex_str(gNotifyLastData))
     print_STE_result(gNotifyLastData)
-    print ("\trolling counter is [%s]" % gNotifyLastData[32].hex()))
+    print ("\trolling counter is [%d]" % gNotifyLastData[32])
 #############################################
 #
 # bulk data transfer 
