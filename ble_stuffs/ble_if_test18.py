@@ -65,7 +65,8 @@ SCD_MAX_NOTIFY  = SCD_MAX_FLASH>>4  # int(SCD_MAX_FLASH / 16)
 # Some constant parameters
 #
 SCAN_TIME           = 8.    # scanning duration for BLE devices 
-STE_RUN_TIME        = 3.    # STE rolling time in secconds
+STE_RUN_TIME        = 1.    # STE rolling time in secconds
+STE_RUN_COUNT       = ( 23, 47, 94, 188, 376 )  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz
 MAX_STE_RUN_TIME    = 30.   # max STE rolling time in seconds
 #
 # global variables
@@ -93,19 +94,19 @@ gSCDflashPacket     = bytearray(SCD_MAX_FLASH)
 STE_mode = bytearray(35)
 STE_mode[ 0: 4]  = b'\x00\x00\x00\x00'  # [ 0~ 3] Unix time
 #
-mode  = 241  # 01 sensor En/Disable - accelerometer
-#ode |= 2    # 02 sensor En/Disable - magnetometer
-#ode |= 4    # 04 sensor En/Disable - light
-#ode |= 8    # 08 sensor En/Disable - temperature
+mode  = 0xf1 # 01 sensor En/Disable - accelerometer
+#ode |= 0x02 # 02 sensor En/Disable - magnetometer
+#ode |= 0x04 # 04 sensor En/Disable - light
+#ode |= 0x08 # 08 sensor En/Disable - temperature
 STE_mode[ 4: 5] = bytes(struct.pack('<h',mode))
 #
-#ode  = 0    # ?0 data rate - accelerometer ODR 400Hz
-#ode  = 1    # ?1 data rate - accelerometer ODR 800Hz
-#ode  = 2    # ?2 data rate - accelerometer ODR 1600Hz
-#ode  = 3    # ?3 data rate - accelerometer ODR 3200Hz
-Mode  = 4    # ?4 data rate - accelerometer ODR 6400Hz
-#ode |= 0    # 0? data rate - light sensor ODR 100ms(10Hz)
-#ode |= 16   # 1? data rate - light sensor ODR 800ms(1.25Hz)
+#ode  = 0x00 # ?0 data rate - accelerometer ODR 400Hz
+#ode  = 0x01 # ?1 data rate - accelerometer ODR 800Hz
+#ode  = 0x02 # ?2 data rate - accelerometer ODR 1600Hz
+mode  = 0x03 # ?3 data rate - accelerometer ODR 3200Hz
+#ode  = 0x04 # ?4 data rate - accelerometer ODR 6400Hz
+#ode |= 0x00 # 0? data rate - light sensor ODR 100ms(10Hz)
+#ode |= 0x10 # 1? data rate - light sensor ODR 800ms(1.25Hz)
 STE_mode[ 5: 6] = bytes(struct.pack('<h',mode))
 #
 STE_mode[ 6: 8]  = b'\xE4\x07'          # [ 6~ 7] accelerometer threshold
@@ -115,11 +116,11 @@ STE_mode[20:22]  = b'\x80\x57'          # [20~21] magnetometer threshold
 STE_mode[26:28]  = b'\x80\xF3'          # [26~27] temperature threshold low
 STE_mode[28:30]  = b'\x00\x2D'          # [28~29] temperature threshold high
 #
-mode  = 240  # [   30] F0 sensor raw value to flash
-mode |= 1    # [   30] 01 sensor raw value to flash - accelerometer
-#ode |= 2    # [   30] 02 sensor raw value to flash - magnetometer
-#ode |= 4    # [   30] 04 sensor raw value to flash - light
-#ode |= 8    # [   30] 08 sensor raw value to flash - temperature
+mode  = 0xf0 # F0 sensor raw value to flash
+mode |= 0x01 # 01 sensor raw value to flash - accelerometer
+#ode |= 0x02 # 02 sensor raw value to flash - magnetometer
+#ode |= 0x04 # 04 sensor raw value to flash - light
+#ode |= 0x08 # 08 sensor raw value to flash - temperature
 STE_mode[30:31] = bytes(struct.pack('<h',mode))
 #
 gTargetSTEmode = bytes(STE_mode[0:35])
@@ -260,11 +261,12 @@ class NotifyDelegate(DefaultDelegate):
             print_STE_notify_data ( data )
         elif cHandle == SCD_BDT_DATA_FLOW_HND:
             #print("**** >" if gNotifyCount==1 else ">", end='', flush=True)
-            gSCDflashCount = gNotifyCount
-            idx = gSCDflashCount*16
-            gSCDflashPacket[idx:idx+16] = data[4:20]
+            #gSCDflashCount = gNotifyCount
+            #idx = gSCDflashCount*16
+            #gSCDflashPacket[idx:idx+16] = data[4:20]
+            print("**** %2d-#%3d-[%s][%s]" % (cHandle, gNotifyCount, hex_str(data[0:4]),hex_str(data[4:20])), end='\n', flush = True)
         else:
-            print("**** %2d-#%3d-[%s]" % (cHandle, gNotifyCount, hex_str(gNotifyLastData)), end='\n', flush = True)
+            print("**** %2d-#%3d-[%s]" % (cHandle, gNotifyCount, hex_str(data)), end='\n', flush = True)
 
 #############################################
 #############################################
@@ -407,17 +409,18 @@ print ("\tSTE config. is \n[%s](%d)" % (hex_str(ret_val), len(ret_val)))
 # start STE
 #
 print ("+--- STE Starting...")
-time_start = time.time()
-p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
-time.sleep(0.7)
 p.setDelegate( NotifyDelegate(p) )
 p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1))
 time.sleep(0.7)
+p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
+time_start = time.time()
 while True:
-    wait_flag = p.waitForNotifications(1.)
+    wait_flag = p.waitForNotifications(3.)
     time_stop = time.time()
     if (time_stop-time_start) > STE_RUN_TIME:
         print ( "\n\t[done] STE time exceeded", end = '\n', flush = True )
+        p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
+        print ("\n+--- STE Stopped")
         break
     if wait_flag:
         ##print ( "\t~", end = '\n', flush = True )
@@ -426,13 +429,20 @@ while True:
 #
 # stop STE
 #
-p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
+while True:
+    wait_flag = p.waitForNotifications(1.)
+    time_stop = time.time()
+    if (time_stop-time_start) > MAX_STE_RUN_TIME:
+        break
+    if gNotifyCount > ( STE_RUN_COUNT[ (gTargetSTEmode[5]&0x0f) ] * STE_RUN_TIME ):
+        break
 ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
 while ( ret_val != b'\x00' ):
     ##print ("\tSTE has not completed yet, generic command is [%s]" % ret_val.hex())
     time.sleep(0.7)
     ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
-print ("\n+--- STE Stopped")    
+print ("\n+--- STE Notification Completed")
+
 #############################################
 #
 # output rolling time & count
@@ -456,11 +466,12 @@ p.writeCharacteristic( SCD_BDT_DATA_FLOW_HND+1, struct.pack('<H', 1) )
 time.sleep(0.7)
 p.writeCharacteristic( SCD_BDT_CONTROL_HND, b'\x01' )
 while True:  
-    wait_flag = p.waitForNotifications(1.)
+    wait_flag = p.waitForNotifications(3.)
     ret_val = p.readCharacteristic( SCD_BDT_STATUS_HND )
     if ret_val != b'x01':
         break
 time.sleep(5.0)
+p.waitForNotifications(5.)
 print ("\n+--- Bulk Data Transfer completed...status is [%s] packet count: [%d]" \
        % (ret_val.hex(), gNotifyCount), end = '\n', flush = True)
 
@@ -481,7 +492,7 @@ time.sleep(10.)
 p.disconnect()
 #
 #############################################
-
+"""
 #############################################
 #
 # write flash dump time series data file
@@ -510,4 +521,4 @@ if f != None:
 print ("+--- all done !")
 #
 #############################################
-
+"""
