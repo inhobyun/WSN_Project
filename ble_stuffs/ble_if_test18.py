@@ -1,18 +1,22 @@
 """
 Code to test communication with blutooth ble device
 
-This code does discover BOSCH SCD Sensor device via blutooth ble communication, and read sensor data
-followings are the steps in this code;
+This code does discover BOSCH SCD Sensor device via blutooth ble communication, read sensor data
+followings are the steps included this code;
 - discovery
 - connect
 - set mode
 - set STE configuration
-- start STE
+- start STE(Short Time Experiment)
 - stop STE
-- get STE vResult
+- get flash memory dump
+- write dump to a file
+- disconnect
 
-by Inho Byun
-started 2020-10-12
+by Inho Byun, Researcher/KAIST
+   inho.byun@gmail.com
+                    started 2020-10-12
+                    last updated 2020-10-23
 """
 import sys
 import time
@@ -95,9 +99,9 @@ STE_mode[ 4: 5] = bytes(struct.pack('<h',mode))
 #
 #ode  = 0    # ?0 data rate - accelerometer ODR 400Hz
 #ode  = 1    # ?1 data rate - accelerometer ODR 800Hz
-mode  = 2    # ?2 data rate - accelerometer ODR 1600Hz
+#ode  = 2    # ?2 data rate - accelerometer ODR 1600Hz
 #ode  = 3    # ?3 data rate - accelerometer ODR 3200Hz
-#ode  = 4    # ?4 data rate - accelerometer ODR 6400Hz
+Mode  = 4    # ?4 data rate - accelerometer ODR 6400Hz
 #ode |= 0    # 0? data rate - light sensor ODR 100ms(10Hz)
 #ode |= 16   # 1? data rate - light sensor ODR 800ms(1.25Hz)
 STE_mode[ 5: 6] = bytes(struct.pack('<h',mode))
@@ -459,10 +463,10 @@ print ("\n+--- Bulk Data Transfer completed...status is [%s]" % ret_val.hex(), e
 #
 p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x21' ) # reset threshold flag
 time.sleep(0.7)
-p.writeCharacteristic( SCD_SET_MODE_HND, b'\xFF' )    # mode selection
-time.sleep(0.7)
+##p.writeCharacteristic( SCD_SET_MODE_HND, b'\xFF' )    # mode selection
+##time.sleep(0.7)
 p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x30' ) # erase sensor data
-print ("+--- Erase flash wait for seconds...")
+print ("+--- Erase flash wait for seconds...wait...")
 time.sleep(10.)
 #
 # disconnect
@@ -473,21 +477,24 @@ p.disconnect()
 
 #############################################
 #
-# write time series data file
+# write flash dump time series data file
 #
-print ("+--- Save data to file...")
+print ("+--- Save flash dump data to file...")
+file_path  = "~/"
+file_path += "SCD_flash_dump_" + datetime.datetime.fromtimestamp(gNotifyStartTime).strftime('%Y-%m-%d_%H:%M:%S')
+file_path  = ".csv"
 n = 1
 f = open("~/SCD_result_log.csv", "w")
 for i in range(0, gSCDflashCount+16, 16):
     for j in range(0, 16, 2):
         idx = i*16 + j
-        val = (struct.unpack("<i", gSCDflashPack[idx: idx+2]))[0]
-        f.write ( "%5.1f", val/10.)
+        val = (struct.unpack("<i", gSCDflashPacket[idx: idx+2]))[0]
+        f.write ( "%5.1f", float(val)/10. )
         f.write ( "," if n%3 != 0 else "\r\n" )
         n += 1
 f.write ("total %d line recorded" % n)            
 f.close()
-print ("+--- All done !")
+print ("+--- all done !")
 #
 #############################################
 
