@@ -66,7 +66,7 @@ SCD_MAX_NOTIFY  = SCD_MAX_FLASH>>4  # int(SCD_MAX_FLASH / 16)
 #
 SCAN_TIME           = 8.    # scanning duration for BLE devices 
 STE_RUN_TIME        = 1.    # STE rolling time in secconds
-STE_RUN_COUNT       = ( 23, 47, 94, 188, 376 )  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz
+STE_FREQUENCY       = ( 400, 800, 1600, 3200, 6400 )  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz
 MAX_STE_RUN_TIME    = 30.   # max STE rolling time in seconds
 #
 # global variables
@@ -281,7 +281,6 @@ class NotifyDelegate(DefaultDelegate):
         else:
             print("**** %2d-#%3d-[%s]" % (cHandle, gNotifyCount, hex_str(data)), end='\n', flush = True)
 
-
 #############################################
 # Define Scan_and_connect
 #############################################
@@ -485,8 +484,8 @@ while True:
     if ret_val != b'x01':
         break
 time.sleep(0.7)
-print ("\n+--- Bulk Data Transfer completed...status is [%s] packet count: [%d]" \
-       % (ret_val.hex(), gNotifyCount), end = '\n', flush = True)
+print ("\n+--- Bulk Data Transfer completed...status is [%s]" % ret_val.hex())
+print ("\tNotification count [%d], Packet Count [%d]" % gNotifyCount, gBDTpacketCount)
 
 #############################################
 #
@@ -519,6 +518,11 @@ try:
 except:
     print ("\tfile error!")   
 if f != None:
+    tm = float( (struct.unpack('<l', gTargetSTEmode[0:4]))[0] )   
+    f.write("STE configuration setting time: %s(%.3f)\n" \
+            % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm)
+           )
+    f.write("STE frequency: %d\n" % STE_FREQUENCY[ int(gTargetSTEmode[5]) & 0xf ])       
     line = n = 0
     for i in range(0, gBDTpacketCount*16, 16):
         for j in range(0, 16, 2):
@@ -533,7 +537,7 @@ if f != None:
             else:
                 f.write ( "\n" )
                 line += 1
-    f.write ("total %d line recorded" % line)            
+    f.write ("\ntotal %d line recorded" % line)            
     f.close()
 print ("+--- all done !")
 #
