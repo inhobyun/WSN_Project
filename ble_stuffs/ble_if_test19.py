@@ -260,11 +260,11 @@ class NotifyDelegate(DefaultDelegate):
         if cHandle == SCD_STE_RESULT_HND:
             print_STE_notify_data ( data )
         elif cHandle == SCD_BDT_DATA_FLOW_HND:
-            #print("**** >" if gNotifyCount==1 else ">", end='', flush=True)
-            #gSCDflashCount = gNotifyCount
-            #idx = gSCDflashCount*16
-            #gSCDflashPacket[idx:idx+16] = data[4:20]
-            print("**** %2d-#%3d-[%s][%s]" % (cHandle, gNotifyCount, hex_str(data[0:4]),hex_str(data[4:20])), end='\n', flush = True)
+            print("**** >" if gNotifyCount==1 else ">", end='', flush=True)
+            gSCDflashCount = gNotifyCount
+            idx = gSCDflashCount*16
+            gSCDflashPacket[idx:idx+16] = data[4:20]
+            #print("**** %2d-#%3d-[%s][%s]" % (cHandle, gNotifyCount, hex_str(data[0:4]),hex_str(data[4:20])), end='\n', flush = True)
         else:
             print("**** %2d-#%3d-[%s]" % (cHandle, gNotifyCount, hex_str(data)), end='\n', flush = True)
 
@@ -412,35 +412,28 @@ print ("\tSTE config. is \n[%s](%d)" % (hex_str(ret_val), len(ret_val)))
 #
 print ("+--- STE Starting...")
 p.setDelegate( NotifyDelegate(p) )
-p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1))
-time.sleep(0.7)
+##p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1))
+##time.sleep(0.7)
 p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
 time_start = time.time()
 while True:
-    wait_flag = p.waitForNotifications(3.)
+    wait_flag = p.waitForNotifications(1.)
     time_stop = time.time()
+    ##if wait_flag:
+        ##print ( "\t~", end = '\n', flush = True )
+        ##continue
     if (time_stop-time_start) > STE_RUN_TIME:
         print ( "\n\t[done] STE time exceeded", end = '\n', flush = True )
         p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
         print ("\n+--- STE Stopped")
         break
-    if wait_flag:
-        ##print ( "\t~", end = '\n', flush = True )
-        continue
 #############################################
 #
 # stop STE
 #
-while True:
-    wait_flag = p.waitForNotifications(1.)
-    time_stop = time.time()
-    if (time_stop-time_start) > MAX_STE_RUN_TIME:
-        break
-    if gNotifyCount > ( STE_RUN_COUNT[ (gTargetSTEmode[5]&0x0f) ] * STE_RUN_TIME ):
-        break
 ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
 while ( ret_val != b'\x00' ):
-    ##print ("\tSTE has not completed yet, generic command is [%s]" % ret_val.hex())
+    print ("\tSTE has not completed yet, generic command is [%s]" % ret_val.hex())
     time.sleep(0.7)
     ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
 print ("\n+--- STE Notification Completed")
@@ -450,10 +443,11 @@ print ("\n+--- STE Notification Completed")
 # output rolling time & count
 #    
 ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
-print ("+--- Last notification data is as below...rolling Time [%.3f], Count [%d]"\
-	% ( (gNotifyLastTime-gNotifyStartTime), gNotifyCount))
-print ("\t     [%s]" % hex_str(gNotifyLastData))
-print_STE_result(gNotifyLastData)
+if gNotifyCount > 0 :
+    print ("+--- Last notification data is as below...rolling Time [%.3f], Count [%d]"\
+        	% ( (gNotifyLastTime-gNotifyStartTime), gNotifyCount))
+    print ("\t     [%s]" % hex_str(gNotifyLastData))
+    print_STE_result(gNotifyLastData)
 #############################################
 #
 # bulk data transfer 
@@ -495,7 +489,7 @@ time.sleep(10.)
 p.disconnect()
 #
 #############################################
-"""
+
 #############################################
 #
 # write flash dump time series data file
@@ -524,4 +518,4 @@ if f != None:
 print ("+--- all done !")
 #
 #############################################
-"""
+
