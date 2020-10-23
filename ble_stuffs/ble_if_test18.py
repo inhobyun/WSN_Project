@@ -58,7 +58,7 @@ SCD_BDT_DATA_FLOW_HND   = 45    # RN, uuid: 02a65821-3003-1000-2000-b05cb05cb05c
 # MAX constant of BOSCH SCD
 #
 SCD_MAX_MTU     = 65                # MAX SCD Comm. Packet size
-SCD_MAX_FLASH   = 720896            # (0x0b0000, 11*16**4)
+SCD_MAX_FLASH   = 0x0b0000          # 720896, 11*16**4)
 SCD_MAX_NOTIFY  = SCD_MAX_FLASH>>4  # int(SCD_MAX_FLASH / 16)
 
 #
@@ -72,6 +72,8 @@ MAX_STE_RUN_TIME    = 30.   # max STE rolling time in seconds
 #
 gTargetDevice       = None  # target device object 
 gScannedCount       = 0     # count of scanned BLE devices
+gTargetAddr         = ""    # address of target device
+gTargetAddrType     = ""    # address type of target device
 gNotifyCount        = 0     # count of notifications from connected device
 gNotifyStartTime    = 0.    # notification start timestamp
 gNotifyLastTime     = 0.    # notification last timestamp
@@ -306,6 +308,8 @@ if gTargetDevice == None:
 #
 # connect
 #
+gTargetAddr = gTargetDevice.addr
+gTargetAddrType = gTargetDevice.addrType
 print("+--- Connecting [%s], type=[%s]" % (gTargetDevice.addr, gTargetDevice.addrType))
 p = None
 retry = 0
@@ -358,6 +362,7 @@ print ("\tMode is [%s] 00:STE, ff:Mode Selection" % ret_val.hex())
 #
 ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
 print ("\tFlash memory remain is [%s] MAX:0b0000" % ret_val[31:34].hex())
+'''
 if (struct.unpack('i', ret_val[31:35]))[0] < SCD_MAX_FLASH:
     print ("\t\t=> flash memory is not empty...cleanning-up flash and re-connect device")
     p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x30' ) # erase sensor data
@@ -365,7 +370,8 @@ if (struct.unpack('i', ret_val[31:35]))[0] < SCD_MAX_FLASH:
     time.sleep(0.7)
     p.disconnect()
     time.sleep(10.)
-    p = Peripheral(gTargetDevice.addr, gTargetDevice.addrType)
+    p = Peripheral(gTargetAddr, gTargetAddrType)
+'''    
 #
 STE_result_0 = p.readCharacteristic( SCD_STE_RESULT_HND )
 time.sleep(1.)
@@ -455,7 +461,8 @@ while True:
     if ret_val != b'x01':
         break
 time.sleep(5.0)
-print ("\n+--- Bulk Data Transfer completed...status is [%s]" % ret_val.hex(), end = '\n', flush = True)
+print ("\n+--- Bulk Data Transfer completed...status is [%s] packet count: [%d]" \
+       % (ret_val.hex(), gNotifyCount), end = '\n', flush = True)
 
 #############################################
 #
@@ -480,20 +487,26 @@ p.disconnect()
 # write flash dump time series data file
 #
 print ("+--- Save flash dump data to file...")
-file_path  = "~/"
-file_path += "SCD_flash_dump_" + datetime.datetime.fromtimestamp(gNotifyStartTime).strftime('%Y-%m-%d_%H:%M:%S')
-file_path  = ".csv"
+file_path  = "SCD_flash_dump_"
+file_path += datetime.datetime.fromtimestamp(gNotifyStartTime).strftime('%Y-%m-%d_%H:%M:%S')
+file_path += ".csv"
 n = 1
-f = open("~/SCD_result_log.csv", "w")
-for i in range(0, gSCDflashCount+16, 16):
-    for j in range(0, 16, 2):
-        idx = i*16 + j
-        val = (struct.unpack("<i", gSCDflashPacket[idx: idx+2]))[0]
-        f.write ( "%5.1f", float(val)/10. )
-        f.write ( "," if n%3 != 0 else "\r\n" )
-        n += 1
-f.write ("total %d line recorded" % n)            
-f.close()
+try:
+    f = open(file_path, "x")
+except:
+    print ("\tfile error!")
+if f != None:
+    for i in range(0, gSCDflashCount+16, 16):
+        for j in range(0, 16, 2):
+            idx = i*16 + j
+            val_b = gSCDflashPacket[idx: idx+2]
+            val_i = int.from_bytes(val_b, byteorder='little', signed=True)
+            val_f = float ( val_i ) / 10.
+            f.write ( "%5.1f" % val_f )
+            f.write ( "," if n%3 != 0 else "\r\n" )
+            n += 1
+    f.write ("total %d line recorded" % n)            
+    f.close()
 print ("+--- all done !")
 #
 #############################################
