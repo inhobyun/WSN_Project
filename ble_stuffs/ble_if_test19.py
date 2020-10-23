@@ -58,7 +58,7 @@ SCD_BDT_DATA_FLOW_HND   = 45    # RN, uuid: 02a65821-3003-1000-2000-b05cb05cb05c
 # MAX constant of BOSCH SCD
 #
 SCD_MAX_MTU     = 65                # MAX SCD Comm. Packet size
-SCD_MAX_FLASH   = 0x0b0000          # 720896, 11*16**4)
+SCD_MAX_FLASH   = 0x0b0000          # 11*16**4 = 720896 = 704K
 SCD_MAX_NOTIFY  = SCD_MAX_FLASH>>4  # int(SCD_MAX_FLASH / 16)
 
 #
@@ -75,17 +75,18 @@ gTargetDevice       = None  # target device object
 gScannedCount       = 0     # count of scanned BLE devices
 gTargetAddr         = ""    # address of target device
 gTargetAddrType     = ""    # address type of target device
+gTargetSTEmode      = bytes(35)     # Sensor Mode
 gNotifyCount        = 0     # count of notifications from connected device
 gNotifyStartTime    = 0.    # notification start timestamp
 gNotifyLastTime     = 0.    # notification last timestamp
-gNotifyLastData     = bytes(33)     # STE vResult data
-gTargetSTEmode      = bytes(35)     # Sensor Mode
+gNotifyLastData     = bytes(33)     # STE pResult data
 #
 # SCD flash memeory block
-# MAX: 0x0b0000 bytes = 45056 x 16 bytes packet
+# MAX: 0x0b0000/720896 bytes, 704 KB
 #
-gSCDflashCount      = 0
-gSCDflashPacket     = bytearray(SCD_MAX_FLASH)
+gBDTpacketCount    = 0
+gBDTpacketData     = bytearray(SCD_MAX_FLASH)
+gBDTpacketCRC32    = bytearray(4)
 
 #############################################
 # STE(Short Time Experiment) mode configuration (35 bytes) 
@@ -138,53 +139,53 @@ def hex_str( vBytes ):
 #############################################
 # output STE data
 #
-def print_STE_data( vResult ):
+def print_STE_data( pResult ):
 
 # output Accelerrometer X, Y, Z axis arithmetic mean & variation  
-    accel_mean_x = float( int.from_bytes(vResult[0:2], byteorder='little', signed=True) ) \
+    adxl_mean_x = float( int.from_bytes(pResult[0:2], byteorder='little', signed=True) ) \
                   / 10.0
-    accel_vari_x = float( int.from_bytes(vResult[6:10], byteorder='little', signed=True) ) \
-                   / 100.0
-    accel_mean_y = float( int.from_bytes(vResult[2:4], byteorder='little', signed=True) ) \
+    adxl_vari_x = float( int.from_bytes(pResult[6:10], byteorder='little', signed=True) ) \
+                  / 100.0
+    adxl_mean_y = float( int.from_bytes(pResult[2:4], byteorder='little', signed=True) ) \
                   / 10.0
-    accel_vari_y = float( int.from_bytes(vResult[10:14], byteorder='little', signed=True) ) \
-                   / 100.0
-    accel_mean_z = float( int.from_bytes(vResult[4:6], byteorder='little', signed=True) ) \
+    adxl_vari_y = float( int.from_bytes(pResult[10:14], byteorder='little', signed=True) ) \
+                  / 100.0
+    adxl_mean_z = float( int.from_bytes(pResult[4:6], byteorder='little', signed=True) ) \
                   / 10.0
-    accel_vari_z = float( int.from_bytes(vResult[14:18], byteorder='little', signed=True) ) \
-                   / 100.0
-# output temperature
-    temperature = float( int.from_bytes(vResult[18:20], byteorder='little', signed=True) ) \
+    adxl_vari_z = float( int.from_bytes(pResult[14:18], byteorder='little', signed=True) ) \
+                  / 100.0
+    # output temperature
+    temperature = float( int.from_bytes(pResult[18:20], byteorder='little', signed=True) ) \
                   * 0.0078
-# output light
-    light = float( int.from_bytes(vResult[20:24], byteorder='little', signed=True) )
-# output Magnetometer X, Y, Z axis raw data 
-    magneto_x = float( int.from_bytes(vResult[24:26], byteorder='little', signed=True) ) \
-                  / 16.0
-    magneto_y = float( int.from_bytes(vResult[26:28], byteorder='little', signed=True) ) \
-                  / 16.0
-    magneto_z = float( int.from_bytes(vResult[28:30], byteorder='little', signed=True) ) \
-                  / 16.0
-# print    
-    print ("A: X[%4.1f][%4.2f] Y[%4.1f][%4.2f] Z[%4.1f][%4.2f] g" %\
-           ( accel_mean_x, accel_vari_x, accel_mean_y, accel_vari_y, accel_mean_z, accel_vari_z
-           ), \
+    # output light
+    light = float( int.from_bytes(pResult[20:24], byteorder='little', signed=True) ) \
+            / 1000.0
+    # output Magnetometer X, Y, Z axis raw data 
+    magneto_x = float( int.from_bytes(pResult[24:26], byteorder='little', signed=True) ) \
+                / 16.0
+    magneto_y = float( int.from_bytes(pResult[26:28], byteorder='little', signed=True) ) \
+                / 16.0
+    magneto_z = float( int.from_bytes(pResult[28:30], byteorder='little', signed=True) ) \
+                / 16.0
+    # print    
+    print ("A: X[%4.1f][%4.2f] Y[%4.1f][%4.2f] Z[%4.1f][%4.2f]g" %\
+           ( adxl_mean_x, adxl_vari_x, adxl_mean_y, adxl_vari_y, adxl_mean_z, adxl_vari_z ), \
            end = '' \
           )
     print (" - T: [%4.2f]C" % temperature, end = '' )
-    print (" - L: [%7.3f] lux" % (light/1000.), end = '' )
-    print (" - M: X[%5.1f] Y[%5.1f] Z[%5.1f] uT" % (magneto_x, magneto_y, magneto_z), end = '\n', flush = True )
+    print (" - L: [%7.3f]lux" % light, end = '' )
+    print (" - M: X[%5.1f] Y[%5.1f] Z[%5.1f]uT" % (magneto_x, magneto_y, magneto_z), end = '\n', flush = True )
     return
 
 #############################################    
 # print STE result
 #
-def print_STE_result( vResult ):
+def print_STE_result( pResult ):
     global gTargetSTEmode
     global gNotifyStartTime
     global gNotifyLastTime
 
-# output time stamp
+    # output time stamp
     tm = float( (struct.unpack('<l', gTargetSTEmode[0:4]))[0] )   
     print ( "\tSTE config. time   : %s(%.3f)" \
             % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
@@ -193,17 +194,17 @@ def print_STE_result( vResult ):
     print ( "\tNotification End   : %s(%.3f)" \
             % (datetime.datetime.fromtimestamp(gNotifyLastTime).strftime('%Y-%m-%d %H:%M:%S'), gNotifyLastTime) )      
     print ("\t")
-    print_STE_data (vResult)
+    print_STE_data (pResult)
     return
 
 #############################################
 # print STE notify data
 #
-def print_STE_notify_data( vResult ):
+def print_STE_notify_data( pResult ):
     global gNotifyCount
 
     print("**** #%3d -" % gNotifyCount, end = '', flush = True)
-    print_STE_data (vResult)
+    print_STE_data (pResult)
     return
   
 #############################################
@@ -248,25 +249,103 @@ class NotifyDelegate(DefaultDelegate):
         global gNotifyStartTime
         global gNotifyLastTime
         global gNotifyLastData
-        global gSCDflashCount
-        global gSCDflashPacket
+        global gBDTpacketCount
+        global gBDTpacketData
+        global gBDTpacketCRC32
 
-        if gNotifyCount < 1:
+        if gNotifyCount == 0:
             gNotifyLastTime = gNotifyStartTime = time.time()
         else:
             gNotifyLastTime = time.time()
         gNotifyLastData = data    
         gNotifyCount += 1
         if cHandle == SCD_STE_RESULT_HND:
+            # STE notification
             print_STE_notify_data ( data )
         elif cHandle == SCD_BDT_DATA_FLOW_HND:
-            print("**** >" if gNotifyCount==1 else ">", end='', flush=True)
-            gSCDflashCount = gNotifyCount
-            idx = gSCDflashCount*16
-            gSCDflashPacket[idx:idx+16] = data[4:20]
+            # BDT notification
             #print("**** %2d-#%3d-[%s][%s]" % (cHandle, gNotifyCount, hex_str(data[0:4]),hex_str(data[4:20])), end='\n', flush = True)
+            packet_no = int.from_bytes(data[0:4], byteorder='little', signed=False)
+            if packet_no == 0:
+                # header packet
+                gBDTpacketCount = int.from_bytes(data[4:8], byteorder='little', signed=False)
+            elif packet_no < gBDTpacketCount-1:    
+                # data packet
+                idx = packet_no * 16
+                gBDTpacketData[idx:idx+16] = data[4:20]
+            elif packet_no == gBDTpacketCount-1:
+                # footer packet
+                gBDTpacketCRC32 = data[4:8]
+            else:
+                print("**** BDT Packet No Error !... [%d] should less than [%d]" % (packet_no, gBDTpacketCount), end='\n', flush = True)
         else:
             print("**** %2d-#%3d-[%s]" % (cHandle, gNotifyCount, hex_str(data)), end='\n', flush = True)
+
+
+#############################################
+# Define Scan_and_connect
+#############################################
+def scan_and_connect( is_first = True ):
+    global SCAN_TIME
+    global TARGET_MANUFA_UUID
+    global TARGET_DEVICE_NAME
+    global gTargetDevice
+    #
+    # scanning for a while
+    #
+    scanner = Scanner().withDelegate(ScanDelegate())
+    if is_first:
+        print ("+--- BLE Device scan started..." )
+    else:
+        print ("+--- BLE Device scan restarted..." )    
+    devices = scanner.scan(SCAN_TIME)
+    print ("\n+--- BLE Device scan completed... [%d] devices are scanned" % gScannedCount)
+    #
+    # check to match BOSCH SCD device identifiers
+    #
+    for dev in devices:
+        matching_count = 0
+        for (adtype, desc, value) in dev.getScanData():
+            if adtype == 255 and TARGET_MANUFA_UUID in value:
+                matching_count += 1
+                print("\tfound target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value))            
+            if adtype == 9 and TARGET_DEVICE_NAME in value:
+                matching_count += 1
+                print("\tfound target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value))            
+            if matching_count >= 2:
+                print("+--- Device address [%s], type=[%s], RSSI=[%d]dB" % (dev.addr, dev.addrType, dev.rssi))
+                print("\tfound BOSCH SCD device!")
+                gTargetDevice = dev
+                break
+        if gTargetDevice != None:
+            break
+    #
+    # if none found then exiting    
+    #
+    if gTargetDevice == None:
+        print("No matching device found... Exiting...")
+        sys.exit(1)
+    #
+    # connect
+    #
+    print("+--- Connecting [%s], type=[%s]" % (gTargetDevice.addr, gTargetDevice.addrType))
+    p = None
+    retry = 0
+    while p == None:
+        try:
+            p = Peripheral(gTargetDevice.addr, gTargetDevice.addrType)
+        except:
+            print("BLE Device connection error occured... Retry after 3 sec...")
+            retry += 1
+            if retry > 3:
+                print("BLE Device connection error occured... Exiting...")
+                sys.exit(-1)
+            time.sleep(3)    
+    #
+    # should increase MTU
+    #           
+    p.setMTU(SCD_MAX_MTU)
+    return p
 
 #############################################
 #############################################
@@ -274,61 +353,7 @@ class NotifyDelegate(DefaultDelegate):
 # Main starts here
 #
 #############################################
-#############################################
-#
-# scanning for a while
-#
-scanner = Scanner().withDelegate(ScanDelegate())
-print ("+--- BLE Device scan started..." )
-devices = scanner.scan(SCAN_TIME)
-print ("\n+--- BLE Device scan completed... [%d] devices are scanned" % gScannedCount)
-#
-# check to match BOSCH SCD device identifiers
-#
-for dev in devices:
-    matching_count = 0
-    for (adtype, desc, value) in dev.getScanData():
-        if adtype == 255 and TARGET_MANUFA_UUID in value:
-            matching_count += 1
-            print("\tfound target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value))            
-        if adtype == 9 and TARGET_DEVICE_NAME in value:
-            matching_count += 1
-            print("\tfound target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value))            
-        if matching_count >= 2:
-            print("+--- Device address [%s], type=[%s], RSSI=[%d]dB" % (dev.addr, dev.addrType, dev.rssi))
-            print("\tfound BOSCH SCD device!")
-            gTargetDevice = dev
-            break
-    if gTargetDevice != None:
-        break
-#
-# if none found then exiting    
-#
-if gTargetDevice == None:
-    print("No matching device found... Exiting...")
-    sys.exit(1)
-#
-# connect
-#
-gTargetAddr = gTargetDevice.addr
-gTargetAddrType = gTargetDevice.addrType
-print("+--- Connecting [%s], type=[%s]" % (gTargetDevice.addr, gTargetDevice.addrType))
-p = None
-retry = 0
-while p == None:
-    try:
-        p = Peripheral(gTargetDevice.addr, gTargetDevice.addrType)
-    except:
-        print("BLE Device connection error occured... Retry after 3 sec...")
-        retry += 1
-        if retry > 3:
-            print("BLE Device connection error occured... Exiting...")
-            sys.exit(-1)
-        time.sleep(3)    
-#
-# should increase MTU
-#           
-p.setMTU(SCD_MAX_MTU)
+p = scan_and_connect()
 #
 # read Device Name, Manufacurer Name
 #
@@ -364,18 +389,17 @@ print ("\tMode is [%s] 00:STE, ff:Mode Selection" % ret_val.hex())
 #
 ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
 print ("\tFlash memory remain is [%s] MAX:0b0000" % ret_val[31:34].hex())
-if (struct.unpack('i', ret_val[31:35]))[0] < SCD_MAX_FLASH:
-    print ("\t\t=> flash memory is not empty...Pls, cleanning-up flash and re-try")
+if (struct.unpack('i', ret_val[31:35]))[0] < SCD_MAX_FLASH:  
+    print ("\t\t=> flash memory is not empty...cleanning-up flash and re-try")
+'''      
     p.disconnect()
     sys.exit(0)
 '''
-    p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x30' ) # erase sensor data
     print ("+--- Erase flash wait for seconds...")
-    time.sleep(0.7)
+    p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x30' ) # erase sensor data
     p.disconnect()
     time.sleep(10.)
-    p = Peripheral(gTargetAddr, gTargetAddrType)
-'''    
+    p = scan_and_connect(False)    
 #
 STE_result_0 = p.readCharacteristic( SCD_STE_RESULT_HND )
 time.sleep(1.)
@@ -412,20 +436,17 @@ print ("\tSTE config. is \n[%s](%d)" % (hex_str(ret_val), len(ret_val)))
 #
 print ("+--- STE Starting...")
 p.setDelegate( NotifyDelegate(p) )
-##p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1))
-##time.sleep(0.7)
+p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1))
+time.sleep(0.7)
 p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
 time_start = time.time()
 while True:
     wait_flag = p.waitForNotifications(1.)
     time_stop = time.time()
-    ##if wait_flag:
-        ##print ( "\t~", end = '\n', flush = True )
-        ##continue
     if (time_stop-time_start) > STE_RUN_TIME:
         print ( "\n\t[done] STE time exceeded", end = '\n', flush = True )
         p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
-        print ("\n+--- STE Stopped")
+        print ("\tSTE is stopping")
         break
 #############################################
 #
@@ -436,18 +457,17 @@ while ( ret_val != b'\x00' ):
     print ("\tSTE has not completed yet, generic command is [%s]" % ret_val.hex())
     time.sleep(0.7)
     ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
-print ("\n+--- STE Notification Completed")
-
+print ("\n+--- STE Stoped")
 #############################################
 #
-# output rolling time & count
+# output STE rolling time & count
 #    
-ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
 if gNotifyCount > 0 :
     print ("+--- Last notification data is as below...rolling Time [%.3f], Count [%d]"\
         	% ( (gNotifyLastTime-gNotifyStartTime), gNotifyCount))
     print ("\t     [%s]" % hex_str(gNotifyLastData))
     print_STE_result(gNotifyLastData)
+    print ("\trolling counter is [%s]" % gNotifyLastData[32].hex()))
 #############################################
 #
 # bulk data transfer 
@@ -494,28 +514,31 @@ p.disconnect()
 #
 # write flash dump time series data file
 #
-print ("+--- Save flash dump data to file...")
-file_path  = "SCD_flash_dump_"
+print ("+--- Save flash data to file...")
+file_path  = "SCD_recorded_data_"
 file_path += datetime.datetime.fromtimestamp(gNotifyStartTime).strftime('%Y-%m-%d_%H:%M:%S')
 file_path += ".csv"
-n = 1
 try:
     f = open(file_path, "x")
 except:
-    print ("\tfile error!")
+    print ("\tfile error!")   
 if f != None:
-    for i in range(0, gSCDflashCount+16, 16):
+    line = n = 0
+    for i in range(0, gBDTpacketCount*16, 16):
         for j in range(0, 16, 2):
             idx = i*16 + j
-            val_b = gSCDflashPacket[idx: idx+2]
+            val_b = gBDTpacketData[idx: idx+2]
             val_i = int.from_bytes(val_b, byteorder='little', signed=True)
             val_f = float ( val_i ) / 10.
             f.write ( "%5.1f" % val_f )
-            f.write ( "," if n%3 != 0 else "\r\n" )
             n += 1
-    f.write ("total %d line recorded" % n)            
+            if n % 3 != 0:
+                f.write ( "," )
+            else:
+                f.write ( "\n" )
+                line += 1
+    f.write ("total %d line recorded" % line)            
     f.close()
 print ("+--- all done !")
 #
 #############################################
-
