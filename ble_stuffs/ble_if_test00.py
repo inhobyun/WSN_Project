@@ -363,13 +363,13 @@ ret_val = p.readCharacteristic( SCD_SERIAL_NUM_HND )
 print ("\tSerial # is [%s]" % ret_val.decode("utf-8"))
 #
 ret_val = p.readCharacteristic( SCD_FW_REVISION_HND )
-print ("\tFW Revision is [%s]" % ret_val.decode("utf-8"))
+print ("\tRevision is FW [%s]," % ret_val.decode("utf-8"), end = '')
 #
 ret_val = p.readCharacteristic( SCD_HW_REVISION_HND )
-print ("\tHW Revision is [%s]" % ret_val.decode("utf-8"))
+print ("HW [%s]," % ret_val.decode("utf-8"), end = '')
 #
 ret_val = p.readCharacteristic( SCD_SW_REVISION_HND )
-print ("\tSW Revision is [%s]" % ret_val.decode("utf-8"))
+print ("SW [%s]" % ret_val.decode("utf-8"))
 #
 ret_val = p.readCharacteristic( SCD_MANUFA_NAME_HND )
 print ("\tManufacturer Name is [%s]" % ret_val.decode("utf-8"))
@@ -383,15 +383,6 @@ print ("\tSelf Test Result is [%s] c0:OK, otherwise not OK!" % ret_val.hex())
 ret_val = p.readCharacteristic( SCD_SET_MODE_HND )
 print ("\tMode is [%s] 00:STE, ff:Mode Selection" % ret_val.hex())
 #
-ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
-print ("\tFlash memory remain is [%s] MAX:0b0000" % ret_val[31:34].hex())
-if (struct.unpack('i', ret_val[31:35]))[0] < SCD_MAX_FLASH:  
-    print ("\t\t=> flash memory is not empty...cleanning-up flash and re-try")
-    print ("+--- Erase flash wait for seconds...")
-    p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x30' ) # erase sensor data
-    p.disconnect()
-    time.sleep(10.)
-    p = scan_and_connect(False)    
 #
 STE_result_0 = p.readCharacteristic( SCD_STE_RESULT_HND )
 time.sleep(1.)
@@ -401,6 +392,16 @@ if STE_result_0[32] != STE_result_1[32] :
     print ("\t\t=> rolling...set STE stop")
     p.writeCharacteristic( SCD_SET_MODE_HND, b'\x00' )
     p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
+#
+ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
+print ("\tFlash memory remain is [%s] MAX:0b0000" % ret_val[31:34].hex())
+if (struct.unpack('i', ret_val[31:35]))[0] < SCD_MAX_FLASH:  
+    print ("\t\t=> flash memory is not empty...cleanning-up flash and re-try")
+    print ("+--- Erase flash wait for seconds...")
+    p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x30' ) # erase sensor data
+    p.disconnect()
+    time.sleep(10.)
+    p = scan_and_connect(False)    
 #
 #############################################
 #
@@ -417,7 +418,7 @@ if ret_val !=  b'\x00':
 #
 time_bytes = struct.pack('<l', int(time.time()))
 gTargetSTEmode = bytes( time_bytes[0:4] ) + gTargetSTEmode[4:35]
-print ("\tSTE config. set\n[%s](%d)" % (hex_str(gTargetSTEmode), len(gTargetSTEmode)))
+##print ("\tSTE config. set\n[%s](%d)" % (hex_str(gTargetSTEmode), len(gTargetSTEmode)))
 p.writeCharacteristic( SCD_STE_CONFIG_HND, gTargetSTEmode )
 time.sleep(1.)
 ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
@@ -449,9 +450,7 @@ while ( ret_val != b'\x00' ):
     print ("\tSTE has not completed yet, generic command is [%s]" % ret_val.hex())
     time.sleep(0.7)
     ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
-print ("\n+--- STE Stoped")
-if gSTECount > 0 :
-    print ("\tRolling Time [%.3f], Count [%d]" % ( (gSTELastTime-gSTEStartTime), gSTECount))
+print ("\n+--- STE Stoped...rolling time [%.3f], count [%d]" % ( (gSTELastTime-gSTEStartTime), gSTECount))
 #
 #############################################
 
@@ -463,7 +462,7 @@ if gSTECount > 0 :
 print ("+--- Bulk Data Transfer after a while")
 time.sleep(3.0)
 p.setDelegate( NotifyDelegate(p) )
-print ("\tStarting...")
+print ("+--- BDT Starting...")
 time.sleep(0.7)
 p.writeCharacteristic( SCD_BDT_DATA_FLOW_HND+1, struct.pack('<H', 1) )
 time.sleep(0.7)
@@ -500,25 +499,23 @@ p.disconnect()
 #
 # write flash dump time series data file
 #
-print ("+--- Save flash data to file...")
-file_path  = "SCD_recorded_data_"
+print ("+--- Save flash data to binary file...")
+file_path  = "SCD_log_"
 file_path += datetime.datetime.fromtimestamp(gSTEStartTime).strftime('%Y-%m-%d_%H-%M-%S')
 file_path += ".bin"
 try:
-    f = open(file_path, "x")
+    f = open(file_path, "xb")
 except:
     print ("\tfile error!")   
 if f != None:
-    line = n = 0
-    for i in range(1, gBDTpacketCount-1):
-            f.write ( gBDTpacketData[n:n+16] )
-            n += 16
-            line += 1      
+    for i in range(1, gBDTpacketCount):
+        f.write ( gBDTpacketData[i*16:i*16+16] )
     f.close()
 #
 ############################################
 #
-file_path  = "SCD_recorded_data_"
+print ("+--- Save flash data to text file...")
+file_path  = "SCD_log_"
 file_path += datetime.datetime.fromtimestamp(gSTEStartTime).strftime('%Y-%m-%d_%H-%M-%S')
 file_path += ".csv"
 try:
@@ -526,13 +523,14 @@ try:
 except:
     print ("\tfile error!")   
 if f != None:
-    line = n = 0
-    for i in range(1, gBDTpacketCount-1):
-            text_line = ''.join([',' + ch if i % 2 == 0 and i != 0 else ch for i, ch in enumerate(gBDTpacketData[n:n+16].hex())])
-            f.write ( text_line + '\n' )
-            n += 16
-            line += 1      
+    f.write ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ int(gTargetSTEmode[5]) & 0xf ])
+    f.write ("total # of rows: %d\n" % (gBDTpacketCount-1))            
+    f.write (" Row #, 01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, 15, 16\n")
+    for i in range(1, gBDTpacketCount):
+        text_line = ''.join([', ' + ch if j % 2 == 0 and j != 0 else ch for j, ch in enumerate(gBDTpacketData[i*16:i*16+16].hex())])
+        f.write ( "%6d, %s\n" % ( i, text_line ))
+    f.write ("End of Data")    
     f.close()
-print ("+--- [%d] line of data recorded...all done !" % line)
+print ("+--- [%d] line of data recorded...all done !" % (gBDTpacketCount-1))
 #
 #############################################
