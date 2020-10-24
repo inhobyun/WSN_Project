@@ -71,19 +71,16 @@ MAX_STE_RUN_TIME    = 30.   # max STE rolling time in seconds
 #
 # global variables
 #
-gTargetDevice       = None  # target device object 
-gScannedCount       = 0     # count of scanned BLE devices
-gTargetAddr         = ""    # address of target device
-gTargetAddrType     = ""    # address type of target device
-gTargetSTEmode      = bytes(35)     # Sensor Mode
-gNotifyCount        = 0     # count of notifications from connected device
-gNotifyStartTime    = 0.    # notification start timestamp
-gNotifyLastTime     = 0.    # notification last timestamp
-gNotifyLastData     = bytes(33)     # STE pResult data
-#
-# SCD flash memeory block
-# MAX: 0x0b0000/720896 bytes, 704 KB
-#
+gTargetDevice    = None  # target device object 
+gScannedCount    = 0     # count of scanned BLE devices
+# STE - Short Time Experiment
+gTargetSTEmode   = bytes(35)     # Sensor Mode
+gSTECount        = 0     # count of notifications from connected device
+gSTEStartTime    = 0.    # notification start timestamp
+gSTELastTime     = 0.    # notification last timestamp
+gSTEStartData    = bytes(33)     # STE start data
+gSTELastData     = bytes(33)     # STE last data
+# BDT - Block Data Transfer
 gBDTpacketCount    = 0
 gBDTpacketData     = bytearray(SCD_MAX_FLASH)
 gBDTpacketCRC32    = bytearray(4)
@@ -95,13 +92,14 @@ gBDTpacketCRC32    = bytearray(4)
 STE_mode = bytearray(35)
 STE_mode[ 0: 4]  = b'\x00\x00\x00\x00'  # [ 0~ 3] Unix time
 #
-mode  = 0xf1 # 01 sensor En/Disable - accelerometer
+mode  = 0xf0
+mode |= 0x01 # 01 sensor En/Disable - accelerometer
 #ode |= 0x02 # 02 sensor En/Disable - magnetometer
 #ode |= 0x04 # 04 sensor En/Disable - light
 #ode |= 0x08 # 08 sensor En/Disable - temperature
 STE_mode[ 4: 5] = bytes(struct.pack('<h',mode))
 #
-#ode  = 0x00 # ?0 data rate - accelerometer ODR 400Hz
+mode  = 0x00 # ?0 data rate - accelerometer ODR 400Hz
 #ode  = 0x01 # ?1 data rate - accelerometer ODR 800Hz
 #ode  = 0x02 # ?2 data rate - accelerometer ODR 1600Hz
 mode  = 0x03 # ?3 data rate - accelerometer ODR 3200Hz
@@ -182,17 +180,17 @@ def print_STE_data( pResult ):
 #
 def print_STE_result( pResult ):
     global gTargetSTEmode
-    global gNotifyStartTime
-    global gNotifyLastTime
+    global gSTEStartTime
+    global gSTELastTime
 
     # output time stamp
     tm = float( (struct.unpack('<l', gTargetSTEmode[0:4]))[0] )   
     print ( "\tSTE config. time   : %s(%.3f)" \
             % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
     print ( "\tNotification Start : %s(%.3f)" \
-            % (datetime.datetime.fromtimestamp(gNotifyStartTime).strftime('%Y-%m-%d %H:%M:%S'), gNotifyStartTime) )
+            % (datetime.datetime.fromtimestamp(gSTEStartTime).strftime('%Y-%m-%d %H:%M:%S'), gSTEStartTime) )
     print ( "\tNotification End   : %s(%.3f)" \
-            % (datetime.datetime.fromtimestamp(gNotifyLastTime).strftime('%Y-%m-%d %H:%M:%S'), gNotifyLastTime) )      
+            % (datetime.datetime.fromtimestamp(gSTELastTime).strftime('%Y-%m-%d %H:%M:%S'), gSTELastTime) )      
     print ("\t")
     print_STE_data (pResult)
     return
@@ -201,9 +199,9 @@ def print_STE_result( pResult ):
 # print STE notify data
 #
 def print_STE_notify_data( pResult ):
-    global gNotifyCount
+    global gSTECount
 
-    print("**** #%3d -" % gNotifyCount, end = '', flush = True)
+    print("**** #%3d - " % gSTECount, end = '', flush = True)
     print_STE_data (pResult)
     return
   
@@ -234,41 +232,38 @@ class ScanDelegate(DefaultDelegate):
 class NotifyDelegate(DefaultDelegate):
     
     def __init__(self, params):
-        global gNotifyCount
-        global gNotifyStartTime
-        global gNotifyLastTime
-        global gNotifyLastData
 
         DefaultDelegate.__init__(self)
-        gNotifyCount = 0
-        gNotifyLastTime = gNotifyStartTime = time.time()
         print("**** Device Notification Handler is configured", end='\n', flush = True)
       
     def handleNotification(self, cHandle, data):
-        global gNotifyCount
-        global gNotifyStartTime
-        global gNotifyLastTime
-        global gNotifyLastData
+        global gSTECount
+        global gSTEStartTime
+        global gSTELastTime
+        global gSTEStartData
+        global gSTELastData
         global gBDTpacketCount
         global gBDTpacketData
         global gBDTpacketCRC32
 
-        if gNotifyCount == 0:
-            gNotifyLastTime = gNotifyStartTime = time.time()
-        else:
-            gNotifyLastTime = time.time()
-        gNotifyLastData = data    
-        gNotifyCount += 1
         if cHandle == SCD_STE_RESULT_HND:
             # STE notification
+            if gSTECount == 0:
+                gSTELastTime  = gSTEStartTime = time.time()
+                gSTEStartData = data
+            else:
+                gSTELastTime = time.time()
+                gSTELastData = data    
+            gSTECount += 1
             print_STE_notify_data ( data )
         elif cHandle == SCD_BDT_DATA_FLOW_HND:
             # BDT notification
-            #print("**** %2d-#%3d-[%s][%s]" % (cHandle, gNotifyCount, hex_str(data[0:4]),hex_str(data[4:20])), end='\n', flush = True)
+            #print("**** %2d-#%3d-[%s][%s]" % (cHandle, gSTECount, hex_str(data[0:4]),hex_str(data[4:20])), end='\n', flush = True)
             packet_no = int.from_bytes(data[0:4], byteorder='little', signed=False)
             if packet_no == 0:
                 # header packet
                 gBDTpacketCount = int.from_bytes(data[4:8], byteorder='little', signed=False)
+                gBDTpacketData[0:16] = data[4:20]
             elif packet_no < gBDTpacketCount-1:    
                 # data packet
                 idx = packet_no * 16
@@ -276,10 +271,12 @@ class NotifyDelegate(DefaultDelegate):
             elif packet_no == gBDTpacketCount-1:
                 # footer packet
                 gBDTpacketCRC32 = data[4:8]
+                idx = packet_no * 16
+                gBDTpacketData[idx:idx+16] = data[4:20]
             else:
                 print("**** BDT Packet No Error !... [%d] should less than [%d]" % (packet_no, gBDTpacketCount), end='\n', flush = True)
         else:
-            print("**** %2d-#%3d-[%s]" % (cHandle, gNotifyCount, hex_str(data)), end='\n', flush = True)
+            print("**** %2d-#%3d-[%s]" % (cHandle, gSTECount, hex_str(data)), end='\n', flush = True)
 
 #############################################
 # Define Scan_and_connect
@@ -420,11 +417,11 @@ if ret_val !=  b'\x00':
 #
 time_bytes = struct.pack('<l', int(time.time()))
 gTargetSTEmode = bytes( time_bytes[0:4] ) + gTargetSTEmode[4:35]
-print ("\tSTE config. was\n[%s](%d)" % (hex_str(gTargetSTEmode), len(gTargetSTEmode)))
+print ("\tSTE config. set\n[%s](%d)" % (hex_str(gTargetSTEmode), len(gTargetSTEmode)))
 p.writeCharacteristic( SCD_STE_CONFIG_HND, gTargetSTEmode )
 time.sleep(1.)
 ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
-print ("\tSTE config. is \n[%s](%d)" % (hex_str(ret_val), len(ret_val)))
+print ("\tSTE config. get\n[%s](%d)" % (hex_str(ret_val), len(ret_val)))
 #############################################
 #
 # start STE
@@ -453,16 +450,11 @@ while ( ret_val != b'\x00' ):
     time.sleep(0.7)
     ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
 print ("\n+--- STE Stoped")
-#############################################
+if gSTECount > 0 :
+    print ("\tRolling Time [%.3f], Count [%d]" % ( (gSTELastTime-gSTEStartTime), gSTECount))
 #
-# output STE rolling time & count
-#    
-if gNotifyCount > 0 :
-    print ("+--- Last notification data is as below...rolling Time [%.3f], Count [%d]"\
-        	% ( (gNotifyLastTime-gNotifyStartTime), gNotifyCount))
-    print ("\t     [%s]" % hex_str(gNotifyLastData))
-    print_STE_result(gNotifyLastData)
-    print ("\trolling counter is [%d]" % gNotifyLastData[32])
+#############################################
+
 #############################################
 #
 # bulk data transfer 
@@ -476,16 +468,15 @@ time.sleep(0.7)
 p.writeCharacteristic( SCD_BDT_DATA_FLOW_HND+1, struct.pack('<H', 1) )
 time.sleep(0.7)
 p.writeCharacteristic( SCD_BDT_CONTROL_HND, b'\x01' )
-while True:  
+ret_val = b'x01'
+while ret_val == b'x01':  
     wait_flag = p.waitForNotifications(15.)
     if wait_flag :
         continue
     ret_val = p.readCharacteristic( SCD_BDT_STATUS_HND )
-    if ret_val != b'x01':
-        break
 time.sleep(0.7)
 print ("\n+--- Bulk Data Transfer completed...status is [%s]" % ret_val.hex())
-print ("\tNotification count [%d], Packet Count [%d]" % gNotifyCount, gBDTpacketCount)
+print ("\tNotification count [%d]\n\tPacket Count [%d]" % (gSTECount, gBDTpacketCount))
 
 #############################################
 #
@@ -511,7 +502,7 @@ p.disconnect()
 #
 print ("+--- Save flash data to file...")
 file_path  = "SCD_recorded_data_"
-file_path += datetime.datetime.fromtimestamp(gNotifyStartTime).strftime('%Y-%m-%d_%H:%M:%S')
+file_path += datetime.datetime.fromtimestamp(gSTEStartTime).strftime('%Y-%m-%d_%H:%M:%S')
 file_path += ".csv"
 try:
     f = open(file_path, "x")
@@ -519,24 +510,37 @@ except:
     print ("\tfile error!")   
 if f != None:
     tm = float( (struct.unpack('<l', gTargetSTEmode[0:4]))[0] )   
-    f.write("STE configuration setting time: %s(%.3f)\n" \
+    f.write("Timestamp: %s(%.3f)\n" \
             % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm)
            )
-    f.write("STE frequency: %d\n" % STE_FREQUENCY[ int(gTargetSTEmode[5]) & 0xf ])       
+    f.write("Accelometer ODR: %d Hz\n" % STE_FREQUENCY[ int(gTargetSTEmode[5]) & 0xf ])       
     line = n = 0
-    for i in range(0, gBDTpacketCount*16, 16):
+    for j in range(0, 16, 2):
+        val_b = gBDTpacketData[j: j+2]
+        f.write ( "%02x.%02x" % ( val_b[0], val_b[1] ))
+        n += 1
+        if n % 8 == 0:
+            f.write ( "\n" )
+            line += 1
+        else:
+            f.write ( ", " )
+    n = 0        
+    for i in range(1, gBDTpacketCount):
         for j in range(0, 16, 2):
             idx = i*16 + j
             val_b = gBDTpacketData[idx: idx+2]
-            val_i = int.from_bytes(val_b, byteorder='little', signed=True)
-            val_f = float ( val_i ) / 10.
-            f.write ( "%5.1f" % val_f )
+            ##val_i = int.from_bytes(val_b, byteorder='little', signed=True)
+            ##val_f = float ( val_i ) / 10.
+            ##f.write ( "%5.1f" % val_f )
+            f.write ( "%02x.%02x" % ( val_b[0], val_b[1] ))
             n += 1
-            if n % 3 != 0:
-                f.write ( "," )
-            else:
+            if n % 8 == 0:
                 f.write ( "\n" )
                 line += 1
+            ##elif n % 3 == 0:
+            ##    f.write ( ", " )
+            else:
+                f.write ( ", " )
     f.write ("\ntotal %d line recorded" % line)            
     f.close()
 print ("+--- all done !")
