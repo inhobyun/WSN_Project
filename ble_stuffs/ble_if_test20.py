@@ -5,13 +5,13 @@ This code does discover BOSCH SCD Sensor device via blutooth ble communication, 
 followings are the steps included this code;
 - discovery
 - connect
-- set mode
 - set STE configuration
 - start STE(Short Time Experiment)
 - stop STE
-- get flash memory dump
-- write dump to a file
+- start BDT(Block Data Transfer)
+- stop BDT
 - disconnect
+- write BDT data to file
 
 by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
@@ -193,7 +193,7 @@ def print_STE_result( pResult ):
             % (datetime.datetime.fromtimestamp(gSTEStartTime).strftime('%Y-%m-%d %H:%M:%S'), gSTEStartTime) )
     print ( "\tNotification End   : %s(%.3f)" \
             % (datetime.datetime.fromtimestamp(gSTELastTime).strftime('%Y-%m-%d %H:%M:%S'), gSTELastTime) )      
-    print ("\t")
+    print ("\t", end = '', flush = True )
     print_STE_data (pResult)
     return
 
@@ -357,7 +357,7 @@ def scan_and_connect( is_first = True ):
 #############################################
 p = scan_and_connect()
 #
-# read Device Name, Manufacurer Name
+# read Device Name, Manufacurer Name, etc.
 #
 ret_val = p.readCharacteristic( SCD_DEVICE_NAME_HND )
 print ("\tDevice Name is [%s]" % ret_val.decode("utf-8"))
