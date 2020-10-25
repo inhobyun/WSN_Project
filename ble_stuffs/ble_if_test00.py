@@ -259,7 +259,7 @@ class NotifyDelegate(DefaultDelegate):
                 gSTELastTime = time.time()
                 gSTELastData = data    
             gSTECount += 1
-            print_STE_notify_data ( data )
+            #print_STE_notify_data ( data )
         elif cHandle == SCD_BDT_DATA_FLOW_HND:
         # BDT notification
             #print("**** %2d-#%3d-[%s][%s]" % (cHandle, gSTECount, hex_str(data[0:4]),hex_str(data[4:20])), end='\n', flush = True)
@@ -457,6 +457,7 @@ while ( ret_val != b'\x00' ):
     time.sleep(0.7)
     ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
 print ("\n+--- STE Stoped...rolling time [%.3f], count [%d]" % ( (gSTELastTime-gSTEStartTime), gSTECount))
+print_STE_result(gSTELastData)
 #
 #############################################
 
