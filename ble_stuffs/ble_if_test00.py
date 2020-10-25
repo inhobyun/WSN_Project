@@ -38,22 +38,22 @@ TARGET_DEVICE_NAME = "SCD-"     # AD Type Value: 0x09
 #
 # service handle
 #
-SCD_DEVICE_NAME_HND     = 3     # R,  uuid: 00002a00-0000-1000-8000-00805f9b34fb
-SCD_SYSTEM_ID_HND       = 11    # R,  uuid: 00002a23-0000-1000-8000-00805f9b34fb
-SCD_SERIAL_NUM_HND      = 13    # R,  uuid: 00002a25-0000-1000-8000-00805f9b34fb
-SCD_FW_REVISION_HND     = 15    # R,  uuid: 00002a26-0000-1000-8000-00805f9b34fb
-SCD_HW_REVISION_HND     = 17    # R,  uuid: 00002a27-0000-1000-8000-00805f9b34fb
-SCD_SW_REVISION_HND     = 19    # R,  uuid: 00002a28-0000-1000-8000-00805f9b34fb
-SCD_MANUFA_NAME_HND     = 21    # R,  uuid: 00002a29-0000-1000-8000-00805f9b34fb
-SCD_IF_VERSION_HND      = 24    # R,  uuid: 02a65821-0001-1000-2000-b05cb05cb05c
-SCD_TEST_RESULT_HND     = 26    # R,  uuid: 02a65821-0002-1000-2000-b05cb05cb05c
-SCD_SET_MODE_HND        = 28    # RW, uuid: 02a65821-0003-1000-2000-b05cb05cb05c
-SCD_SET_GEN_CMD_HND     = 30    # RW, uuid: 02a65821-0004-1000-2000-b05cb05cb05c
-SCD_STE_CONFIG_HND      = 35    # RW, uuid: 02a65821-1001-1000-2000-b05cb05cb05c
-SCD_STE_RESULT_HND      = 37    # RN, uuid: 02a65821-1002-1000-2000-b05cb05cb05c
-SCD_BDT_CONTROL_HND     = 41    # W,  uuid: 02a65821-3001-1000-2000-b05cb05cb05c
-SCD_BDT_STATUS_HND      = 43    # R,  uuid: 02a65821-3002-1000-2000-b05cb05cb05c
-SCD_BDT_DATA_FLOW_HND   = 45    # RN, uuid: 02a65821-3003-1000-2000-b05cb05cb05c
+SCD_DEVICE_NAME_HND   = 3     # R,  uuid: 00002a00-0000-1000-8000-00805f9b34fb
+SCD_SYSTEM_ID_HND     = 11    # R,  uuid: 00002a23-0000-1000-8000-00805f9b34fb
+SCD_SERIAL_NUM_HND    = 13    # R,  uuid: 00002a25-0000-1000-8000-00805f9b34fb
+SCD_FW_REVISION_HND   = 15    # R,  uuid: 00002a26-0000-1000-8000-00805f9b34fb
+SCD_HW_REVISION_HND   = 17    # R,  uuid: 00002a27-0000-1000-8000-00805f9b34fb
+SCD_SW_REVISION_HND   = 19    # R,  uuid: 00002a28-0000-1000-8000-00805f9b34fb
+SCD_MANUFA_NAME_HND   = 21    # R,  uuid: 00002a29-0000-1000-8000-00805f9b34fb
+SCD_IF_VERSION_HND    = 24    # R,  uuid: 02a65821-0001-1000-2000-b05cb05cb05c
+SCD_TEST_RESULT_HND   = 26    # R,  uuid: 02a65821-0002-1000-2000-b05cb05cb05c
+SCD_SET_MODE_HND      = 28    # RW, uuid: 02a65821-0003-1000-2000-b05cb05cb05c
+SCD_SET_GEN_CMD_HND   = 30    # RW, uuid: 02a65821-0004-1000-2000-b05cb05cb05c
+SCD_STE_CONFIG_HND    = 35    # RW, uuid: 02a65821-1001-1000-2000-b05cb05cb05c
+SCD_STE_RESULT_HND    = 37    # RN, uuid: 02a65821-1002-1000-2000-b05cb05cb05c
+SCD_BDT_CONTROL_HND   = 41    # W,  uuid: 02a65821-3001-1000-2000-b05cb05cb05c
+SCD_BDT_STATUS_HND    = 43    # R,  uuid: 02a65821-3002-1000-2000-b05cb05cb05c
+SCD_BDT_DATA_FLOW_HND = 45    # RN, uuid: 02a65821-3003-1000-2000-b05cb05cb05c
 #
 # MAX constant of BOSCH SCD
 #
@@ -64,10 +64,10 @@ SCD_MAX_NOTIFY  = SCD_MAX_FLASH>>4  # int(SCD_MAX_FLASH / 16)
 #
 # Some constant parameters
 #
-SCAN_TIME           = 8.    # scanning duration for BLE devices 
-STE_RUN_TIME        = 1.    # STE rolling time in secconds
-STE_FREQUENCY       = ( 400, 800, 1600, 3200, 6400 )  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz
-MAX_STE_RUN_TIME    = 30.   # max STE rolling time in seconds
+SCAN_TIME        = 8.    # scanning duration for BLE devices 
+STE_RUN_TIME     = 1.    # STE rolling time in secconds
+STE_FREQUENCY    = ( 400, 800, 1600, 3200, 6400 )  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz
+MAX_STE_RUN_TIME = 30.   # max STE rolling time in seconds
 #
 # global variables
 #
@@ -81,9 +81,11 @@ gSTELastTime     = 0.    # notification last timestamp
 gSTEStartData    = bytes(33)     # STE start data
 gSTELastData     = bytes(33)     # STE last data
 # BDT - Block Data Transfer
-gBDTpacketCount    = 0
-gBDTpacketData     = bytearray(SCD_MAX_FLASH)
-gBDTpacketCRC32    = bytearray(4)
+gBDTpacketCount  = 0
+gBDTStartTime    = 0.   
+gBDTLastTime     = 0.
+gBDTpacketData   = bytearray(SCD_MAX_FLASH)
+gBDTpacketCRC32  = bytearray(4)
 
 #############################################
 # STE(Short Time Experiment) mode configuration (35 bytes) 
@@ -243,11 +245,13 @@ class NotifyDelegate(DefaultDelegate):
         global gSTEStartData
         global gSTELastData
         global gBDTpacketCount
+        global gBDTStartTime
+        global gBDTLastTime
         global gBDTpacketData
         global gBDTpacketCRC32
 
         if cHandle == SCD_STE_RESULT_HND:
-            # STE notification
+        # STE notification
             if gSTECount == 0:
                 gSTELastTime  = gSTEStartTime = time.time()
                 gSTEStartData = data
@@ -257,10 +261,11 @@ class NotifyDelegate(DefaultDelegate):
             gSTECount += 1
             print_STE_notify_data ( data )
         elif cHandle == SCD_BDT_DATA_FLOW_HND:
-            # BDT notification
+        # BDT notification
             #print("**** %2d-#%3d-[%s][%s]" % (cHandle, gSTECount, hex_str(data[0:4]),hex_str(data[4:20])), end='\n', flush = True)
             packet_no = int.from_bytes(data[0:4], byteorder='little', signed=False)
             if packet_no == 0:
+                gBDTLastTime = gBDTStartTime = time.time()
                 # header packet
                 gBDTpacketCount = int.from_bytes(data[4:8], byteorder='little', signed=False)
                 gBDTpacketData[0:16] = data[4:20]
@@ -269,6 +274,7 @@ class NotifyDelegate(DefaultDelegate):
                 idx = packet_no * 16
                 gBDTpacketData[idx:idx+16] = data[4:20]
             elif packet_no == gBDTpacketCount-1:
+                gBDTLastTime = time.time()
                 # footer packet
                 gBDTpacketCRC32 = data[4:8]
                 idx = packet_no * 16
@@ -474,9 +480,8 @@ while ret_val == b'x01':
         continue
     ret_val = p.readCharacteristic( SCD_BDT_STATUS_HND )
 time.sleep(0.7)
-print ("\n+--- Bulk Data Transfer completed...status is [%s]" % ret_val.hex())
-print ("\tNotification count [%d]\n\tPacket Count [%d]" % (gSTECount, gBDTpacketCount))
-
+print ("\n+--- Bulk Data Transfer completed...status is [%s], time [%.3f], count [%d]" % \
+       (ret_val.hex(), (gBDTLastTime-gBDTStartTime), gBDTpacketCount) )
 #############################################
 #
 # clean-up and init sensor device
@@ -514,8 +519,8 @@ if f != None:
 #
 ############################################
 #
-print ("+--- Save flash data to text file...")
-file_path  = "SCD_log_"
+print ("+--- Save flash data to hexa text file...")
+file_path  = "SCD_Hex_log_"
 file_path += datetime.datetime.fromtimestamp(gSTEStartTime).strftime('%Y-%m-%d_%H-%M-%S')
 file_path += ".csv"
 try:
@@ -531,6 +536,60 @@ if f != None:
         f.write ( "%6d, %s\n" % ( i, text_line ))
     f.write ("End of Data")    
     f.close()
+#
+#########################################
+#
+print ("+--- Save flash data to decimal text file...")
+file_path  = "SCD_Dec_log_"
+file_path += datetime.datetime.fromtimestamp(gSTEStartTime).strftime('%Y-%m-%d_%H-%M-%S')
+file_path += ".csv"
+try:
+    f = open(file_path, "x")
+except:
+    print ("\tfile error!")   
+if f != None:
+    f.write ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ int(gTargetSTEmode[5]) & 0xf ])
+    f.write ("total # of rows: %d\n" % (gBDTpacketCount-1))            
+    f.write (" Row #,     01,     02,     03,     04,     05,     06,     07,     08\n")
+    for i in range(1, gBDTpacketCount):
+        f.write ( "%6d" % i )
+        for j in range(i*16, i*16+16, 2):
+            f.write ( ", %6d" % int.from_bytes(gBDTpacketData[j:j+2], byteorder='little', signed=True))
+        f.write ( "\n" )    
+    f.write ("End of Data")    
+    f.close()
+#
+############################################
+#
+print ("+--- Save flash data to decimal text file...")
+file_path  = "SCD_log_"
+file_path += datetime.datetime.fromtimestamp(gSTEStartTime).strftime('%Y-%m-%d_%H-%M-%S')
+file_path += ".csv"
+try:
+    f = open(file_path, "x")
+except:
+    print ("\tfile error!")   
+if f != None:
+    f.write ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ int(gTargetSTEmode[5]) & 0xf ])
+    f.write ("total # of rows: %d\n" % (gBDTpacketCount-1))            
+    f.write (" Row #, X-AXIS, Y-AXIS, Z-AXIS\n")
+    line = n = 0
+    idx  = 16 + 22 # initial skip bytes
+    while idx < (gBDTpacketCount-1)*16:
+        line += 1
+        f.write ( "%6d" % line)
+        for i in range(0, 3):
+            f.write ( ", %6d" % int.from_bytes(gBDTpacketData[idx:idx+2], byteorder='little', signed=True))
+            idx += 2
+            n += 2
+            if n >= 886: # sensor data bytes
+                idx += 7 # skip bytes
+                n = 0 
+        f.write ( "\n" )     
+    f.write ("End of Data")    
+    f.close()
+#    
 print ("+--- [%d] line of data recorded...all done !" % (gBDTpacketCount-1))
+#
 #
 #############################################
