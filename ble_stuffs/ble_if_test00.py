@@ -65,8 +65,8 @@ SCD_MAX_NOTIFY  = SCD_MAX_FLASH>>4  # int(SCD_MAX_FLASH / 16)
 # Some constant parameters
 #
 SCAN_TIME        = 8.    # scanning duration for BLE devices 
-STE_RUN_TIME     = 1.    # STE rolling time in secconds
-STE_FREQUENCY    = ( 400, 800, 1600, 3200, 6400 )  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz
+STE_RUN_TIME     = 3.    # STE rolling time in secconds
+STE_FREQUENCY    = (400, 800, 1600, 3200, 6400)  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz
 MAX_STE_RUN_TIME = 30.   # max STE rolling time in seconds
 #
 # global variables
@@ -505,6 +505,7 @@ p.disconnect()
 #
 # write flash dump time series data file
 #
+'''
 print ("+--- Save flash data to binary file...")
 file_path  = "SCD_log_"
 file_path += datetime.datetime.fromtimestamp(gSTEStartTime).strftime('%Y-%m-%d_%H-%M-%S')
@@ -514,31 +515,11 @@ try:
 except:
     print ("\tfile error!")   
 if f != None:
-    for i in range(1, gBDTpacketCount):
+    for i in range(0, gBDTpacketCount):
         f.write ( gBDTpacketData[i*16:i*16+16] )
     f.close()
 #
 ############################################
-#
-print ("+--- Save flash data to hexa text file...")
-file_path  = "SCD_Hex_log_"
-file_path += datetime.datetime.fromtimestamp(gSTEStartTime).strftime('%Y-%m-%d_%H-%M-%S')
-file_path += ".csv"
-try:
-    f = open(file_path, "x")
-except:
-    print ("\tfile error!")   
-if f != None:
-    f.write ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ int(gTargetSTEmode[5]) & 0xf ])
-    f.write ("total # of rows: %d\n" % (gBDTpacketCount-1))            
-    f.write (" Row #, 01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, 15, 16\n")
-    for i in range(1, gBDTpacketCount):
-        text_line = ''.join([', ' + ch if j % 2 == 0 and j != 0 else ch for j, ch in enumerate(gBDTpacketData[i*16:i*16+16].hex())])
-        f.write ( "%6d, %s\n" % ( i, text_line ))
-    f.write ("End of Data")    
-    f.close()
-#
-#########################################
 #
 print ("+--- Save flash data to decimal text file...")
 file_path  = "SCD_Dec_log_"
@@ -552,7 +533,7 @@ if f != None:
     f.write ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ int(gTargetSTEmode[5]) & 0xf ])
     f.write ("total # of rows: %d\n" % (gBDTpacketCount-1))            
     f.write (" Row #,     01,     02,     03,     04,     05,     06,     07,     08\n")
-    for i in range(1, gBDTpacketCount):
+    for i in range(0, gBDTpacketCount):
         f.write ( "%6d" % i )
         for j in range(i*16, i*16+16, 2):
             f.write ( ", %6d" % int.from_bytes(gBDTpacketData[j:j+2], byteorder='little', signed=True))
@@ -560,10 +541,11 @@ if f != None:
     f.write ("End of Data")    
     f.close()
 #
+'''
 ############################################
 #
-print ("+--- Save flash data to decimal text file...")
-file_path  = "SCD_log_"
+print ("+--- Save packet to hexa text file (w/ non-data)...")
+file_path  = "SCD_Hex_log_"
 file_path += datetime.datetime.fromtimestamp(gSTEStartTime).strftime('%Y-%m-%d_%H-%M-%S')
 file_path += ".csv"
 try:
@@ -573,24 +555,59 @@ except:
 if f != None:
     f.write ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ int(gTargetSTEmode[5]) & 0xf ])
     f.write ("total # of rows: %d\n" % (gBDTpacketCount-1))            
+    f.write (" Row #, 01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, 15, 16\n")
+    for i in range(0, gBDTpacketCount):
+        text_line = ''.join([', ' + ch if j % 2 == 0 and j != 0 else ch for j, ch in enumerate(gBDTpacketData[i*16:i*16+16].hex())])
+        f.write ( "%6d, %s\n" % ( i, text_line ))
+    f.write ("End of Data")    
+    f.close()
+#
+#########################################
+#
+print ("+--- Save data to decimal text file (w/o non-data)...")
+file_path  = "SCD_log_"
+file_path += datetime.datetime.fromtimestamp(gSTEStartTime).strftime('%Y-%m-%d_%H-%M-%S')
+file_path += ".csv"
+try:
+    f = open(file_path, "x")
+except:
+    print ("\tfile error!")
+if f != None:
+    for EOD_pos in range((gBDTpacketCount+1)*16, (gBDTpacketCount-3)*16, -1):
+        is_aa = 0
+        if gBDTpacketData[EOD_pos] == 0xaa:
+            is_aa += 1 
+        if gBDTpacketData[EOD_pos-1] == 0xaa:
+            is_aa += 1
+        if gBDTpacketData[EOD_pos-2] == 0xaa:
+            is_aa += 1
+        if gBDTpacketData[EOD_pos-3] == 0xaa:
+            is_aa += 1
+        if is_aa == 4:
+            EOD_pos -= 3
+            break        
+    f.write ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ int(gTargetSTEmode[5]) & 0xf ]) 
     f.write (" Row #, X-AXIS, Y-AXIS, Z-AXIS\n")
     line = n = 0
-    idx  = 16 + 22 # initial skip bytes
-    while idx < (gBDTpacketCount-1)*16:
+    idx  = 16 # skip header line
+    idx += 22 # skip non-data bytes
+    while (idx < EOD_pos):
         line += 1
         f.write ( "%6d" % line)
-        for i in range(0, 3):
-            f.write ( ", %6d" % int.from_bytes(gBDTpacketData[idx:idx+2], byteorder='little', signed=True))
+        for i in range(3):
+            if idx >= EOD_pos:
+                break
+            f.write ( ", %6d" % (int.from_bytes(gBDTpacketData[idx:idx+2], byteorder='little', signed=True)) )
             idx += 2
             n += 2
             if n >= 886: # sensor data bytes
-                idx += 7 # skip bytes
-                n = 0 
+                idx += 7 # skip non-data bytes
+                n = 0
         f.write ( "\n" )     
     f.write ("End of Data")    
     f.close()
 #    
-print ("+--- [%d] line of data recorded...all done !" % (gBDTpacketCount-1))
+print ("+--- data recorded...all done !")
 #
 #
 #############################################
