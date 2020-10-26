@@ -74,14 +74,14 @@ MAX_STE_RUN_TIME = 30.   # max STE rolling time in seconds
 gTargetDevice    = None  # target device object 
 gScannedCount    = 0     # count of scanned BLE devices
 # STE - Short Time Experiment
-gTargetSTEmode   = bytes(35)     # Sensor Mode
+gSTEMode    = bytes(35)  # Sensor Mode
 gSTECount        = 0     # count of notifications from connected device
 gSTEStartTime    = 0.    # notification start timestamp
 gSTELastTime     = 0.    # notification last timestamp
-gSTEStartData    = bytes(33)     # STE start data
-gSTELastData     = bytes(33)     # STE last data
+gSTEData    = bytearray(33*512)
+
 # BDT - Block Data Transfer
-gBDTCount  = 0
+gBDTCount        = 0
 gBDTStartTime    = 0.   
 gBDTLastTime     = 0.
 gBDTData   = bytearray(SCD_MAX_FLASH)
@@ -124,7 +124,7 @@ mode |= 0x01 # 01 sensor raw value to flash - accelerometer
 #ode |= 0x08 # 08 sensor raw value to flash - temperature
 STE_mode[30:31] = bytes(struct.pack('<h',mode))
 #
-gTargetSTEmode = bytes(STE_mode[0:35])
+gSTEMode = bytes(STE_mode[0:35])
                   
 #############################################
 # functions definition
@@ -181,12 +181,12 @@ def print_STE_data( pResult ):
 # print STE result
 #
 def print_STE_result( pResult ):
-    global gTargetSTEmode
+    global gSTEMode
     global gSTEStartTime
     global gSTELastTime
 
     # output time stamp
-    tm = float( (struct.unpack('<l', gTargetSTEmode[0:4]))[0] )   
+    tm = float( (struct.unpack('<l', gSTEMode[0:4]))[0] )   
     print ( "\tSTE config. time   : %s(%.3f)" \
             % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
     print ( "\tNotification Start : %s(%.3f)" \
@@ -257,9 +257,10 @@ class NotifyDelegate(DefaultDelegate):
                 gSTEStartData = data
             else:
                 gSTELastTime = time.time()
-                gSTELastData = data    
+                gSTELastData = data
+            idx = int(data[32]) * 33
+            gSTEData[idx:idx+33] = data[0:33]
             gSTECount += 1
-            #print_STE_notify_data ( data )
         elif cHandle == SCD_BDT_DATA_FLOW_HND:
         # BDT notification
             #print("**** %2d-#%3d-[%s][%s]" % (cHandle, gSTECount, hex_str(data[0:4]),hex_str(data[4:20])), end='\n', flush = True)
@@ -423,9 +424,9 @@ if ret_val !=  b'\x00':
 # set STE Configuration
 #
 time_bytes = struct.pack('<l', int(time.time()))
-gTargetSTEmode = bytes( time_bytes[0:4] ) + gTargetSTEmode[4:35]
-##print ("\tSTE config. set\n[%s](%d)" % (hex_str(gTargetSTEmode), len(gTargetSTEmode)))
-p.writeCharacteristic( SCD_STE_CONFIG_HND, gTargetSTEmode )
+gSTEMode = bytes( time_bytes[0:4] ) + gSTEMode[4:35]
+##print ("\tSTE config. set\n[%s](%d)" % (hex_str(gSTEMode), len(gSTEMode)))
+p.writeCharacteristic( SCD_STE_CONFIG_HND, gSTEMode )
 time.sleep(1.)
 ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
 print ("\tSTE config. get\n[%s](%d)" % (hex_str(ret_val), len(ret_val)))
@@ -531,7 +532,7 @@ try:
 except:
     print ("\tfile error!")   
 if f != None:
-    f.write ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ int(gTargetSTEmode[5]) & 0xf ])
+    f.write ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ int(gSTEMode[5]) & 0xf ])
     f.write ("total # of rows: %d\n" % (gBDTCount-1))            
     f.write (" Row #,     01,     02,     03,     04,     05,     06,     07,     08\n")
     for i in range(0, gBDTCount):
@@ -553,7 +554,7 @@ try:
 except:
     print ("\tfile error!")   
 if f != None:
-    f.write ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ int(gTargetSTEmode[5]) & 0xf ])
+    f.write ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ int(gSTEMode[5]) & 0xf ])
     f.write ("total # of rows: %d\n" % (gBDTCount-1))            
     f.write (" Row #, 01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, 15, 16\n")
     for i in range(0, gBDTCount):
@@ -593,7 +594,7 @@ if f != None:
     #   ? bytes : non-data include 0xaaaa
     #  16 bytes : footer
     # ====================================== 
-    f.write ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ int(gTargetSTEmode[5]) & 0xf ]) 
+    f.write ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ int(gSTEMode[5]) & 0xf ]) 
     f.write (" Row #, X-AXIS, Y-AXIS, Z-AXIS\n")
     line = n = 0
     idx  = 16 # skip header line
