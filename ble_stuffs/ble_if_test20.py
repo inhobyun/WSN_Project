@@ -583,33 +583,56 @@ if f != None:
             is_aa += 1
             if is_aa == 4:
                 break
-    # Data of packet structure
+    EOD_pos -= 2 # Skip CRC32
+    # =====================================       
+    # sensor data storage structure in BDT packet
     # =====================================
-    #  16 bytes : header
-    #  22 bytes : non-data start 0x5555
+    #  16 bytes : packet header
+    # =====================================
+    #   4 bytes : start maker 0x55 0x55 0x55 0x55
+    #  13 bytes : container
     # >>>>>>>>>>> repeat from
-    # 886 bytes : data
-    #   7 bytes : non-data
+    #   5 bytes : Sensor type(1N) + TimeStamp(6N) + FIFO Len(3N)
+    # 888 bytes : raw data
     # <<<<<<<<<<< repeat to
-    #   ? bytes : non-data include 0xaaaa
-    #  16 bytes : footer
+    #   2 bytes : CRC32
+    #   4 bytes : end marker 0xaa 0xaa 0xaa 0xaa
+    # =====================================
+    #  16 bytes : packet footer
     # ====================================== 
-    f.write ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ int(gSTEMode[5]) & 0xf ]) 
-    f.write (" Row #, X-AXIS, Y-AXIS, Z-AXIS\n")
     line = n = 0
-    idx  = 16 # skip header line
-    idx += 22 # skip non-data bytes
+    idx  = 16 # skip paket header
+    # container information
+    time_unix  = int.from_bytes(gBDTData[idx+ 5:idx+ 9], byteorder='little', signed=True)
+    time_delay = int.from_bytes(gBDTData[idx+ 9:idx+13], byteorder='little', signed=True)
+    ODR_adxl   = gBDTData[idx+13]
+    idx += 17 # skip start maker & container
+    f.write ("server time    : %s(%d)" %  ( (datetime.datetime.fromtimestamp(float(time_unix)).strftime('%Y-%m-%d %H:%M:%S'), time_unix))
+    f.write ("delay time     : %.3f" % float(time_delay)/1000.)
+    f.write ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ ODR_adxl ]) 
+    f.write (" Row #, Time-Stamp, X-AXIS, Y-AXIS, Z-AXIS\n")
     while (idx < EOD_pos):
+        if n==0:
+            sensor_type = gBDTData[idx] & 0x0f
+            time_stamp  = (gBDTData[idx ] & 0xf0) >> 4
+            time_stamp &= gBDTData[idx+1] << 8
+            time_stamp &= gBDTData[idx+2] << 16
+            time_stamp &= (gBDTData[idx+3] & 0x0f) << 24
+            data_len  = (gBDTData[idx+3] & 0xf0) >> 4
+            data_len &= gBDTData[idx+4] << 8
+            idx += 5
+            f.write ( "%6d, %9.3f" % (line,(float(time_stamp)/1000.)))
+        else:
+            f.write ( "%6d,          " % line )
         line += 1
-        f.write ( "%6d" % line)
+        f.write ( "%6d, %9.3f" % (line,(float(time_stamp)/1000.)))
         for i in range(3):
             if idx >= EOD_pos:
                 break
             f.write ( ", %6d" % (int.from_bytes(gBDTData[idx:idx+2], byteorder='little', signed=True)) )
             idx += 2
-            n += 2
-            if n >= 886: # sensor data bytes
-                idx += 7 # skip non-data bytes
+            n += 1
+            if n >= data_len: # sensor data bytes
                 n = 0
         f.write ( "\n" )     
     f.write ("End of Data")    
