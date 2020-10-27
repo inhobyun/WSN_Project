@@ -16,7 +16,7 @@ followings are the steps included this code;
 by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
                     started 2020-10-12
-                    last updated 2020-10-26
+                    last updated 2020-10-27
 """
 import sys
 import time
@@ -258,7 +258,7 @@ class NotifyDelegate(DefaultDelegate):
             else:
                 gSTELastTime = time.time()
                 gSTELastData = data
-            idx = int(data[32]) * 33
+            idx = data[32] * 33
             gSTEData[idx:idx+33] = data[0:33]
             gSTECount += 1
         elif cHandle == SCD_BDT_DATA_FLOW_HND:
@@ -501,6 +501,63 @@ time.sleep(10.)
 p.disconnect()
 #
 #############################################
+
+#############################################
+#
+# write STE notification to log file
+#
+print ("+--- Save STE notification to binary file...")
+file_path  = "SCD_STE_log_"
+file_path += datetime.datetime.fromtimestamp(gSTEStartTime).strftime('%Y-%m-%d_%H-%M-%S')
+file_path += ".csv"
+try:
+    f = open(file_path, "x")
+except:
+    print ("\tfile error!")   
+if f != None:    
+    f.write ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ int(gSTEMode[5]) & 0xf ])
+    f.write ("total # of rows: %d\n" % (gSTECount))            
+    f.write ("counter, adxl X, vari X, adxl Y, vari Y, adxl Z, vari Z, Temp.,  light, magnet X, magnet Y, magnet Z\n")    
+     if gSTECount > 512:
+        gSTECount = 512
+    for counter in range (gSTECount):
+# output Accelerrometer X, Y, Z axis arithmetic mean & variation
+        pResult = sSTEdata[counter*33:counter*33+33]
+        adxl_mean_x = float( int.from_bytes(pResult[0:2], byteorder='little', signed=True) ) \
+                      / 10.0
+        adxl_vari_x = float( int.from_bytes(pResult[6:10], byteorder='little', signed=True) ) \
+                      / 100.0
+        adxl_mean_y = float( int.from_bytes(pResult[2:4], byteorder='little', signed=True) ) \
+                      / 10.0
+        adxl_vari_y = float( int.from_bytes(pResult[10:14], byteorder='little', signed=True) ) \
+                      / 100.0
+        adxl_mean_z = float( int.from_bytes(pResult[4:6], byteorder='little', signed=True) ) \
+                      / 10.0
+        adxl_vari_z = float( int.from_bytes(pResult[14:18], byteorder='little', signed=True) ) \
+                      / 100.0
+        # output temperature
+        temperature = float( int.from_bytes(pResult[18:20], byteorder='little', signed=True) ) \
+                      * 0.0078
+        # output light
+        light = float( int.from_bytes(pResult[20:24], byteorder='little', signed=True) ) \
+                / 1000.0
+        # output Magnetometer X, Y, Z axis raw data 
+        magneto_x = float( int.from_bytes(pResult[24:26], byteorder='little', signed=True) ) \
+                    / 16.0
+        magneto_y = float( int.from_bytes(pResult[26:28], byteorder='little', signed=True) ) \
+                    / 16.0
+        magneto_z = float( int.from_bytes(pResult[28:30], byteorder='little', signed=True) ) \
+                    / 16.0
+        f.write("%7d, %6.1f, %6.2f, %6.1f, %6.2f, %6.1f, %6.2f, %5.2f, %8.3f, %8.1f, %8.1f, %8.1f\n" % \
+            ( counter, \
+              adxl_mean_x, adxl_var_x, adxl_mean_y, adxl_var_y, adxl_mean_z, adxl_var_z, \
+              temperature, light, \
+              magneto_x, magneto_y, magneto_z \
+            )           
+    f.write ("End of Data")    
+    f.close()
+#
+############################################
 
 #############################################
 #
