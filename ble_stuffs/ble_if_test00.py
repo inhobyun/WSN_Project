@@ -5,18 +5,18 @@ This code does discover BOSCH SCD Sensor device via blutooth ble communication, 
 followings are the steps included this code;
 - discovery
 - connect
-- set mode
 - set STE configuration
 - start STE(Short Time Experiment)
 - stop STE
-- get flash memory dump
-- write dump to a file
+- start BDT(Block Data Transfer)
+- stop BDT
 - disconnect
+- write BDT data to file
 
 by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
                     started 2020-10-12
-                    last updated 2020-10-23
+                    last updated 2020-10-26
 """
 import sys
 import time
@@ -74,18 +74,18 @@ MAX_STE_RUN_TIME = 30.   # max STE rolling time in seconds
 gTargetDevice    = None  # target device object 
 gScannedCount    = 0     # count of scanned BLE devices
 # STE - Short Time Experiment
-gTargetSTEmode   = bytes(35)     # Sensor Mode
+gSTEMode    = bytes(35)  # Sensor Mode
 gSTECount        = 0     # count of notifications from connected device
 gSTEStartTime    = 0.    # notification start timestamp
 gSTELastTime     = 0.    # notification last timestamp
-gSTEStartData    = bytes(33)     # STE start data
-gSTELastData     = bytes(33)     # STE last data
+gSTEData    = bytearray(33*512)
+
 # BDT - Block Data Transfer
-gBDTpacketCount  = 0
+gBDTCount        = 0
 gBDTStartTime    = 0.   
 gBDTLastTime     = 0.
-gBDTpacketData   = bytearray(SCD_MAX_FLASH)
-gBDTpacketCRC32  = bytearray(4)
+gBDTData   = bytearray(SCD_MAX_FLASH)
+gBDTCRC32  = bytearray(4)
 
 #############################################
 # STE(Short Time Experiment) mode configuration (35 bytes) 
@@ -124,7 +124,7 @@ mode |= 0x01 # 01 sensor raw value to flash - accelerometer
 #ode |= 0x08 # 08 sensor raw value to flash - temperature
 STE_mode[30:31] = bytes(struct.pack('<h',mode))
 #
-gTargetSTEmode = bytes(STE_mode[0:35])
+gSTEMode = bytes(STE_mode[0:35])
                   
 #############################################
 # functions definition
@@ -181,19 +181,19 @@ def print_STE_data( pResult ):
 # print STE result
 #
 def print_STE_result( pResult ):
-    global gTargetSTEmode
+    global gSTEMode
     global gSTEStartTime
     global gSTELastTime
 
     # output time stamp
-    tm = float( (struct.unpack('<l', gTargetSTEmode[0:4]))[0] )   
+    tm = float( (struct.unpack('<l', gSTEMode[0:4]))[0] )   
     print ( "\tSTE config. time   : %s(%.3f)" \
             % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
     print ( "\tNotification Start : %s(%.3f)" \
             % (datetime.datetime.fromtimestamp(gSTEStartTime).strftime('%Y-%m-%d %H:%M:%S'), gSTEStartTime) )
     print ( "\tNotification End   : %s(%.3f)" \
             % (datetime.datetime.fromtimestamp(gSTELastTime).strftime('%Y-%m-%d %H:%M:%S'), gSTELastTime) )      
-    print ("\t")
+    print ("\t", end = '', flush = True )
     print_STE_data (pResult)
     return
 
@@ -244,11 +244,11 @@ class NotifyDelegate(DefaultDelegate):
         global gSTELastTime
         global gSTEStartData
         global gSTELastData
-        global gBDTpacketCount
+        global gBDTCount
         global gBDTStartTime
         global gBDTLastTime
-        global gBDTpacketData
-        global gBDTpacketCRC32
+        global gBDTData
+        global gBDTCRC32
 
         if cHandle == SCD_STE_RESULT_HND:
         # STE notification
@@ -257,9 +257,10 @@ class NotifyDelegate(DefaultDelegate):
                 gSTEStartData = data
             else:
                 gSTELastTime = time.time()
-                gSTELastData = data    
+                gSTELastData = data
+            idx = int(data[32]) * 33
+            gSTEData[idx:idx+33] = data[0:33]
             gSTECount += 1
-            #print_STE_notify_data ( data )
         elif cHandle == SCD_BDT_DATA_FLOW_HND:
         # BDT notification
             #print("**** %2d-#%3d-[%s][%s]" % (cHandle, gSTECount, hex_str(data[0:4]),hex_str(data[4:20])), end='\n', flush = True)
@@ -267,20 +268,20 @@ class NotifyDelegate(DefaultDelegate):
             if packet_no == 0:
                 gBDTLastTime = gBDTStartTime = time.time()
                 # header packet
-                gBDTpacketCount = int.from_bytes(data[4:8], byteorder='little', signed=False)
-                gBDTpacketData[0:16] = data[4:20]
-            elif packet_no < gBDTpacketCount-1:    
+                gBDTCount = int.from_bytes(data[4:8], byteorder='little', signed=False)
+                gBDTData[0:16] = data[4:20]
+            elif packet_no < gBDTCount-1:    
                 # data packet
                 idx = packet_no * 16
-                gBDTpacketData[idx:idx+16] = data[4:20]
-            elif packet_no == gBDTpacketCount-1:
+                gBDTData[idx:idx+16] = data[4:20]
+            elif packet_no == gBDTCount-1:
                 gBDTLastTime = time.time()
                 # footer packet
-                gBDTpacketCRC32 = data[4:8]
+                gBDTCRC32 = data[4:8]
                 idx = packet_no * 16
-                gBDTpacketData[idx:idx+16] = data[4:20]
+                gBDTData[idx:idx+16] = data[4:20]
             else:
-                print("**** BDT Packet No Error !... [%d] should less than [%d]" % (packet_no, gBDTpacketCount), end='\n', flush = True)
+                print("**** BDT Packet No Error !... [%d] should less than [%d]" % (packet_no, gBDTCount), end='\n', flush = True)
         else:
             print("**** %2d-#%3d-[%s]" % (cHandle, gSTECount, hex_str(data)), end='\n', flush = True)
 
@@ -357,7 +358,7 @@ def scan_and_connect( is_first = True ):
 #############################################
 p = scan_and_connect()
 #
-# read Device Name, Manufacurer Name
+# read Device Name, Manufacurer Name, etc.
 #
 ret_val = p.readCharacteristic( SCD_DEVICE_NAME_HND )
 print ("\tDevice Name is [%s]" % ret_val.decode("utf-8"))
@@ -423,9 +424,9 @@ if ret_val !=  b'\x00':
 # set STE Configuration
 #
 time_bytes = struct.pack('<l', int(time.time()))
-gTargetSTEmode = bytes( time_bytes[0:4] ) + gTargetSTEmode[4:35]
-##print ("\tSTE config. set\n[%s](%d)" % (hex_str(gTargetSTEmode), len(gTargetSTEmode)))
-p.writeCharacteristic( SCD_STE_CONFIG_HND, gTargetSTEmode )
+gSTEMode = bytes( time_bytes[0:4] ) + gSTEMode[4:35]
+##print ("\tSTE config. set\n[%s](%d)" % (hex_str(gSTEMode), len(gSTEMode)))
+p.writeCharacteristic( SCD_STE_CONFIG_HND, gSTEMode )
 time.sleep(1.)
 ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
 print ("\tSTE config. get\n[%s](%d)" % (hex_str(ret_val), len(ret_val)))
@@ -482,7 +483,7 @@ while ret_val == b'x01':
     ret_val = p.readCharacteristic( SCD_BDT_STATUS_HND )
 time.sleep(0.7)
 print ("\n+--- Bulk Data Transfer completed...status is [%s], time [%.3f], count [%d]" % \
-       (ret_val.hex(), (gBDTLastTime-gBDTStartTime), gBDTpacketCount) )
+       (ret_val.hex(), (gBDTLastTime-gBDTStartTime), gBDTCount) )
 #############################################
 #
 # clean-up and init sensor device
@@ -506,7 +507,7 @@ p.disconnect()
 # write flash dump time series data file
 #
 '''
-print ("+--- Save flash data to binary file...")
+print ("+--- Save packet to binary file...")
 file_path  = "SCD_log_"
 file_path += datetime.datetime.fromtimestamp(gSTEStartTime).strftime('%Y-%m-%d_%H-%M-%S')
 file_path += ".bin"
@@ -515,13 +516,13 @@ try:
 except:
     print ("\tfile error!")   
 if f != None:
-    for i in range(0, gBDTpacketCount):
-        f.write ( gBDTpacketData[i*16:i*16+16] )
+    for i in range(0, gBDTCount):
+        f.write ( gBDTData[i*16:i*16+16] )
     f.close()
 #
 ############################################
 #
-print ("+--- Save flash data to decimal text file...")
+print ("+--- Save packet to decimal text file...")
 file_path  = "SCD_Dec_log_"
 file_path += datetime.datetime.fromtimestamp(gSTEStartTime).strftime('%Y-%m-%d_%H-%M-%S')
 file_path += ".csv"
@@ -530,19 +531,19 @@ try:
 except:
     print ("\tfile error!")   
 if f != None:
-    f.write ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ int(gTargetSTEmode[5]) & 0xf ])
-    f.write ("total # of rows: %d\n" % (gBDTpacketCount-1))            
+    f.write ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ int(gSTEMode[5]) & 0xf ])
+    f.write ("total # of rows: %d\n" % (gBDTCount-1))            
     f.write (" Row #,     01,     02,     03,     04,     05,     06,     07,     08\n")
-    for i in range(0, gBDTpacketCount):
+    for i in range(0, gBDTCount):
         f.write ( "%6d" % i )
         for j in range(i*16, i*16+16, 2):
-            f.write ( ", %6d" % int.from_bytes(gBDTpacketData[j:j+2], byteorder='little', signed=True))
+            f.write ( ", %6d" % int.from_bytes(gBDTData[j:j+2], byteorder='little', signed=True))
         f.write ( "\n" )    
     f.write ("End of Data")    
     f.close()
 #
-'''
 ############################################
+'''
 #
 print ("+--- Save packet to hexa text file (w/ non-data)...")
 file_path  = "SCD_Hex_log_"
@@ -553,12 +554,12 @@ try:
 except:
     print ("\tfile error!")   
 if f != None:
-    f.write ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ int(gTargetSTEmode[5]) & 0xf ])
-    f.write ("total # of rows: %d\n" % (gBDTpacketCount-1))            
+    f.write ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ int(gSTEMode[5]) & 0xf ])
+    f.write ("total # of rows: %d\n" % (gBDTCount-1))            
     f.write (" Row #, 01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, 15, 16\n")
-    for i in range(0, gBDTpacketCount):
-        text_line = ''.join([', ' + ch if j % 2 == 0 and j != 0 else ch for j, ch in enumerate(gBDTpacketData[i*16:i*16+16].hex())])
-        f.write ( "%6d, %s\n" % ( i, text_line ))
+    for i in range(0, gBDTCount):
+        text_line = ''.join([', ' + ch if j % 2 == 0 and j != 0 else ch for j, ch in enumerate(gBDTData[i*16:i*16+16].hex())])
+        f.write ( "  %04x, %s\n" % ( i, text_line ))
     f.write ("End of Data")    
     f.close()
 #
@@ -573,36 +574,62 @@ try:
 except:
     print ("\tfile error!")
 if f != None:
-    for EOD_pos in range((gBDTpacketCount+1)*16, (gBDTpacketCount-3)*16, -1):
-        is_aa = 0
-        if gBDTpacketData[EOD_pos] == 0xaa:
-            is_aa += 1 
-        if gBDTpacketData[EOD_pos-1] == 0xaa:
+    # find EOD(End-of-Data: 0xaaaa, 0xaaaa)
+    is_aa = 0
+    for EOD_pos in range((gBDTCount+1)*16, (gBDTCount-3)*16, -1):
+        if gBDTData[EOD_pos] != 0xaa:
+            is_aa = 0
+        else:    
             is_aa += 1
-        if gBDTpacketData[EOD_pos-2] == 0xaa:
-            is_aa += 1
-        if gBDTpacketData[EOD_pos-3] == 0xaa:
-            is_aa += 1
-        if is_aa == 4:
-            EOD_pos -= 3
-            break        
-    f.write ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ int(gTargetSTEmode[5]) & 0xf ]) 
-    f.write (" Row #, X-AXIS, Y-AXIS, Z-AXIS\n")
-    line = n = 0
-    idx  = 16 # skip header line
-    idx += 22 # skip non-data bytes
+            if is_aa == 4:
+                break
+    EOD_pos -= 2 # Skip CRC32
+    # =====================================       
+    # sensor data storage structure in BDT packet
+    # =====================================
+    #  16 bytes : packet header
+    # =====================================
+    #   4 bytes : start maker 0x55 0x55 0x55 0x55
+    #  13 bytes : container
+    # >>>>>>>>>>> repeat from
+    #   5 bytes : Sensor type(1N) + TimeStamp(6N) + FIFO Len(3N)
+    # 888 bytes : raw data
+    # <<<<<<<<<<< repeat to
+    #   2 bytes : CRC32
+    #   4 bytes : end marker 0xaa 0xaa 0xaa 0xaa
+    # =====================================
+    #  16 bytes : packet footer
+    # ====================================== 
+    idx  = 16 # skip paket header
+    # container information
+    time_unix  = int.from_bytes(gBDTData[idx+ 5:idx+ 9], byteorder='little', signed=True)
+    time_delay = int.from_bytes(gBDTData[idx+ 9:idx+13], byteorder='little', signed=True)
+    ODR_adxl   = gBDTData[idx+13]
+    idx += 17 # skip start maker & container
+    f.write ("server time    : %s(%d)\n" %  ( (datetime.datetime.fromtimestamp(float(time_unix)).strftime('%Y-%m-%d %H:%M:%S'), time_unix) ))
+    f.write ("delay time     : %.3f\n" % ( float(time_delay)/1000. ))
+    f.write ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ ODR_adxl ]) 
+    f.write (" Row #, Time-Stamp, X-AXIS, Y-AXIS, Z-AXIS\n")
+    line = 1
     while (idx < EOD_pos):
-        line += 1
-        f.write ( "%6d" % line)
-        for i in range(3):
+        sensor_type =  gBDTData[idx  ] & 0x0f
+        time_stamp  = (gBDTData[idx  ] & 0xf0) >> 4
+        time_stamp +=  gBDTData[idx+1] << 4
+        time_stamp +=  gBDTData[idx+2] << 12
+        time_stamp += (gBDTData[idx+3] & 0x0f) << 28
+        data_len  = (gBDTData[idx+3] & 0xf0) >> 4
+        data_len +=  gBDTData[idx+4] << 4
+        idx += 5
+        for n in range(data_len):
             if idx >= EOD_pos:
                 break
-            f.write ( ", %6d" % (int.from_bytes(gBDTpacketData[idx:idx+2], byteorder='little', signed=True)) )
+            if (n == 0):
+                f.write ( "%6d, %10.3f" % (line,(float(time_stamp)/1000.)))                          
+            elif (n % 3) == 0:
+                line += 1
+                f.write ( "\n%6d,           " % line )
+            f.write ( ", %6d" % (int.from_bytes(gBDTData[idx:idx+2], byteorder='little', signed=True)) )
             idx += 2
-            n += 2
-            if n >= 886: # sensor data bytes
-                idx += 7 # skip non-data bytes
-                n = 0
         f.write ( "\n" )     
     f.write ("End of Data")    
     f.close()
