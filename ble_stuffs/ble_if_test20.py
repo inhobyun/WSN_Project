@@ -96,9 +96,9 @@ STE_mode[ 0: 4]  = b'\x00\x00\x00\x00'  # [ 0~ 3] Unix time
 #
 mode  = 0xf0
 mode |= 0x01 # 01 sensor En/Disable - accelerometer
-#ode |= 0x02 # 02 sensor En/Disable - magnetometer
-#ode |= 0x04 # 04 sensor En/Disable - light
-#ode |= 0x08 # 08 sensor En/Disable - temperature
+mode |= 0x02 # 02 sensor En/Disable - magnetometer
+mode |= 0x04 # 04 sensor En/Disable - light
+mode |= 0x08 # 08 sensor En/Disable - temperature
 STE_mode[ 4: 5] = bytes(struct.pack('<h',mode))
 #
 mode  = 0x00 # ?0 data rate - accelerometer ODR 400Hz
@@ -258,7 +258,7 @@ class NotifyDelegate(DefaultDelegate):
             else:
                 gSTELastTime = time.time()
                 gSTELastData = data
-            idx = data[32] * 33
+            idx = gSTECount * 33
             gSTEData[idx:idx+33] = data[0:33]
             gSTECount += 1
         elif cHandle == SCD_BDT_DATA_FLOW_HND:
@@ -507,7 +507,7 @@ p.disconnect()
 # write STE notification to log file
 #
 print ("+--- Save STE notification to binary file...")
-file_path  = "SCD_STE_log_"
+file_path  = "SCD_STE_Noti_log_"
 file_path += datetime.datetime.fromtimestamp(gSTEStartTime).strftime('%Y-%m-%d_%H-%M-%S')
 file_path += ".csv"
 try:
@@ -517,12 +517,12 @@ except:
 if f != None:    
     f.write ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ int(gSTEMode[5]) & 0xf ])
     f.write ("total # of rows: %d\n" % (gSTECount))            
-    f.write ("counter, adxl X, vari X, adxl Y, vari Y, adxl Z, vari Z, Temp.,  light, magnet X, magnet Y, magnet Z\n")    
-     if gSTECount > 512:
+    f.write ("counter, adxl X, vari X, adxl Y, vari Y, adxl Z, vari Z, Temp.,   light, magnet X, magnet Y, magnet Z\n")    
+    if gSTECount > 512:
         gSTECount = 512
     for counter in range (gSTECount):
-# output Accelerrometer X, Y, Z axis arithmetic mean & variation
-        pResult = sSTEdata[counter*33:counter*33+33]
+        # output Accelerrometer X, Y, Z axis arithmetic mean & variation
+        pResult = gSTEData[counter*33:counter*33+33]
         adxl_mean_x = float( int.from_bytes(pResult[0:2], byteorder='little', signed=True) ) \
                       / 10.0
         adxl_vari_x = float( int.from_bytes(pResult[6:10], byteorder='little', signed=True) ) \
@@ -548,12 +548,12 @@ if f != None:
                     / 16.0
         magneto_z = float( int.from_bytes(pResult[28:30], byteorder='little', signed=True) ) \
                     / 16.0
-        f.write("%7d, %6.1f, %6.2f, %6.1f, %6.2f, %6.1f, %6.2f, %5.2f, %8.3f, %8.1f, %8.1f, %8.1f\n" % \
+        f.write("%7d, %6.1f, %6.2f, %6.1f, %6.2f, %6.1f, %6.2f, %5.2f, %7.3f, %8.1f, %8.1f, %8.1f\n" % \
             ( counter, \
-              adxl_mean_x, adxl_var_x, adxl_mean_y, adxl_var_y, adxl_mean_z, adxl_var_z, \
+              adxl_mean_x, adxl_vari_x, adxl_mean_y, adxl_vari_y, adxl_mean_z, adxl_vari_z, \
               temperature, light, \
               magneto_x, magneto_y, magneto_z \
-            )           
+            ) )          
     f.write ("End of Data")    
     f.close()
 #
@@ -580,7 +580,7 @@ if f != None:
 ############################################
 #
 print ("+--- Save packet to decimal text file...")
-file_path  = "SCD_Dec_log_"
+file_path  = "SCD_log_"
 file_path += datetime.datetime.fromtimestamp(gSTEStartTime).strftime('%Y-%m-%d_%H-%M-%S')
 file_path += ".csv"
 try:
@@ -603,7 +603,7 @@ if f != None:
 '''
 #
 print ("+--- Save packet to hexa text file (w/ non-data)...")
-file_path  = "SCD_Hex_log_"
+file_path  = "SCD_BDT_Pack_log_"
 file_path += datetime.datetime.fromtimestamp(gSTEStartTime).strftime('%Y-%m-%d_%H-%M-%S')
 file_path += ".csv"
 try:
@@ -623,7 +623,7 @@ if f != None:
 #########################################
 #
 print ("+--- Save data to decimal text file (w/o non-data)...")
-file_path  = "SCD_log_"
+file_path  = "SCD_BDT_Data_log_"
 file_path += datetime.datetime.fromtimestamp(gSTEStartTime).strftime('%Y-%m-%d_%H-%M-%S')
 file_path += ".csv"
 try:
