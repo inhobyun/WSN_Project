@@ -704,36 +704,63 @@ while (idx < EOD_pos):
             break
         idx += 2
 ###
-figure, axis = plotter.subplots(4, 1)
+figure, axis = plotter.subplots(6, 1)
 plotter.subplots_adjust(hspace=1)
-
-axis[0].set_title('X-Axis Sensor wave')
+#
+axis[0].set_title('X-axis accelometer measurement wave')
 axis[0].plot(time, amplitudeX)
-axis[0].set_xlabel('Time')
-axis[0].set_ylabel('Amplitude')
-
-axis[1].set_title('Y-Axis Sensor wave')
-axis[1].plot(time, amplitudeY)
-axis[1].set_xlabel('Time')
-axis[1].set_ylabel('Amplitude')
-
-axis[2].set_title('Z-Axis Sensor wave')
+axis[0].set_xlabel('Time(sec)')
+axis[0].set_ylabel('Amplitude(100mg)')
+#
+fourier_transformX = np.fft.fft(amplitudeX)/len(amplitudeX)            # Normalize amplitude
+fourier_transformX = fourier_transformX[range(int(len(amplitudeX)/2))] # Exclude sampling frequency
+tp_count    = len(amplitudeX)
+values      = np.arange(int(tp_count/2))
+time_period = tp_count/sampling_frequency
+frequencies = values/time_period
+#
+axis[1].set_title('Fourier transform depicting the X-axis frequency components')
+axis[1].plot(frequencies, abs(fourier_transformX))
+axis[1].set_xlabel('Frequency(Hz)')
+axis[1].set_ylabel('Amplitude(100mg)')
+#
+#
+axis[2].set_title('Y-axis accelometer measurement wave')
 axis[2].plot(time, amplitudeY)
-axis[2].set_xlabel('Time')
-axis[2].set_ylabel('Amplitude')                          
-
-fourier_transform = np.fft.fft(amplitudeZ)/len(amplitudeZ)           # Normalize amplitude
-fourier_transform = fourier_transform[range(int(len(amplitudeZ)/2))] # Exclude sampling frequency
+axis[2].set_xlabel('Time(sec)')
+axis[2].set_ylabel('Amplitude(100mg)')
+#
+fourier_transformY = np.fft.fft(amplitudeY)/len(amplitudeY)            # Normalize amplitude
+fourier_transformY = fourier_transformY[range(int(len(amplitudeY)/2))] # Exclude sampling frequency
+tp_count    = len(amplitudeY)
+values      = np.arange(int(tp_count/2))
+time_period = tp_count/sampling_frequency
+frequencies = values/time_period
+#
+axis[3].set_title('Fourier transform depicting the Y-axis frequency components')
+axis[3].plot(frequencies, abs(fourier_transformY))
+axis[3].set_xlabel('Frequency(Hz)')
+axis[3].set_ylabel('Amplitude(100mg)')
+#
+#
+axis[4].set_title('Z-axis accelometer measurement wave')
+axis[4].plot(time, amplitudeY)
+axis[4].set_xlabel('Time(sec)')
+axis[4].set_ylabel('Amplitude(100mg)')                          
+#
+fourier_transformZ = np.fft.fft(amplitudeZ)/len(amplitudeZ)            # Normalize amplitude
+fourier_transformZ = fourier_transformZ[range(int(len(amplitudeZ)/2))] # Exclude sampling frequency
 tp_count    = len(amplitudeZ)
 values      = np.arange(int(tp_count/2))
 time_period = tp_count/sampling_frequency
 frequencies = values/time_period
-
-axis[3].set_title('Fourier transform depicting the Z-Axis frequency components')
-axis[3].plot(frequencies, abs(fourier_transform))
-axis[3].set_xlabel('Frequency')
-axis[3].set_ylabel('Amplitude')
-
+#
+axis[5].set_title('Fourier transform depicting the Z-axis frequency components')
+axis[5].plot(frequencies, abs(fourier_transformZ))
+axis[5].set_xlabel('Frequency(Hz)')
+axis[5].set_ylabel('Amplitude(100mg)')
+#
+#
 print ("+--- plotting...") 
 plotter.show()
 #    
