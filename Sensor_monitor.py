@@ -14,17 +14,17 @@ env = Environment(
 
 @app.route('/')
 def root():
-    template = env.get_template('landing.html')
+    template = env.get_template('main.html')
     return template.render()
 
-@app.route('/dashboard')
+@app.route('/m_dashboard')
 def dashboard():
-    template = env.get_template('dashboard.html')
+    template = env.get_template('m_dashboard.html')
     return template.render()
 
-@app.route('/Ooops')
+@app.route('/m_Ooops')
 def Ooops():
-    template = env.get_template('Ooops.html')
+    template = env.get_template('m_Ooops.html')
     return template.render()
 
 @app.route('/post_test', methods=['POST'])
