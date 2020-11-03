@@ -1,26 +1,32 @@
 {% extends "m_base.html" %}
 
 {% block left %}
-
-    X & Y Axis Scaling ---------- 
-    <button onclick="sendValue()">Apply</button> <br>
+    <p style="text-align:center;"><Strong>X & Y Axis Scaling</Strong></p>
+    
+    <p style="text-align:right;"><button onclick="sendValue()">Apply</button></p>
+    
     <input type="radio" id="auto_scroll" name="scroll" value="auto_scroll" checked>
     <label>Automatic Scaling</label> <br>
     <input type="radio" id="man_scroll" name="scroll" value="man_scroll">
-    <label>Manual Scaling</label> <br>
-    <label>Y Axis Min</label>
-    <input type="text" id="y_min" value="-200" /> <br>
-    <label>Y Axis Max</label>
-    <input type="text" id="y_max" value="200" /> <br>
-    <label>Y Axis Gridline</label>
-    <input type="text" id="y_gridline" value="40" /> <br>
-    <label>X Axis Min</label>   
-    <input type="text" id="x_min" value="-10" /> <br>
-    <label>X Axis Max</label>
-    <input type="text" id="x_max" value="0" /> <br>
-    <label>X Axis Gridline</label>
-    <input type="text" id="x_gridline" value="500" /> <br>  
+    <label>Manual Scaling</label>
+    
+    <p style="position:absolute; left:  8px; top:142px;"><label>Y Axis Min</label></p>
+    <p style="position:absolute; left:100px; top:140px;"><input type="text" id="y_min" value="-200"></p>
 
+    <p style="position:absolute; left:  8px; top:172px;"><label>Y Axis Max</label></p>
+    <p style="position:absolute; left:100px; top:170px;"><input type="text" id="y_max" value="200"></p>
+    
+    <p style="position:absolute; left:  8px; top:202px;"><label>Y Axis Gridline</label></p>
+    <p style="position:absolute; left:100px; top:200Px;"><input type="text" id="y_gridline" value="40"></p>
+
+    <p style="position:absolute; left:  8px; top:242px;"><label>X Axis Min</label></p>
+    <p style="position:absolute; left:100px; top:240px;"><input type="text" id="x_min" value="-10"></p>
+    
+    <p style="position:absolute; left:  8px; top:272px;"><label>X Axis Max</label></p>
+    <p style="position:absolute; left:100px; top:270px;"><input type="text" id="x_max" value="0"></p>
+  
+    <p style="position:absolute; left:  8px; top:302px;"><label>X Axis Gridline</label></p>
+    <p style="position:absolute; left:100px; top:300px;"><input type="text" id="x_gridline" value="500"></p>
 {% endblock %}
 
 {% block right %}

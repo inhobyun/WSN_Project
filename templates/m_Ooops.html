@@ -1,7 +1,19 @@
 {% extends "m_base.html" %}
 
+<div class="left" style="background-color:#aaa;">
+    {% block left %}
+    <p style="text-align:center;">No Sub-Menu</p>
+    {% endblock %}
+</div>
+
+<div class="right" style="background-color:#ccc;">
+    {% block right %}
+    <p style="text-align:center;">No Graphic Output</p>
+    {% endblock %}
+</div>
+
 {% block foot %}
-    <p style="font-size:12px;color:red;">
+    <p style="font-size:14px;color:red;">
         <strong>Sorry! It has not been implemeted.<a href="/">Click</a> to return</strong>
     </p>
 {% endblock %}

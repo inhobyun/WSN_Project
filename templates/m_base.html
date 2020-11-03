@@ -14,40 +14,45 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Style */
-.top {
-  grid-area: top;
-  background-color: #008040;
-  color: white;
-  padding: 3px;
-  text-align: center;
-  font-size: 14px;
-}
 
 /* The grid container */
 .grid-container {
   display: grid;
+  grid-template-columns: 280px auto;
   grid-template-areas: 
-    'top   top   top   top' 
-    'left  right right right' 
-    'foot  foot  foot  foot';
-  /* grid-column-gap: 10px; - if you want gap between the columns */
+    'top   top  ' 
+    'left  right' 
+    'foot  foot ';
 } 
+
+.top {
+  grid-area: top;
+  background-color: #008040;
+  color: white;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 10px;
+  text-align: left;
+  font-size: 14px;
+}
 
 .left,
 .right {
-  padding: 3px;
-  height: 860px; /* Should be removed. Only for demonstration */
+  height: 840px; /* Should be removed. Only for demonstration */
 }
 
 /* Style the left column */
 .left {
   grid-area: left;
+  font-size: 14px;
+  padding-left: 4px;
+  padding-right: 4px;
 }
 
 /* Style the right column */
 .right {
   grid-area: right;
+  font-size: 12px;
 }
 
 /* Style the footer */
@@ -56,15 +61,16 @@ body {
   background-color: #f1f1f1;
   padding: 3px;
   text-align: center;
+  font-size: 14px;
 }
 
 /* Responsive layout - makes the three columns stack on top of each other instead of next to each other */
 @media (max-width: 1920px) {
   .grid-container  {
     grid-template-areas: 
-    'top   top   top   top' 
-    'left  right right right' 
-    'foot  foot  foot  foot';
+    'top   top  ' 
+    'left  right' 
+    'foot  foot ';
    }
 }
 </style>
@@ -72,19 +78,19 @@ body {
 
 <body>
 
-<p style="padding:3px;text-align:center;font-size:14px;color:blue;">
-    <strong>[Sensor Data Monitoring & Analysis -- Pilot Application -- started Oct. 1st, 2020]</strong>
+<p style="padding:3px; text-align:center; font-size:14px; color: cyan; background-color:blue;">
+    <strong>[Sensor Data Monitoring & Analysis]</strong>
 </p>
 
 <div class="grid-container">
 
     <div class="top">
         <button onclick="window.location.href='/m_Ooops'">Sensor Configuration</button>
+        <button onclick="window.location.href='/m_Ooops'">Sensor Data Monitoring - Real Time Satus</button>
         <button onclick="window.location.href='/m_dashboard'">Sensor Data Monitoring - Time Series Graph</button>
-        <button onclick="window.location.href='/m_Ooops'">Sensor Data Monitoring - FFT Graph</button>
+        <button onclick="window.location.href='/m_Ooops'">Sensor Data Monitoring - Fourier Transformed Graph</button>
         <button onclick="window.location.href='/m_Ooops'">Sensor Data Analysis</button>    
     </div>
-    
     
     <div class="left" style="background-color:#aaa;">
         {% block left %}
@@ -105,7 +111,6 @@ body {
     <script src="https://d3js.org/d3.v4.js"></script>
 
 </div>
-
 
 </body>
 </html>
