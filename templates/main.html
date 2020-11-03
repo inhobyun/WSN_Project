@@ -1,18 +1,13 @@
 {% extends "m_base.html" %}
 
-<div class="left" style="background-color:#aaa;">
-    {% block left %}
+{% block left %}
     <p style="text-align:center;">Sub-Menu</p>
-    {% endblock %}
-</div>
+{% endblock %}
 
-<div class="right" style="background-color:#ccc;">
-    {% block right %}
+{% block right %}
     <p style="text-align:center;">Graphic Output</p>
-    {% endblock %}
-</div>
+{% endblock %}
 
-<div class="foot">
-    {% block foot %}
-    {% endblock %}
-</div>
+{% block foot %}
+    <p style="text-align:center;">Status or Message Output</p>
+{% endblock %}

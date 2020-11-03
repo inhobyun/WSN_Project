@@ -1,6 +1,19 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link rel="icon" href="C:\Users\ihbyu\GitHub\WSN_Project\assets\images\logo.png">
+<!--
+<link rel="stylesheet" href="/assets/styles/index.css">
+<link rel="stylesheet" href="/assets/styles/header.css">
+<link rel="stylesheet" href="/assets/styles/screen.css">
+<link rel="stylesheet" href="/assets/styles/footer.css">
+-->
+<title>Sensor Data Monitoring & Aanalysis</title>
+
 <style>
 * {
   box-sizing: border-box;
@@ -13,7 +26,6 @@
 body {
   font-family: Arial, Helvetica, sans-serif;
 }
-
 
 /* The grid container */
 .grid-container {
@@ -44,22 +56,24 @@ body {
 /* Style the left column */
 .left {
   grid-area: left;
+  background-color: #aaa;
   font-size: 14px;
-  padding-left: 4px;
-  padding-right: 4px;
 }
 
 /* Style the right column */
 .right {
   grid-area: right;
+  background-color: #ccc;
   font-size: 12px;
 }
 
 /* Style the footer */
 .foot {
   grid-area: foot;
-  background-color: #f1f1f1;
-  padding: 3px;
+  background-color: #999;
+  color: white
+  padding-top: 4px;
+  padding-bottom: 4px;
   text-align: center;
   font-size: 14px;
 }
@@ -78,26 +92,26 @@ body {
 
 <body>
 
-<p style="padding:3px; text-align:center; font-size:14px; color: cyan; background-color:blue;">
-    <strong>[Sensor Data Monitoring & Analysis]</strong>
+<p style="padding:3px; text-align:center; font-size:14px; color: Black; background-color:#999;">
+  <strong>[Sensor Data Monitoring & Analysis]</strong>
 </p>
 
 <div class="grid-container">
 
     <div class="top">
-        <button onclick="window.location.href='/m_Ooops'">Sensor Configuration</button>
-        <button onclick="window.location.href='/m_Ooops'">Sensor Data Monitoring - Real Time Satus</button>
-        <button onclick="window.location.href='/m_dashboard'">Sensor Data Monitoring - Time Series Graph</button>
-        <button onclick="window.location.href='/m_Ooops'">Sensor Data Monitoring - Fourier Transformed Graph</button>
-        <button onclick="window.location.href='/m_Ooops'">Sensor Data Analysis</button>    
+      <button onclick="window.location.href='/m_Ooops'">Sensor Configuration</button>
+      <button onclick="window.location.href='/m_Ooops'">Sensor Data Monitoring - Real Time Satus</button>
+      <button onclick="window.location.href='/m_dashboard'">Sensor Data Monitoring - Time Series Graph</button>
+      <button onclick="window.location.href='/m_Ooops'">Sensor Data Monitoring - Fourier Transformed Graph</button>
+      <button onclick="window.location.href='/m_Ooops'">Sensor Data Analysis</button>    
     </div>
     
-    <div class="left" style="background-color:#aaa;">
+    <div class="left">
         {% block left %}
         {% endblock %}
     </div>
     
-    <div class="right" style="background-color:#ccc;">
+    <div class="right">
         {% block right %}
         {% endblock %}
     </div>
