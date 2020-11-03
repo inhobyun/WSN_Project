@@ -2,16 +2,27 @@
 
 ## How to setup virtual environment
 
-Setup **venv**.
+install virtual Environment **venv**
 
 ```bash
 python -m venv ./env
 ```
+or in Ubuntu:
+```bash
+sudo pip install virtualenv
+virtualenv venv
+virtualenv -p /usr/bin/python3 venv
+```
+
 
 Install all dependencies. (Do this after activating **venv**)
 
 ```bash
 pip install -r requirements.txt
+```
+or in Windows:
+```cmd
+pip install -r requirements_win.txt
 ```
 
 ## How to run
@@ -21,9 +32,7 @@ Activate **venv**.
 ```bash
 source ./env/bin/activate
 ```
-
 or in Windows:
-
 ```cmd
 ./env/Scripts/activate.bat
 ```
@@ -31,7 +40,7 @@ or in Windows:
 And then, run server.
 
 ```bash
-python app.py
+python sensor_monitor.py
 ```
 
 ## Check out these documents
