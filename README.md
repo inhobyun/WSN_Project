@@ -17,13 +17,16 @@ virtualenv -p /usr/bin/python3 venv
 
 Install all dependencies. (Do this after activating **venv**)
 
+Optionary, upgrade pip
 ```bash
 python -m pip install --upgrade pip
+```
+then,
+```bash
 pip install -r requirements.txt
 ```
 or in Windows:
 ```cmd
-python -m pip install --upgrade pip
 pip install -r requirements_win.txt
 ```
 
