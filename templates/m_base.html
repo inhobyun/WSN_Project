@@ -31,15 +31,11 @@ body {
 .grid-container {
   display: grid;
   grid-template-columns: 280px auto;
-  grid-template-areas: 
-    'top   top  ' 
-    'left  right' 
-    'foot  foot ';
 } 
 
 .top {
   grid-area: top;
-  background-color: #008040;
+  background-color: #888;
   color: white;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -82,9 +78,9 @@ body {
 @media (min-width: 1024px) {
   .grid-container  {
     grid-template-areas: 
-    'top   top  ' 
-    'left  right' 
-    'foot  foot ';
+    'top  top  ' 
+    'left right' 
+    'foot foot ';
    }
 }
 </style>
@@ -99,11 +95,16 @@ body {
 <div class="grid-container">
 
     <div class="top">
-      <button onclick="window.location.href='/m_Ooops'">Sensor Configuration</button>
-      <button onclick="window.location.href='/m_Ooops'">Sensor Data Monitoring - Real Time Satus</button>
-      <button onclick="window.location.href='/m_dashboard'">Sensor Data Monitoring - Time Series Graph</button>
-      <button onclick="window.location.href='/m_Ooops'">Sensor Data Monitoring - Fourier Transformed Graph</button>
-      <button onclick="window.location.href='/m_Ooops'">Sensor Data Analysis</button>    
+      <p style="position:static; top: 28px;">
+        <button onclick="window.location.href='/m_Ooops'">Sensor Configuration</button>
+        <button onclick="window.location.href='/m_Ooops'">Sensor Data Monitoring - Real Time Satus</button>
+        <button onclick="window.location.href='/m_dashboard'">Sensor Data Monitoring - Time Series Graph</button>
+        <button onclick="window.location.href='/m_Ooops'">Sensor Data Monitoring - Fourier Transformed Graph</button>
+        <button onclick="window.location.href='/m_Ooops'">Sensor Data Analysis</button>
+      </p>
+      <p style="position:static; text-align:right;top: 28px;">
+        <button onclick="window.location.href='/'">Return Home</button>
+      </p>    
     </div>
     
     <div class="left">
