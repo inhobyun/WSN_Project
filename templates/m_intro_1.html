@@ -5,12 +5,16 @@
 {% endblock %}
 
 {% block right %}
-    <p style="text-align:right; padding-top:30px;"><a href="/m_intro_1">Click</a> to next...</p>      
-    <p style="text-align:center;">
+    <p style="position:absolute; top:50px; left:1124px;">
+    <button onclick="window.location.href='/m_intro_2'">Next...</button>
+    </p>
+    <p style="text-align:center; padding-top:30px;">
     <img src="/static/images/intro-1.jpg" align="middle" width="900" height="600" />
     </p>
 {% endblock %}
 
 {% block foot %}
-    <p style="text-align:center;">Status or Message Output</p>
+    <p style="font-size:14px; color:white;">
+    <strong>Introduction</strong> <a href="/">Click</a> to return...
+    </p>
 {% endblock %}
