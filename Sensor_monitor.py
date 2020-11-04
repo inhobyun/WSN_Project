@@ -6,7 +6,7 @@ import math
 from flask import Flask, redirect, request
 from jinja2 import Environment, PackageLoader, Markup, select_autoescape
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static')
 env = Environment(
     loader=PackageLoader(__name__, 'templates'),
     autoescape=select_autoescape(['html', 'xml'])
