@@ -22,6 +22,16 @@ def dashboard():
     template = env.get_template('m_dashboard.html')
     return template.render()
 
+@app.route('/m_intro_1')
+def intro_1():
+    template = env.get_template('m_intro_1.html')
+    return template.render()
+
+@app.route('/m_intro_2')
+def intro_2():
+    template = env.get_template('m_intro_2.html')
+    return template.render()
+
 @app.route('/m_Ooops')
 def Ooops():
     template = env.get_template('m_Ooops.html')
