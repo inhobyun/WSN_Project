@@ -40,11 +40,11 @@ else:
 print("Tcp Server> socket binded")    
 gSoketServer.listen(2)
 
-cnt = 0
 while True:
     print("Tcp Server> listen & accepting...")
     conn, addr = gSoketServer.accept()
     from_client = ''
+    cnt = 0
     while True:
         data = conn.recv(1024)
         print("Tcp Server> data received...")
@@ -53,5 +53,8 @@ while True:
         cnt += 1
         from_client = data.decode()
         print ("Tcp Server> data: [%s]" % from_client)
+        if cnt > 15:
+            conn.send("STOP".encode())
+            break
     conn.close()
     print ('Tcp Server> client disconnected, count is', cnt)

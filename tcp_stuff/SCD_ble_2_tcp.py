@@ -177,19 +177,19 @@ def string_STE_data( pResult ):
     magneto_z = float( int.from_bytes(pResult[28:30], byteorder='little', signed=True) ) \
                 / 16.0
     # make string to send
-    str1 = "%.1f" % adxl_mean_x
-    str2 = "%.2f" % adxl_vari_x
-    str3 = "%.1f" % adxl_mean_y
-    str4 = "%.2f" % adxl_vari_y
-    str5 = "%.1f" % adxl_mean_z
-    str6 = "%.2f" % adxl_vari_z
-    str7 = "%.2f" % temperature
-    str8 = "%.3f" % light
-    str9 = "%.1f" % magneto_x
-    str10= "%.1f" % magneto_y
-    str11= "%.1f" % magneto_z
-    str  = '(' +str1 + ',' + str2 + ',' + str3 + ',' + str4 + ',' + str5 + ',' + str6 + ',' \
-            + str7 + ',' + str8 + ',' + str9 + ',' + str10 + ',' + str11 + ')'     
+    str  = '('
+    str += "%.1f" % adxl_mean_x + ','
+    str += "%.2f" % adxl_vari_x + ','
+    str += "%.1f" % adxl_mean_y + ','
+    str += "%.2f" % adxl_vari_y + ','
+    str += "%.1f" % adxl_mean_z + ','
+    str += "%.2f" % adxl_vari_z + ','
+    str += "%.2f" % temperature + ','
+    str += "%.3f" % light + ','
+    str += "%.1f" % magneto_x + ','
+    str += "%.1f" % magneto_y + ','
+    str += "%.1f" % magneto_z
+    str += ')'     
     return str
 
 #############################################    
@@ -361,6 +361,7 @@ def scan_and_connect( is_first = True ):
 # connect server socket
 #
 gSocketClient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
 if gSocketClient != None:
     try:
         print("Tcp Client> trying to connect %s:%d" % (TCP_HOST_NAME, TCP_PORT) )
@@ -371,6 +372,7 @@ if gSocketClient != None:
 else:
     print("TCP Client> socket creation fail... Exiting...")
     sys.exit(1)
+gSocketClient.setblocking(0)
 
 #############################################
 #
@@ -460,18 +462,23 @@ p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1))
 time.sleep(0.7)
 p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
 time_start = time.time()
-if STE_RUN_TIME > 0:
-    while not gSocketError:
-        wait_flag = p.waitForNotifications(1.)
-        time_stop = time.time()
-        if (time_stop-time_start) > STE_RUN_TIME:
-            print ( "\n\t[done] STE time exceeded", end = '\n', flush = True )
-            break
-else:
-    while not gSocketError:
-        wait_flag = p.waitForNotifications(1.)
-        if gSocketError:
-            print ( "\n\t[error] send thru socket", end = '\n', flush = True )    
+while True:
+    wait_flag = p.waitForNotifications(1.)
+    time_stop = time.time()
+    if STE_RUN_TIME > 0 and (time_stop-time_start) > STE_RUN_TIME:
+        print ( "\n\t[done] STE time exceeded", end = '\n', flush = True )
+        break
+    if gSocketError:
+        print ( "\n\t[done] sending error thru socket", end = '\n', flush = True )
+        break
+    try:
+        ret_val = gSocketClient.recv(1024).decode()
+    except BlockingIOError:
+        continue
+    print ( "\n\t[recv]", ret_val, end = '\n', flush = True )
+    if ret_val == "STOP":
+        print ( "\t[done] received 'STOP'", end = '\n', flush = True )
+        break
 
 #############################################
 #
