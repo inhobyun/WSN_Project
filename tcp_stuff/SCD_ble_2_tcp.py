@@ -80,15 +80,6 @@ gSTEStartTime    = 0.    # notification start timestamp
 gSTELastTime     = 0.    # notification last timestamp
 gSTEData    = bytearray(33)
 
-'''
-# BDT - Block Data Transfer
-gBDTCount        = 0
-gBDTStartTime    = 0.   
-gBDTLastTime     = 0.
-gBDTData   = bytearray(SCD_MAX_FLASH)
-gBDTCRC32  = bytearray(4)
-'''
-
 #############################################
 # target definitions to TCP Server
 #############################################
@@ -97,11 +88,13 @@ gBDTCRC32  = bytearray(4)
 #
 #TCP_ADDRESS = "125.131.73.31"
 TCP_ADDRESS = "127.0.0.1"
+TCP_HOST_NAME  = socket.gethostname()
 TCP_PORT    = 8088
 #
 # global variables
 #
-gSoketClient = None
+gSocketClient = None
+gSocketError = False
 
 #############################################
 # STE(Short Time Experiment) mode configuration (35 bytes) 
@@ -216,7 +209,7 @@ def print_STE_result( pResult ):
     print ( "\tNotification End   : %s(%.3f)" \
             % (datetime.datetime.fromtimestamp(gSTELastTime).strftime('%Y-%m-%d %H:%M:%S'), gSTELastTime) )      
     print ("\t", end = '', flush = True )
-    print_STE_data (pResult)
+    ##print_STE_data (pResult)
     return
 
 #############################################
@@ -267,6 +260,7 @@ class NotifyDelegate(DefaultDelegate):
         global gSTEStartData
         global gSTELastData
         global gSocketClient
+        global gSocketError
 
         if cHandle == SCD_STE_RESULT_HND:
         # STE notification
@@ -277,7 +271,11 @@ class NotifyDelegate(DefaultDelegate):
                 gSTELastTime = time.time()
                 gSTELastData = data
             gSTECount += 1
-            ##gSocketClient.send(string_STE_data(data))
+            try:
+                gSocketClient.send(string_STE_data(data).encode())
+            except:
+                print ( "Tcp Client> send error !" )
+                gSocketError = True
         else:
             print("**** %2d-#%3d-[%s]" % (cHandle, gSTECount, hex_str(data)), end='\n', flush = True)
 
@@ -357,15 +355,16 @@ def scan_and_connect( is_first = True ):
 #
 # connect server socket
 #
-gSoketClient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-if gSoketClient != None:
+gSocketClient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+if gSocketClient != None:
     try:
-        gSocketClient.connect((socket.gethostname(), TCP_PORT))
+        print("Tcp Client> trying to connect %s:%d" % (TCP_HOST_NAME, TCP_PORT) )
+        gSocketClient.connect((TCP_HOST_NAME, TCP_PORT))
     except:
-        print("TCP Client> Socket connection fail... Exiting...")
-        ##sys.exit(1)    
+        print("TCP Client> socket connection fail... Exiting...")
+        sys.exit(1)    
 else:
-    print("TCP Client> Socket creation fail... Exiting...")
+    print("TCP Client> socket creation fail... Exiting...")
     sys.exit(1)
 
 #############################################
@@ -457,20 +456,19 @@ time.sleep(0.7)
 p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
 time_start = time.time()
 if STE_RUN_TIME != 0:
-    while True:
+    while not gSocketError:
         wait_flag = p.waitForNotifications(1.)
         time_stop = time.time()
         if (time_stop-time_start) > STE_RUN_TIME:
             print ( "\n\t[done] STE time exceeded", end = '\n', flush = True )
             p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
-            print ("\tSTE is stopping")
             break
 else:
-    while True:
+    while not gSocketError:
         wait_flag = p.waitForNotifications(1.)
-        ret_val = gSocketClient.recv(4096)
-        if ret_val[0:4] == 'STOP':
-            break       
+        if gSocketError == True:
+            break;            
+print ("\tSTE is stopping")        
 #############################################
 #
 # stop STE
