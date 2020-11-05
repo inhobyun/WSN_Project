@@ -9,7 +9,7 @@ followings are the brief steps included in this code;
 - set STE configuration
 - start STE(Short Time Experiment)
 - write STE notification to TCP socket
-- until stop key entered
+- until stop received
 - disconnect
 
 by Inho Byun, Researcher/KAIST
@@ -17,11 +17,12 @@ by Inho Byun, Researcher/KAIST
                     started 2020-11-05
                     last updated 2020-11-05
 """
+from bluepy.btle import Scanner, DefaultDelegate, UUID, Peripheral
+import datetime
+import socket
+import struct
 import sys
 import time
-import datetime
-import struct
-from bluepy.btle import Scanner, DefaultDelegate, UUID, Peripheral
 
 #############################################
 # target definitions to interface BOSCH SCD
@@ -64,7 +65,7 @@ SCD_MAX_NOTIFY  = SCD_MAX_FLASH>>4  # int(SCD_MAX_FLASH / 16)
 # Some constant parameters
 #
 SCAN_TIME        = 8.    # scanning duration for BLE devices 
-STE_RUN_TIME     = 3.    # STE rolling time in secconds
+STE_RUN_TIME     = 0.    # STE rolling time in secconds (if 0, end-less rolling)
 STE_FREQUENCY    = (400, 800, 1600, 3200, 6400)  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz
 MAX_STE_RUN_TIME = 30.   # max STE rolling time in seconds
 #
@@ -77,14 +78,30 @@ gSTEMode    = bytes(35)  # Sensor Mode
 gSTECount        = 0     # count of notifications from connected device
 gSTEStartTime    = 0.    # notification start timestamp
 gSTELastTime     = 0.    # notification last timestamp
-gSTEData    = bytearray(33*512)
+gSTEData    = bytearray(33)
 
+'''
 # BDT - Block Data Transfer
 gBDTCount        = 0
 gBDTStartTime    = 0.   
 gBDTLastTime     = 0.
 gBDTData   = bytearray(SCD_MAX_FLASH)
 gBDTCRC32  = bytearray(4)
+'''
+
+#############################################
+# target definitions to TCP Server
+#############################################
+#
+# target TCP Server identifiers
+#
+#CP_ADDRESS = "125.131.73.31" # 
+TCP_ADDRESS = "0.0.0.0" # 
+TCP_PORT    = "8088"          #
+#
+# global variables
+#
+gSoketClient = None
 
 #############################################
 # STE(Short Time Experiment) mode configuration (35 bytes) 
@@ -103,7 +120,7 @@ STE_mode[ 4: 5] = bytes(struct.pack('<h',mode))
 mode  = 0x00 # ?0 data rate - accelerometer ODR 400Hz
 #ode  = 0x01 # ?1 data rate - accelerometer ODR 800Hz
 #ode  = 0x02 # ?2 data rate - accelerometer ODR 1600Hz
-mode  = 0x03 # ?3 data rate - accelerometer ODR 3200Hz
+#ode  = 0x03 # ?3 data rate - accelerometer ODR 3200Hz
 #ode  = 0x04 # ?4 data rate - accelerometer ODR 6400Hz
 #ode |= 0x00 # 0? data rate - light sensor ODR 100ms(10Hz)
 #ode |= 0x10 # 1? data rate - light sensor ODR 800ms(1.25Hz)
@@ -117,7 +134,7 @@ STE_mode[26:28]  = b'\x80\xF3'          # [26~27] temperature threshold low
 STE_mode[28:30]  = b'\x00\x2D'          # [28~29] temperature threshold high
 #
 mode  = 0xf0 # F0 sensor raw value to flash
-mode |= 0x01 # 01 sensor raw value to flash - accelerometer
+#ode |= 0x01 # 01 sensor raw value to flash - accelerometer
 #ode |= 0x02 # 02 sensor raw value to flash - magnetometer
 #ode |= 0x04 # 04 sensor raw value to flash - light
 #ode |= 0x08 # 08 sensor raw value to flash - temperature
@@ -138,9 +155,9 @@ def hex_str( vBytes ):
 #############################################
 # output STE data
 #
-def print_STE_data( pResult ):
+def string_STE_data( pResult ):
 
-# output Accelerrometer X, Y, Z axis arithmetic mean & variation  
+    # output Accelerrometer X, Y, Z axis arithmetic mean & variation  
     adxl_mean_x = float( int.from_bytes(pResult[0:2], byteorder='little', signed=True) ) \
                   / 10.0
     adxl_vari_x = float( int.from_bytes(pResult[6:10], byteorder='little', signed=True) ) \
@@ -166,15 +183,21 @@ def print_STE_data( pResult ):
                 / 16.0
     magneto_z = float( int.from_bytes(pResult[28:30], byteorder='little', signed=True) ) \
                 / 16.0
-    # print    
-    print ("A: X[%4.1f][%4.2f] Y[%4.1f][%4.2f] Z[%4.1f][%4.2f]g" %\
-           ( adxl_mean_x, adxl_vari_x, adxl_mean_y, adxl_vari_y, adxl_mean_z, adxl_vari_z ), \
-           end = '' \
-          )
-    print (" - T: [%4.2f]C" % temperature, end = '' )
-    print (" - L: [%7.3f]lux" % light, end = '' )
-    print (" - M: X[%5.1f] Y[%5.1f] Z[%5.1f]uT" % (magneto_x, magneto_y, magneto_z), end = '\n', flush = True )
-    return
+    # make string to send
+    str1 = "%.1f" % adxl_mean_x
+    str2 = "%.2f" % adxl_vari_x
+    str3 = "%.1f" % adxl_mean_y
+    str4 = "%.2f" % adxl_vari_y
+    str5 = "%.1f" % adxl_mean_z
+    str6 = "%.2f" % adxl_vari_z
+    str7 = "%.2f" % temperature
+    str8 = "%.3f" % light
+    str9 = "%.1f" % magneto_x
+    str10= "%.1f" % magneto_y
+    str11= "%.1f" % magneto_z
+    str  = '(' +str1 + ',' + str2 + ',' + str3 + ',' + str4 + ',' + str5 + ',' + str6 + ',' \
+            + str7 + ',' + str8 + ',' + str9 + ',' + str10 + ',' + str11 + ')'     
+    return str
 
 #############################################    
 # print STE result
@@ -243,11 +266,13 @@ class NotifyDelegate(DefaultDelegate):
         global gSTELastTime
         global gSTEStartData
         global gSTELastData
+        '''
         global gBDTCount
         global gBDTStartTime
         global gBDTLastTime
         global gBDTData
         global gBDTCRC32
+        '''
 
         if cHandle == SCD_STE_RESULT_HND:
         # STE notification
@@ -257,9 +282,10 @@ class NotifyDelegate(DefaultDelegate):
             else:
                 gSTELastTime = time.time()
                 gSTELastData = data
-            idx = gSTECount * 33
-            gSTEData[idx:idx+33] = data[0:33]
             gSTECount += 1
+            
+
+        '''    
         elif cHandle == SCD_BDT_DATA_FLOW_HND:
         # BDT notification
             #print("**** %2d-#%3d-[%s][%s]" % (cHandle, gSTECount, hex_str(data[0:4]),hex_str(data[4:20])), end='\n', flush = True)
@@ -281,6 +307,7 @@ class NotifyDelegate(DefaultDelegate):
                 gBDTData[idx:idx+16] = data[4:20]
             else:
                 print("**** BDT Packet No Error !... [%d] should less than [%d]" % (packet_no, gBDTCount), end='\n', flush = True)
+        '''
         else:
             print("**** %2d-#%3d-[%s]" % (cHandle, gSTECount, hex_str(data)), end='\n', flush = True)
 
@@ -355,6 +382,26 @@ def scan_and_connect( is_first = True ):
 # Main starts here
 #
 #############################################
+
+#############################################
+#
+# connect server socket
+#
+gSoketClient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+if gSoketClient != None:
+    try:
+        gSocketClient.connect((TCP_ADDRESS, TCP_PORT))
+    except:
+        print("Socket connection fail... Exiting...")
+        sys.exit(1)    
+else:
+    print("Socket creation fail... Exiting...")
+    sys.exit(1)
+
+#############################################
+#
+# scan and connect SCD
+#
 p = scan_and_connect()
 #
 # read Device Name, Manufacurer Name, etc.
@@ -439,14 +486,21 @@ p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1))
 time.sleep(0.7)
 p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
 time_start = time.time()
-while True:
-    wait_flag = p.waitForNotifications(1.)
-    time_stop = time.time()
-    if (time_stop-time_start) > STE_RUN_TIME:
-        print ( "\n\t[done] STE time exceeded", end = '\n', flush = True )
-        p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
-        print ("\tSTE is stopping")
-        break
+if STE_RUN_TIME != 0:
+    while True:
+        wait_flag = p.waitForNotifications(1.)
+        time_stop = time.time()
+        if (time_stop-time_start) > STE_RUN_TIME:
+            print ( "\n\t[done] STE time exceeded", end = '\n', flush = True )
+            p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
+            print ("\tSTE is stopping")
+            break
+else:
+    while True:
+        wait_flag = p.waitForNotifications(1.)
+        ret_val = gSocketClient.recv(4096)
+        if ret_val[0:4] == 'STOP':
+            break       
 #############################################
 #
 # stop STE
@@ -463,28 +517,6 @@ print_STE_result(gSTELastData)
 
 #############################################
 #
-# bulk data transfer 
-#
-#############################################
-print ("+--- Bulk Data Transfer after a while")
-time.sleep(3.0)
-p.setDelegate( NotifyDelegate(p) )
-print ("+--- BDT Starting...")
-time.sleep(0.7)
-p.writeCharacteristic( SCD_BDT_DATA_FLOW_HND+1, struct.pack('<H', 1) )
-time.sleep(0.7)
-p.writeCharacteristic( SCD_BDT_CONTROL_HND, b'\x01' )
-ret_val = b'x01'
-while ret_val == b'x01':  
-    wait_flag = p.waitForNotifications(15.)
-    if wait_flag :
-        continue
-    ret_val = p.readCharacteristic( SCD_BDT_STATUS_HND )
-time.sleep(0.7)
-print ("\n+--- Bulk Data Transfer completed...status is [%s], time [%.3f], count [%d]" % \
-       (ret_val.hex(), (gBDTLastTime-gBDTStartTime), gBDTCount) )
-#############################################
-#
 # clean-up and init sensor device
 #
 p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x21' ) # reset threshold flag
@@ -498,160 +530,10 @@ time.sleep(10.)
 # disconnect
 #
 p.disconnect()
+gSocketClient.close()
 #
 #############################################
-
-#############################################
-#
-# write STE notification to log file
-#
-print ("+--- Save STE notification to binary file...")
-file_path  = "SCD_STE_Noti_log_"
-file_path += datetime.datetime.fromtimestamp(gSTEStartTime).strftime('%Y-%m-%d_%H-%M-%S')
-file_path += ".csv"
-try:
-    f = open(file_path, "x")
-except:
-    print ("\tfile error!")   
-if f != None:    
-    f.write ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ int(gSTEMode[5]) & 0xf ])
-    f.write ("total # of rows: %d\n" % (gSTECount))            
-    f.write ("counter, adxl X, vari X, adxl Y, vari Y, adxl Z, vari Z, Temp.,   light, magnet X, magnet Y, magnet Z\n")    
-    if gSTECount > 512:
-        gSTECount = 512
-    for counter in range (gSTECount):
-        # output Accelerrometer X, Y, Z axis arithmetic mean & variation
-        pResult = gSTEData[counter*33:counter*33+33]
-        adxl_mean_x = float( int.from_bytes(pResult[0:2], byteorder='little', signed=True) ) \
-                      / 10.0
-        adxl_vari_x = float( int.from_bytes(pResult[6:10], byteorder='little', signed=True) ) \
-                      / 100.0
-        adxl_mean_y = float( int.from_bytes(pResult[2:4], byteorder='little', signed=True) ) \
-                      / 10.0
-        adxl_vari_y = float( int.from_bytes(pResult[10:14], byteorder='little', signed=True) ) \
-                      / 100.0
-        adxl_mean_z = float( int.from_bytes(pResult[4:6], byteorder='little', signed=True) ) \
-                      / 10.0
-        adxl_vari_z = float( int.from_bytes(pResult[14:18], byteorder='little', signed=True) ) \
-                      / 100.0
-        # output temperature
-        temperature = float( int.from_bytes(pResult[18:20], byteorder='little', signed=True) ) \
-                      * 0.0078
-        # output light
-        light = float( int.from_bytes(pResult[20:24], byteorder='little', signed=True) ) \
-                / 1000.0
-        # output Magnetometer X, Y, Z axis raw data 
-        magneto_x = float( int.from_bytes(pResult[24:26], byteorder='little', signed=True) ) \
-                    / 16.0
-        magneto_y = float( int.from_bytes(pResult[26:28], byteorder='little', signed=True) ) \
-                    / 16.0
-        magneto_z = float( int.from_bytes(pResult[28:30], byteorder='little', signed=True) ) \
-                    / 16.0
-        f.write("%7d, %6.1f, %6.2f, %6.1f, %6.2f, %6.1f, %6.2f, %5.2f, %7.3f, %8.1f, %8.1f, %8.1f\n" % \
-            ( counter, \
-              adxl_mean_x, adxl_vari_x, adxl_mean_y, adxl_vari_y, adxl_mean_z, adxl_vari_z, \
-              temperature, light, \
-              magneto_x, magneto_y, magneto_z \
-            ) )          
-    f.write ("End of Data")    
-    f.close()
-#
-############################################
-
-#############################################
-#
-# write flash dump time series data file
-#
-print ("+--- Save BDT packet to hexa text file (w/ non-data)...")
-file_path  = "SCD_BDT_Pack_log_"
-file_path += datetime.datetime.fromtimestamp(gSTEStartTime).strftime('%Y-%m-%d_%H-%M-%S')
-file_path += ".csv"
-try:
-    f = open(file_path, "x")
-except:
-    print ("\tfile error!")   
-if f != None:
-    f.write ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ int(gSTEMode[5]) & 0xf ])
-    f.write ("total # of rows: %d\n" % (gBDTCount-1))            
-    f.write (" Row #, 01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, 15, 16\n")
-    for i in range(0, gBDTCount):
-        text_line = ''.join([', ' + ch if j % 2 == 0 and j != 0 else ch for j, ch in enumerate(gBDTData[i*16:i*16+16].hex())])
-        f.write ( "  %04x, %s\n" % ( i, text_line ))
-    f.write ("End of Data")    
-    f.close()
-#
-#########################################
-#
-print ("+--- Save BDT data to decimal text file (w/o non-data)...")
-file_path  = "SCD_BDT_Data_log_"
-file_path += datetime.datetime.fromtimestamp(gSTEStartTime).strftime('%Y-%m-%d_%H-%M-%S')
-file_path += ".csv"
-try:
-    f = open(file_path, "x")
-except:
-    print ("\tfile error!")
-if f != None:
-    # find EOD(End-of-Data: 0xaaaa, 0xaaaa)
-    is_aa = 0
-    for EOD_pos in range((gBDTCount+1)*16, (gBDTCount-3)*16, -1):
-        if gBDTData[EOD_pos] != 0xaa:
-            is_aa = 0
-        else:    
-            is_aa += 1
-            if is_aa == 4:
-                break
-    EOD_pos -= 2 # Skip CRC32
-    # =====================================       
-    # sensor data storage structure in BDT packet
-    # =====================================
-    #  16 bytes : packet header
-    # =====================================
-    #   4 bytes : start maker 0x55 0x55 0x55 0x55
-    #  13 bytes : container
-    # >>>>>>>>>>> repeat from
-    #   5 bytes : Sensor type(1N) + TimeStamp(6N) + FIFO Len(3N)
-    # 888 bytes : raw data
-    # <<<<<<<<<<< repeat to
-    #   2 bytes : CRC32
-    #   4 bytes : end marker 0xaa 0xaa 0xaa 0xaa
-    # =====================================
-    #  16 bytes : packet footer
-    # ====================================== 
-    idx  = 16 # skip paket header
-    # container information
-    time_unix  = int.from_bytes(gBDTData[idx+ 5:idx+ 9], byteorder='little', signed=True)
-    time_delay = int.from_bytes(gBDTData[idx+ 9:idx+13], byteorder='little', signed=True)
-    ODR_adxl   = gBDTData[idx+13]
-    idx += 17 # skip start maker & container
-    f.write ("server time    : %s(%d)\n" %  ( (datetime.datetime.fromtimestamp(float(time_unix)).strftime('%Y-%m-%d %H:%M:%S'), time_unix) ))
-    f.write ("delay time     : %.3f\n" % ( float(time_delay)/1000. ))
-    f.write ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ ODR_adxl ]) 
-    f.write (" Row #, Time-Stamp, X-AXIS, Y-AXIS, Z-AXIS\n")
-    line = 1
-    while (idx < EOD_pos):
-        sensor_type =  gBDTData[idx  ] & 0x0f
-        time_stamp  = (gBDTData[idx  ] & 0xf0) >> 4
-        time_stamp +=  gBDTData[idx+1] << 4
-        time_stamp +=  gBDTData[idx+2] << 12
-        time_stamp += (gBDTData[idx+3] & 0x0f) << 28
-        data_len  = (gBDTData[idx+3] & 0xf0) >> 4
-        data_len +=  gBDTData[idx+4] << 4
-        idx += 5
-        for n in range(data_len):
-            if idx >= EOD_pos:
-                break
-            if (n == 0):
-                f.write ( "%6d, %10.3f" % (line,(float(time_stamp)/1000.)))                          
-            elif (n % 3) == 0:
-                line += 1
-                f.write ( "\n%6d,           " % line )
-            f.write ( ", %6d" % (int.from_bytes(gBDTData[idx:idx+2], byteorder='little', signed=True)) )
-            idx += 2
-        f.write ( "\n" )     
-    f.write ("End of Data")    
-    f.close()
 #    
-print ("+--- data recorded...all done !")
-#
+print ("+--- All done !")
 #
 #############################################

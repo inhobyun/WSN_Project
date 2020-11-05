@@ -253,6 +253,7 @@ class NotifyDelegate(DefaultDelegate):
         global gSTELastTime
         global gSTEStartData
         global gSTELastData
+        global gSTEData
         global gBDTCount
         global gBDTStartTime
         global gBDTLastTime
