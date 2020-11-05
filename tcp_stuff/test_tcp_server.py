@@ -15,8 +15,8 @@ import sys
 #
 # target TCP Server identifiers
 #
-#CP_ADDRESS = "125.131.73.31"
-TCP_IP_ADDRESS = "127.0.0.1"
+TCP_LOCAL_HOST = "127.0.0.1"
+#CP_HOST_NAME  = "125.131.73.31"
 TCP_HOST_NAME  = socket.gethostname()
 TCP_PORT       = 8088
 #
@@ -38,7 +38,7 @@ else:
     sys.exit(1)
     
 print("Tcp Server> socket binded")    
-gSoketServer.listen(2)
+gSoketServer.listen(1)
 
 while True:
     print("Tcp Server> listen & accepting...")
@@ -47,12 +47,11 @@ while True:
     cnt = 0
     while True:
         data = conn.recv(1024)
-        print("Tcp Server> data received...")
         if not data:
             break
         cnt += 1
         from_client = data.decode()
-        print ("Tcp Server> data: [%s]" % from_client)
+        print ("Tcp Server> [%s]" % (from_client))
         if cnt > 15:
             conn.send("STOP".encode())
             break
