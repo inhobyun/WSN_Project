@@ -15,8 +15,8 @@ import sys
 #
 # target TCP Server identifiers
 #
-#CP_ADDRESS = "125.131.73.31"
-TCP_IP_ADDRESS = "127.0.0.1"
+TCP_LOCAL_HOST = "127.0.0.1"
+#CP_HOST_NAME  = "125.131.73.31"
 TCP_HOST_NAME  = socket.gethostname()
 TCP_PORT       = 8088
 #
