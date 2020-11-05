@@ -95,8 +95,9 @@ gBDTCRC32  = bytearray(4)
 #
 # target TCP Server identifiers
 #
-TCP_ADDRESS = "125.131.73.31" # 
-TCP_PORT    = 8088            #
+#TCP_ADDRESS = "125.131.73.31"
+TCP_ADDRESS = "127.0.0.1"
+TCP_PORT    = 8088
 #
 # global variables
 #
@@ -265,13 +266,6 @@ class NotifyDelegate(DefaultDelegate):
         global gSTELastTime
         global gSTEStartData
         global gSTELastData
-        '''
-        global gBDTCount
-        global gBDTStartTime
-        global gBDTLastTime
-        global gBDTData
-        global gBDTCRC32
-        '''
         global gSocketClient
 
         if cHandle == SCD_STE_RESULT_HND:
@@ -283,7 +277,7 @@ class NotifyDelegate(DefaultDelegate):
                 gSTELastTime = time.time()
                 gSTELastData = data
             gSTECount += 1
-            gSocketClient.send(string_STE_data(data))
+            ##gSocketClient.send(string_STE_data(data))
         else:
             print("**** %2d-#%3d-[%s]" % (cHandle, gSTECount, hex_str(data)), end='\n', flush = True)
 
@@ -366,12 +360,12 @@ def scan_and_connect( is_first = True ):
 gSoketClient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 if gSoketClient != None:
     try:
-        gSocketClient.connect((TCP_ADDRESS, TCP_PORT))
+        gSocketClient.connect((socket.gethostname(), TCP_PORT))
     except:
-        print("Socket connection fail... Exiting...")
-        sys.exit(1)    
+        print("TCP Client> Socket connection fail... Exiting...")
+        ##sys.exit(1)    
 else:
-    print("Socket creation fail... Exiting...")
+    print("TCP Client> Socket creation fail... Exiting...")
     sys.exit(1)
 
 #############################################
