@@ -87,14 +87,14 @@ gSTEData    = bytearray(33)
 # target TCP Server identifiers
 #
 #TCP_ADDRESS = "125.131.73.31"
-TCP_ADDRESS = "127.0.0.1"
-TCP_HOST_NAME  = socket.gethostname()
-TCP_PORT    = 8088
+TCP_ADDRESS     = "127.0.0.1"
+TCP_HOST_NAME   = socket.gethostname()
+TCP_PORT        = 8088
 #
 # global variables
 #
 gSocketClient = None
-gSocketError = False
+gSocketError  = False
 
 #############################################
 # STE(Short Time Experiment) mode configuration (35 bytes) 
@@ -208,7 +208,7 @@ def print_STE_result( pResult ):
             % (datetime.datetime.fromtimestamp(gSTEStartTime).strftime('%Y-%m-%d %H:%M:%S'), gSTEStartTime) )
     print ( "\tNotification End   : %s(%.3f)" \
             % (datetime.datetime.fromtimestamp(gSTELastTime).strftime('%Y-%m-%d %H:%M:%S'), gSTELastTime) )      
-    print ("\t", end = '', flush = True )
+    ##print ("\t", end = '', flush = True )
     ##print_STE_data (pResult)
     return
 
@@ -219,7 +219,7 @@ def print_STE_notify_data( pResult ):
     global gSTECount
 
     print("**** #%3d - " % gSTECount, end = '', flush = True)
-    print_STE_data (pResult)
+    ##print_STE_data (pResult)
     return
   
 #############################################
@@ -271,11 +271,13 @@ class NotifyDelegate(DefaultDelegate):
                 gSTELastTime = time.time()
                 gSTELastData = data
             gSTECount += 1
-            try:
-                gSocketClient.send(string_STE_data(data).encode())
-            except:
-                print ( "Tcp Client> send error !" )
-                gSocketError = True
+            if gSTELastTime-gSTEStartTime > 1.:
+                try:
+                    gSocketClient.send(string_STE_data(data).encode())
+                except:
+                    gSocketError = True
+                gSTEStartTime = gSTELastTime
+                gSTELastData = gSTEStartData                
         else:
             print("**** %2d-#%3d-[%s]" % (cHandle, gSTECount, hex_str(data)), end='\n', flush = True)
 
@@ -287,6 +289,7 @@ def scan_and_connect( is_first = True ):
     global TARGET_MANUFA_UUID
     global TARGET_DEVICE_NAME
     global gTargetDevice
+    global gSocketClient
     #
     # scanning for a while
     #
@@ -321,6 +324,7 @@ def scan_and_connect( is_first = True ):
     #
     if gTargetDevice == None:
         print("No matching device found... Exiting...")
+        gSocketClient.close()
         sys.exit(1)
     #
     # connect
@@ -336,6 +340,7 @@ def scan_and_connect( is_first = True ):
             retry += 1
             if retry > 3:
                 print("BLE Device connection error occured... Exiting...")
+                gSocketClient.close()
                 sys.exit(-1)
             time.sleep(3)    
     #
@@ -455,24 +460,25 @@ p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1))
 time.sleep(0.7)
 p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
 time_start = time.time()
-if STE_RUN_TIME != 0:
+if STE_RUN_TIME > 0:
     while not gSocketError:
         wait_flag = p.waitForNotifications(1.)
         time_stop = time.time()
         if (time_stop-time_start) > STE_RUN_TIME:
             print ( "\n\t[done] STE time exceeded", end = '\n', flush = True )
-            p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
             break
 else:
     while not gSocketError:
         wait_flag = p.waitForNotifications(1.)
-        if gSocketError == True:
-            break;            
-print ("\tSTE is stopping")        
+        if gSocketError:
+            print ( "\n\t[error] send thru socket", end = '\n', flush = True )    
+
 #############################################
 #
 # stop STE
 #
+p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )        
+print ("\tSTE is stopping")        
 ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
 while ( ret_val != b'\x00' ):
     print ("\tSTE has not completed yet, generic command is [%s]" % ret_val.hex())

@@ -46,14 +46,12 @@ while True:
     conn, addr = gSoketServer.accept()
     from_client = ''
     while True:
-        data = conn.recv(4096)
+        data = conn.recv(1024)
         print("Tcp Server> data received...")
         if not data:
             break
         cnt += 1
         from_client = data.decode()
         print ("Tcp Server> data: [%s]" % from_client)
-        if cnt > 10:
-            conn.send("STOP")
     conn.close()
-    print ('Tcp Server> client disconnected')
+    print ('Tcp Server> client disconnected, count is', cnt)
