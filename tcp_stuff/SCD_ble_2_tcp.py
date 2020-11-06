@@ -364,13 +364,13 @@ gSocketClient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 if gSocketClient != None:
     try:
-        print("Tcp Client> trying to connect %s:%d" % (TCP_HOST_NAME, TCP_PORT) )
+        print("TCP C-----> trying to connect %s:%d" % (TCP_HOST_NAME, TCP_PORT) )
         gSocketClient.connect((TCP_HOST_NAME, TCP_PORT))
     except:
-        print("TCP Client> socket connection fail... Exiting...")
+        print("TCP C-----> socket connection fail... Exiting...")
         sys.exit(1)    
 else:
-    print("TCP Client> socket creation fail... Exiting...")
+    print("TCP C-----> socket creation fail... Exiting...")
     sys.exit(1)
 gSocketClient.setblocking(0)
 
