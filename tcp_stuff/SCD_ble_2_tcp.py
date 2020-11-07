@@ -351,10 +351,10 @@ def scan_and_connect( is_first = True ):
 #############################################
 
 if len(sys.argv) > 1:
-    print ("TCP S-> take 1'st argument as Host IP address (default: '%s') % TCP_HOST_NAME)
+    print ("TCP S-> take 1'st argument as Host IP address (default: '%s')" % TCP_HOST_NAME)
     TCP_HOST_NAME = sys.argv[1]
 if len(sys.argv) > 2:
-    print ("TCP S-> take 2'nd argument as port# (default: '%d') % TCP_PORT")
+    print ("TCP S-> take 2'nd argument as port# (default: '%d')" % TCP_PORT)
     TCP_PORT = int(sys.argv[2])
 
 #############################################
