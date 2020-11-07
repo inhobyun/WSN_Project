@@ -15,7 +15,7 @@ followings are the brief steps included in this code;
 by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
                     started 2020-11-05
-                    last updated 2020-11-05
+                    last updated 2020-11-07
 """
 from bluepy.btle import Scanner, DefaultDelegate, UUID, Peripheral
 import datetime
@@ -77,7 +77,8 @@ gScannedCount    = 0     # count of scanned BLE devices
 gSTEMode    = bytes(35)  # Sensor Mode
 gSTECount        = 0     # count of notifications from connected device
 gSTEStartTime    = 0.    # notification start timestamp
-gSTELastTime     = 0.    # notification last timestamp
+gSTEStopTime     = 0.    # notification stop timestamp
+gSTELastTime     = 0.    # last notification timestamp
 gSTEData    = bytearray(33)
 
 #############################################
@@ -86,10 +87,13 @@ gSTEData    = bytearray(33)
 #
 # target TCP Server identifiers
 #
-TCP_LOCAL_HOST  = "127.0.0.1"
-#CP_HOST_NAME   = "125.131.73.31"
-TCP_HOST_NAME   = "10.2.2.3"
-TCP_PORT        = 8088
+TCP_HOST_NAME   = "125.131.73.31"   # Default Host Name
+# TCP_HOST_NAME   = "127.0.0.1"     # TEST Host Name
+# TCP_HOST_NAME   = "10.2.2.3"      # TEST Host Name
+TCP_PORT        = 8088              # Default TCP Port Name
+TCP_TX_INTERVAL     = 1.            # time interval to send notification to host      
+TCP_STE_START_MSG   = 'STESTART'
+TCP_STE_STOP_MSG    = 'STESTOP'
 #
 # global variables
 #
@@ -195,10 +199,11 @@ def string_STE_data( pResult ):
 #############################################    
 # print STE result
 #
-def print_STE_result( pResult ):
+def print_STE_result():
     global gSTEMode
+    global gSTECount
     global gSTEStartTime
-    global gSTELastTime
+    global gSTEStopTime
 
     # output time stamp
     tm = float( (struct.unpack('<l', gSTEMode[0:4]))[0] )   
@@ -207,21 +212,10 @@ def print_STE_result( pResult ):
     print ( "\tNotification Start : %s(%.3f)" \
             % (datetime.datetime.fromtimestamp(gSTEStartTime).strftime('%Y-%m-%d %H:%M:%S'), gSTEStartTime) )
     print ( "\tNotification End   : %s(%.3f)" \
-            % (datetime.datetime.fromtimestamp(gSTELastTime).strftime('%Y-%m-%d %H:%M:%S'), gSTELastTime) )      
-    ##print ("\t", end = '', flush = True )
-    ##print_STE_data (pResult)
+            % (datetime.datetime.fromtimestamp(gSTEStopTime).strftime('%Y-%m-%d %H:%M:%S'), gSTEStopTime) )      
+    print ( "\tNotification Count : %d" % gSTECount)
     return
 
-#############################################
-# print STE notify data
-#
-def print_STE_notify_data( pResult ):
-    global gSTECount
-
-    print("**** #%3d - " % gSTECount, end = '', flush = True)
-    ##print_STE_data (pResult)
-    return
-  
 #############################################
 # Define scan callback
 #############################################
@@ -232,7 +226,7 @@ class ScanDelegate(DefaultDelegate):
 
         DefaultDelegate.__init__(self)
         gScannedCount = 0
-        print("**** Scanner Handler is configured", end='\n', flush = True)
+        print("**** scan handler is configured", end='\n', flush = True)
 
     def handleDiscovery(self, dev, isNewDev, isNewData):
         global gScannedCount
@@ -249,35 +243,35 @@ class ScanDelegate(DefaultDelegate):
 class NotifyDelegate(DefaultDelegate):
     
     def __init__(self, params):
+        global gSTECount
 
         DefaultDelegate.__init__(self)
-        print("**** Device Notification Handler is configured", end='\n', flush = True)
+        gSTECount = 0
+        print("**** device notification handler is configured", end='\n', flush = True)
       
     def handleNotification(self, cHandle, data):
+        global SCD_STE_RESULT_HND
+        global TCP_TX_INTERVAL
         global gSTECount
         global gSTEStartTime
+        global gSTEStopTime
         global gSTELastTime
-        global gSTEStartData
-        global gSTELastData
         global gSocketClient
         global gSocketError
 
         if cHandle == SCD_STE_RESULT_HND:
         # STE notification
             if gSTECount == 0:
-                gSTELastTime  = gSTEStartTime = time.time()
-                gSTEStartData = data
+                gSTEStopTime = gSTELastTime  = gSTEStartTime = time.time()
             else:
-                gSTELastTime = time.time()
-                gSTELastData = data
+                gSTEStopTime = time.time()
             gSTECount += 1
-            if gSTELastTime-gSTEStartTime > 1.:
+            if gSTEStopTime-gSTELastTime > TCP_TX_INTERVAL:
                 try:
                     gSocketClient.send(string_STE_data(data).encode())
                 except:
                     gSocketError = True
-                gSTEStartTime = gSTELastTime
-                gSTELastData = gSTEStartData                
+                gSTELastTime = gSTEStopTime
         else:
             print("**** %2d-#%3d-[%s]" % (cHandle, gSTECount, hex_str(data)), end='\n', flush = True)
 
@@ -295,11 +289,11 @@ def scan_and_connect( is_first = True ):
     #
     scanner = Scanner().withDelegate(ScanDelegate())
     if is_first:
-        print ("+--- BLE Device scan started..." )
+        print ("+--- BLE device scan started..." )
     else:
-        print ("+--- BLE Device scan restarted..." )    
+        print ("+--- BLE device scan restarted..." )    
     devices = scanner.scan(SCAN_TIME)
-    print ("\n+--- BLE Device scan completed... [%d] devices are scanned" % gScannedCount)
+    print ("\n+--- BLE device scan completed... [%d] devices are scanned" % gScannedCount)
     #
     # check to match BOSCH SCD device identifiers
     #
@@ -313,8 +307,8 @@ def scan_and_connect( is_first = True ):
                 matching_count += 1
                 print("\tfound target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value))            
             if matching_count >= 2:
-                print("+--- Device address [%s], type=[%s], RSSI=[%d]dB" % (dev.addr, dev.addrType, dev.rssi))
                 print("\tfound BOSCH SCD device!")
+                print("+--- device address [%s], type=[%s], RSSI=[%d]dB" % (dev.addr, dev.addrType, dev.rssi))
                 gTargetDevice = dev
                 break
         if gTargetDevice != None:
@@ -323,23 +317,23 @@ def scan_and_connect( is_first = True ):
     # if none found then exiting    
     #
     if gTargetDevice == None:
-        print("No matching device found... Exiting...")
+        print("\tno matching device found... Exiting...")
         gSocketClient.close()
         sys.exit(1)
     #
     # connect
     #
-    print("+--- Connecting [%s], type=[%s]" % (gTargetDevice.addr, gTargetDevice.addrType))
+    print("+--- connecting [%s], type=[%s]" % (gTargetDevice.addr, gTargetDevice.addrType))
     p = None
     retry = 0
     while p == None:
         try:
             p = Peripheral(gTargetDevice.addr, gTargetDevice.addrType)
         except:
-            print("BLE Device connection error occured... Retry after 3 sec...")
+            print("\tBLE device connection error occured... retry after 3 sec...")
             retry += 1
             if retry > 3:
-                print("BLE Device connection error occured... Exiting...")
+                print("\tBLE device connection error occured... exiting...")
                 gSocketClient.close()
                 sys.exit(-1)
             time.sleep(3)    
@@ -356,6 +350,13 @@ def scan_and_connect( is_first = True ):
 #
 #############################################
 
+if len(sys.argv) > 1:
+    print ("TCP S-> take 1'st argument as Host IP address (default: '%s') % TCP_HOST_NAME)
+    TCP_HOST_NAME = sys.argv[1]
+if len(sys.argv) > 2:
+    print ("TCP S-> take 2'nd argument as port# (default: '%d') % TCP_PORT")
+    TCP_PORT = int(sys.argv[2])
+
 #############################################
 #
 # connect server socket
@@ -364,13 +365,13 @@ gSocketClient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 if gSocketClient != None:
     try:
-        print("TCP C-----> trying to connect %s:%d" % (TCP_HOST_NAME, TCP_PORT) )
+        print("TCP C-> trying to connect %s:%d" % (TCP_HOST_NAME, TCP_PORT) )
         gSocketClient.connect((TCP_HOST_NAME, TCP_PORT))
     except:
-        print("TCP C-----> socket connection fail... Exiting...")
+        print("TCP C-> socket connection fail... Exiting...")
         sys.exit(1)    
 else:
-    print("TCP C-----> socket creation fail... Exiting...")
+    print("TCP C-> socket creation fail... Exiting...")
     sys.exit(1)
 gSocketClient.setblocking(0)
 
@@ -438,7 +439,7 @@ if (struct.unpack('i', ret_val[31:35]))[0] < SCD_MAX_FLASH:
 #
 ret_val = p.readCharacteristic( SCD_SET_MODE_HND )
 if ret_val !=  b'\x00':
-    print("+--- Set STE mode")
+    print("+--- set STE mode")
     p.writeCharacteristic( SCD_SET_MODE_HND, b'\x00' )
     ret_val = p.readCharacteristic( SCD_SET_MODE_HND )
 #############################################
@@ -447,7 +448,6 @@ if ret_val !=  b'\x00':
 #
 time_bytes = struct.pack('<l', int(time.time()))
 gSTEMode = bytes( time_bytes[0:4] ) + gSTEMode[4:35]
-##print ("\tSTE config. set\n[%s](%d)" % (hex_str(gSTEMode), len(gSTEMode)))
 p.writeCharacteristic( SCD_STE_CONFIG_HND, gSTEMode )
 time.sleep(1.)
 ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
@@ -456,7 +456,7 @@ print ("\tSTE config. get\n[%s](%d)" % (hex_str(ret_val), len(ret_val)))
 #
 # start STE
 #
-print ("+--- STE Starting...")
+print ("+--- STE starting...")
 p.setDelegate( NotifyDelegate(p) )
 p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1))
 time.sleep(0.7)
@@ -476,11 +476,9 @@ while True:
     except BlockingIOError:
         continue
     print ( "\n\t[recv]", ret_val, end = '\n', flush = True )
-    if ret_val == "STOP":
-        print ( "\t[done] received 'STOP'", end = '\n', flush = True )
+    if ret_val == TCP_STE_STOP_MSG:
+        print ( "\t[done] received '%s'" % TCP_STE_STOP_MSG, end = '\n', flush = True )
         break
-
-#############################################
 #
 # stop STE
 #
@@ -491,8 +489,8 @@ while ( ret_val != b'\x00' ):
     print ("\tSTE has not completed yet, generic command is [%s]" % ret_val.hex())
     time.sleep(0.7)
     ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
-print ("\n+--- STE Stoped...rolling time [%.3f], count [%d]" % ( (gSTELastTime-gSTEStartTime), gSTECount))
-print_STE_result(gSTELastData)
+print ("\n+--- STE stoped")
+print_STE_result()
 #
 #############################################
 
@@ -502,10 +500,10 @@ print_STE_result(gSTELastData)
 #
 p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x21' ) # reset threshold flag
 time.sleep(0.7)
-##p.writeCharacteristic( SCD_SET_MODE_HND, b'\xFF' )    # mode selection
-##time.sleep(0.7)
+# p.writeCharacteristic( SCD_SET_MODE_HND, b'\xFF' )    # mode selection
+# time.sleep(0.7)
 p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x30' ) # erase sensor data
-print ("+--- Erase flash wait for seconds...wait...")
+print ("+--- erase flash memory wait for 10 seconds...wait...")
 time.sleep(10.)
 #
 # disconnect
