@@ -15,10 +15,10 @@ import sys
 #
 # target TCP Server identifiers
 #
-#CP_HOST_NAME = "127.0.0.1"       # Local Host IP address  
-#CP_HOST_NAME = "125.131.73.31"   # Test Server IP address  
-TCP_HOST_NAME = socket.gethostname()
-TCP_PORT      = 8088
+TCP_HOST_NAME   = socket.gethostname()
+TCP_PORT        = 8088
+TCP_STE_START_MSG   = 'STESTART'
+TCP_STE_STOP_MSG    = 'STESTOP'
 #
 # global variables
 #
@@ -62,12 +62,12 @@ while True:
                 break
             cnt += 1
             from_client = data.decode()
-            print ("TCP S-> [%s]" % (from_client))
+            print ("TCP S-> received [%s]" % (from_client))
         conn.close()
         print ('TCP S-> client disconnected, count is', cnt)
     except KeyboardInterrupt:
-        print ('TCP S-> keybord interrupted... Send "STOP" to client and Exiting...')
-        conn.send("STOP".encode())
+        print ('TCP S-> keybord interrupted... Send "%s" to client and Exiting...' % TCP_STE_STOP_MSG)
+        conn.send(TCP_STE_STOP_MSG.encode())
         conn.close()
         break
     except:
