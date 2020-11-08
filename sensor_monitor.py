@@ -48,9 +48,20 @@ def post_monStart():
     value = data['value']
 
     # Prepare data to send in here.
-    val = ['xx.x','xx.xx','xx.x','xx.xx','xx.x','xx.xx','xx.xx','xxx.xxx','xxx.x','xxx.x','xxx.x']
-    
-    return json.dumps({ val })
+    rows = {'row_01' : 'xx.x',
+            'row_02' : 'xx.xx',
+            'row_03' : 'xx.x',
+            'row_04' : 'xx.xx',
+            'row_05' : 'xx.x',
+            'row_06' : 'xx.xx',
+            'row_07' : 'xx.xx',
+            'row_08' : 'xxx.xxx',
+            'row_09' : 'xxx.x',
+            'row_10' : 'xxx.x',
+            'row_11' : 'xxx.x'
+           }
+
+    return json.dumps(rows)
 
 @app.route('/post_graph', methods=['POST'])
 def post_graph():

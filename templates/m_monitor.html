@@ -24,48 +24,48 @@
             <th>Sensor Data</th>
         </tr>
         <tr>
-            <td class="column_1">Accelometer. AVG. X-Axis</td>
+            <td class="col_00">accelerometer mean X-axis</td>
             <td id="row_01">99.9</td>
         </tr>
         <tr>
-            <td class="column_1">Accelometer. VAR. X-Axis</td>
+            <td class="col_00">accelerometer variance X-axis</td>
             <td id="row_02">99.99</td>
         </tr>
         <tr>
-            <td class="column_1">Accelometer. AVG. Y-Axis</td>
+            <td class="col_00">accelerometer mean. Y-axis</td>
             <td id="row_03">99.9</td>
         </tr>
         <tr>
-            <td class="column_1">Accelometer. VAR. Y-Axis</td>
+            <td class="col_00">accelerometer variance Y-axis</td>
             <td id="row_04">99.99</td>
         </tr>
         <tr>
-            <td class="column_1">Accelometer. AVG. Z-Axis</td>
+            <td class="col_00">accelerometer mean. Z-axis</td>
             <td id="row_05">99.9</td>
         </tr>
         <tr>
-            <td class="column_1">Accelometer. VAR. Z-Axis</td>
+            <td class="col_00">accelerometer variance Z-axis</td>
             <td id="row_06">99.99</td>
         </tr>
         <tr>
-            <td class="column_1">Templature</td>
+            <td class="col_00">templature</td>
             <td id="row_07">99.99</td>
         </tr>
         <tr>
-            <td class="column_1">light</td>
+            <td class="col_00">light</td>
             <td id="row_08">99.99</td>
         </tr>
         <tr>
-            <td class="column_1">Magneto X-Axis</td>
+            <td class="col_00">magnetometer X-axis</td>
             <td id="row_09">999.9</td>
         </tr>
         <tr>
-            <td class="column_1">Magneto Y-Axis</td>
-            <td id="row_10">99.9</td>
+            <td class="col_00">magnetometer Y-axis</td>
+            <td id="row_10">999.9</td>
         </tr>
         <tr>
-            <td class="column_1">Magneto Z-Axis</td>
-            <td id="row_11">99.9</td>
+            <td class="col_00">magnetometer Z-axis</td>
+            <td id="row_11">999.9</td>
         </tr>
 </table>
 
@@ -77,14 +77,24 @@
         }).then(response => {
             const data = response.data;
             dispData(data);
-            // console.log(data);
+            //console.log(data);
         }).catch(function (error) {
             alert('Error occurred on submit: ' + error);
         });
     }
 
     function dispData(data) {
-        // Clear the chart box.
+        document.getElementById("row_01").innerHTML = data.row_01
+        document.getElementById("row_02").innerHTML = data.row_02
+        document.getElementById("row_03").innerHTML = data.row_03
+        document.getElementById("row_04").innerHTML = data.row_04
+        document.getElementById("row_05").innerHTML = data.row_05
+        document.getElementById("row_06").innerHTML = data.row_06
+        document.getElementById("row_07").innerHTML = data.row_07
+        document.getElementById("row_08").innerHTML = data.row_08
+        document.getElementById("row_09").innerHTML = data.row_09
+        document.getElementById("row_10").innerHTML = data.row_10
+        document.getElementById("row_11").innerHTML = data.row_11
     }
 </script>
 
