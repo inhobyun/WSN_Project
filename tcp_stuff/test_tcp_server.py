@@ -17,8 +17,10 @@ import sys
 #
 TCP_HOST_NAME   = socket.gethostname()
 TCP_PORT        = 8088
-TCP_STE_START_MSG   = 'STESTART'
-TCP_STE_STOP_MSG    = 'STESTOP'
+TCP_DEV_READY_MSG   = 'DEV_READY'
+TCP_DEV_CLOSE_MSG   = 'DEV_CLOSE'
+TCP_STE_START_MSG   = 'STE_START'
+TCP_STE_STOP_MSG    = 'STE_STOP'
 #
 # global variables
 #
@@ -63,11 +65,17 @@ while True:
             cnt += 1
             from_client = data.decode()
             print ("TCP S-> received [%s]" % (from_client))
+            if from_client == TCP_DEV_READY_MSG:
+                conn.send(TCP_STE_START_MSG.encode())
+                time.sleep(0.3)
         conn.close()
         print ('TCP S-> client disconnected, count is', cnt)
     except KeyboardInterrupt:
-        print ('TCP S-> keybord interrupted... Send "%s" to client and Exiting...' % TCP_STE_STOP_MSG)
+        print ('TCP S-> keybord interrupted... Send "%s" to client...' % TCP_STE_STOP_MSG)
         conn.send(TCP_STE_STOP_MSG.encode())
+        time.sleep(5.)
+        print ('TCP S-> Send "%s" to client and Exiting...' % TCP_DEV_CLOSE_MSG)
+        conn.send(TCP_DEV_CLOSE_MSG.encode())
         conn.close()
         break
     except:

@@ -87,13 +87,15 @@ gSTEData    = bytearray(33)
 #
 # target TCP Server identifiers
 #
-TCP_HOST_NAME   = "125.131.73.31"   # Default Host Name
-# TCP_HOST_NAME   = "127.0.0.1"     # TEST Host Name
-# TCP_HOST_NAME   = "10.2.2.3"      # TEST Host Name
+# TCP_HOST_NAME   = "125.131.73.31"   # Default Host Name
+# TCP_HOST_NAME   = "127.0.0.1"       # TEST Host Name
+TCP_HOST_NAME   = "10.2.2.3"        # TEST Host Name
 TCP_PORT        = 8088              # Default TCP Port Name
 TCP_TX_INTERVAL     = 1.            # time interval to send notification to host      
-TCP_STE_START_MSG   = 'STESTART'
-TCP_STE_STOP_MSG    = 'STESTOP'
+TCP_DEV_READY_MSG   = 'DEV_READY'
+TCP_DEV_CLOSE_MSG   = 'DEV_CLOSE'
+TCP_STE_START_MSG   = 'STE_START'
+TCP_STE_STOP_MSG    = 'STE_STOP'
 #
 # global variables
 #
@@ -452,49 +454,87 @@ p.writeCharacteristic( SCD_STE_CONFIG_HND, gSTEMode )
 time.sleep(1.)
 ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
 print ("\tSTE config. get\n[%s](%d)" % (hex_str(ret_val), len(ret_val)))
-#############################################
-#
-# start STE
-#
-print ("+--- STE starting...")
-p.setDelegate( NotifyDelegate(p) )
-p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1))
-time.sleep(0.7)
-p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
-time_start = time.time()
-while True:
-    wait_flag = p.waitForNotifications(1.)
-    time_stop = time.time()
-    if STE_RUN_TIME > 0 and (time_stop-time_start) > STE_RUN_TIME:
-        print ( "\n\t[done] STE time exceeded", end = '\n', flush = True )
-        break
-    if gSocketError:
-        print ( "\n\t[done] sending error thru socket", end = '\n', flush = True )
-        break
-    try:
-        ret_val = gSocketClient.recv(1024).decode()
-    except BlockingIOError:
-        continue
-    print ( "\n\t[recv]", ret_val, end = '\n', flush = True )
-    if ret_val == TCP_STE_STOP_MSG:
-        print ( "\t[done] received '%s'" % TCP_STE_STOP_MSG, end = '\n', flush = True )
-        break
-#
-# stop STE
-#
-p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )        
-print ("\tSTE is stopping")        
-ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
-while ( ret_val != b'\x00' ):
-    print ("\tSTE has not completed yet, generic command is [%s]" % ret_val.hex())
-    time.sleep(0.7)
-    ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
-print ("\n+--- STE stoped")
-print_STE_result()
 #
 #############################################
 
 #############################################
+#
+# send 1'st message
+#
+try:
+    gSocketClient.send(TCP_DEV_READY_MSG.encode())
+    print("TCP C-> [send] '%s'..." % TCP_DEV_READY_MSG)
+except:
+    gSocketError = True
+    print("TCP C-> [send] error !!!")
+
+#############################################
+#
+# loop if not socket error and not dev_close 
+#
+while not gSocketError:
+#
+#############################################
+#
+# wait start message
+#
+    while True:
+        try:
+            rx_msg = gSocketClient.recv(1024).decode()
+        except BlockingIOError:
+            continue
+        print ( "TCP C-> [recv] '%s'" % rx_msg)
+        break    
+    
+    if rx_msg == TCP_DEV_CLOSE_MSG:
+        break
+
+    if rx_msg == TCP_STE_START_MSG:
+#
+# start STE
+#
+        print ("+--- STE starting...")
+        p.setDelegate( NotifyDelegate(p) )
+        p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1))
+        time.sleep(0.7)
+        p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
+        time_start = time.time()
+        while True:
+            wait_flag = p.waitForNotifications(1.)
+            time_stop = time.time()
+            if STE_RUN_TIME > 0 and (time_stop-time_start) > STE_RUN_TIME:
+                print ( "\n\t[done] STE time exceeded", end = '\n', flush = True )
+                break
+            if gSocketError:
+                print ( "\n\t[done] sending error thru socket", end = '\n', flush = True )
+                break
+            try:
+                rx_msg = gSocketClient.recv(1024).decode()
+            except BlockingIOError:
+                continue
+            print ( "\nTCP C-> [recv] '%s'" % rx_msg)
+            if rx_msg == TCP_STE_STOP_MSG or rx_msg == TCP_DEV_CLOSE_MSG:
+                break
+#
+# stop STE
+#
+    if rx_msg == TCP_STE_STOP_MSG or rx_msg == TCP_DEV_CLOSE_MSG:
+        p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )        
+        print ("\tSTE is stopping")        
+        ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
+        while ( ret_val != b'\x00' ):
+            print ("\tSTE has not completed yet, generic command is [%s]" % ret_val.hex())
+            time.sleep(0.7)
+            ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
+        print ("\n+--- STE stoped")
+        print_STE_result()
+    if rx_msg == TCP_DEV_CLOSE_MSG:
+        break    
+#
+#############################################
+
+#############################################
+
 #
 # clean-up and init sensor device
 #
