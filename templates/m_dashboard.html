@@ -2,7 +2,7 @@
 
 {% block left %}
     <p style="text-align:center;"><Strong>X & Y Axis Scaling</Strong><cr></p> 
-    <p style="text-align:right;"><button onclick="sendValue()"> Apply & Draw Graph </button></p>
+    <p style="text-align:right;"><button onclick="dispGraph()"> Apply & Display Graph </button></p>
     
     <p style="position:absolute; left:  8px; top:120px;"><label>Scaling Mode:</label></p>
     <p style="position:absolute; left:100px; top:120px;"><input type="radio" id="auto_scroll" name="scroll" value="auto_scroll" checked>
@@ -48,20 +48,20 @@
 </div>
 
 <script>
-    function sendValue() {
+    function dispGraph() {
         const value = document.getElementById('y_max').value;
-        axios.post('/post_test', {
+        axios.post('/post_graph', {
             value: Number(value),
         }).then(response => {
             const data = response.data;
-            drawChart(data);
+            drawGraph(data);
             // console.log(data);
         }).catch(function (error) {
             alert('Error occurred on submit: ' + error);
         });
     }
 
-    function drawChart(data) {
+    function drawGraph(data) {
         // Clear the chart box.
         document.getElementById('chart-box').innerHTML = '';
 

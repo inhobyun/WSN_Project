@@ -1,0 +1,91 @@
+{% extends "m_base.html" %}
+
+{% block left %}
+    <p style="text-align:center;"><Strong>Sensor Data Monitoring</Strong><cr></p> 
+    <p style="text-align:right;"><button onclick="startMonitoring()"> Start </button></p>
+    <p style="text-align:right;"><button onclick="stopMonitoring()"> Stop </button></p>
+
+    <p style="position:absolute; left:  8px; top:172px;"><label>Option</label></p>
+    <p style="position:absolute; left: 50px; top:172px;"><label>period</label></p>
+    <p style="position:absolute; left:100px; top:170px;"><input type="text" id="tm_period" value="1"></p>    
+{% endblock %}
+
+{% block foot %}
+    <p style="color:aqua;">Display Sensor Data...</p>
+{% endblock %}
+
+{% block right %}
+
+<p style="text-align:left; padding-top:4px; padding-left:8px"><Strong>SCD Sensor Data - on-time display</Strong><cr></p>
+
+<table id="monitor">
+        <tr>
+            <th>Sensor</th>
+            <th>Sensor Data</th>
+        </tr>
+        <tr>
+            <td class="column_1">Accelometer. AVG. X-Axis</td>
+            <td id="row_01">99.9</td>
+        </tr>
+        <tr>
+            <td class="column_1">Accelometer. VAR. X-Axis</td>
+            <td id="row_02">99.99</td>
+        </tr>
+        <tr>
+            <td class="column_1">Accelometer. AVG. Y-Axis</td>
+            <td id="row_03">99.9</td>
+        </tr>
+        <tr>
+            <td class="column_1">Accelometer. VAR. Y-Axis</td>
+            <td id="row_04">99.99</td>
+        </tr>
+        <tr>
+            <td class="column_1">Accelometer. AVG. Z-Axis</td>
+            <td id="row_05">99.9</td>
+        </tr>
+        <tr>
+            <td class="column_1">Accelometer. VAR. Z-Axis</td>
+            <td id="row_06">99.99</td>
+        </tr>
+        <tr>
+            <td class="column_1">Templature</td>
+            <td id="row_07">99.99</td>
+        </tr>
+        <tr>
+            <td class="column_1">light</td>
+            <td id="row_08">99.99</td>
+        </tr>
+        <tr>
+            <td class="column_1">Magneto X-Axis</td>
+            <td id="row_09">999.9</td>
+        </tr>
+        <tr>
+            <td class="column_1">Magneto Y-Axis</td>
+            <td id="row_10">99.9</td>
+        </tr>
+        <tr>
+            <td class="column_1">Magneto Z-Axis</td>
+            <td id="row_11">99.9</td>
+        </tr>
+</table>
+
+<script>
+    function startMonitoring() {
+        const value = document.getElementById('tm_period').value;
+        axios.post('/post_monStart', {
+            value: Number(value),
+        }).then(response => {
+            const data = response.data;
+            dispData(data);
+            // console.log(data);
+        }).catch(function (error) {
+            alert('Error occurred on submit: ' + error);
+        });
+    }
+
+    function dispData(data) {
+        // Clear the chart box.
+    }
+</script>
+
+{% endblock %}

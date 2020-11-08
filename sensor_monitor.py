@@ -17,6 +17,11 @@ def root():
     template = env.get_template('main.html')
     return template.render()
 
+@app.route('/m_monitor')
+def monitor():
+    template = env.get_template('m_monitor.html')
+    return template.render()
+
 @app.route('/m_dashboard')
 def dashboard():
     template = env.get_template('m_dashboard.html')
@@ -37,8 +42,18 @@ def Ooops():
     template = env.get_template('m_Ooops.html')
     return template.render()
 
-@app.route('/post_test', methods=['POST'])
-def post_test():
+@app.route('/post_monStart', methods=['POST'])
+def post_monStart():
+    data = json.loads(request.data)
+    value = data['value']
+
+    # Prepare data to send in here.
+    val = ['xx.x','xx.xx','xx.x','xx.xx','xx.x','xx.xx','xx.xx','xxx.xxx','xxx.x','xxx.x','xxx.x']
+    
+    return json.dumps({ val })
+
+@app.route('/post_graph', methods=['POST'])
+def post_graph():
     data = json.loads(request.data)
     value = data['value']
 

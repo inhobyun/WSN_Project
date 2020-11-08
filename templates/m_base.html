@@ -74,8 +74,35 @@ body {
   font-size: 14px;
 }
 
+/* Style the table */
+table {
+  width: 80%;
+  margin: 20px auto;
+  table-layout: auto;
+}
+
+table,
+td,
+th {
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 10px;
+  border: solid 1px;
+}
+
+th {
+  text-align: center;
+}
+
+td {
+  text-align: right;
+}
+
 /* Responsive layout - makes the three columns stack on top of each other instead of next to each other */
-@media (min-width: 1024px) {
+@media (min-width: 1280px) and (max-width: 1920px) {
   .grid-container  {
     grid-template-areas: 
     'top  top  ' 
@@ -97,7 +124,7 @@ body {
     <div class="top">
       <p style="position:static;">
         <button onclick="window.location.href='/m_Ooops'">Sensor Configuration</button>
-        <button onclick="window.location.href='/m_Ooops'">Sensor Data - Real Time Satus</button>
+        <button onclick="window.location.href='/m_monitor'">Sensor Data - Real Time Satus</button>
         <button onclick="window.location.href='/m_dashboard'">Sensor Data - Time Series Graph</button>
         <button onclick="window.location.href='/m_Ooops'">Sensor Data - Fourier Transformed Graph</button>
         <button onclick="window.location.href='/m_Ooops'">Sensor Data Analysis</button>
