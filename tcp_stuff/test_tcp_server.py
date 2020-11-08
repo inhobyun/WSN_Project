@@ -8,6 +8,7 @@ by Inho Byun, Researcher/KAIST
 """
 import socket
 import sys
+import time
 
 #############################################
 # target definitions to TCP Server
@@ -67,7 +68,6 @@ while True:
             print ("TCP S-> received [%s]" % (from_client))
             if from_client == TCP_DEV_READY_MSG:
                 conn.send(TCP_STE_START_MSG.encode())
-                time.sleep(0.3)
         conn.close()
         print ('TCP S-> client disconnected, count is', cnt)
     except KeyboardInterrupt:
