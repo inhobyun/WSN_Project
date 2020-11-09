@@ -1,10 +1,15 @@
 """
-Starting of sensor data monitoring and analysis application -- 2020/10/01
+Sensor data monitoring and analysis application based on flask WEB application framework
+
+by Inho Byun, Researcher/KAIST
+   inho.byun@gmail.com
+                    started 2020-10-01
+                    last updated 2020-11-09
 """
-import json
-import math
 from flask import Flask, redirect, request
 from jinja2 import Environment, PackageLoader, Markup, select_autoescape
+import json
+import math
 
 app = Flask(__name__, static_url_path='/static')
 env = Environment(
