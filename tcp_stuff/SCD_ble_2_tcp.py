@@ -87,9 +87,10 @@ gSTEData    = bytearray(33)
 #
 # target TCP Server identifiers
 #
-# TCP_HOST_NAME   = "125.131.73.31"   # Default Host Name
 # TCP_HOST_NAME   = "127.0.0.1"       # TEST Host Name
-TCP_HOST_NAME   = "10.2.2.3"        # TEST Host Name
+# TCP_HOST_NAME   = "10.2.2.3"        # TEST Host Name
+TCP_HOST_NAME   = "192.168.0.3"     # TEST Host Name
+# TCP_HOST_NAME   = "125.131.73.31"   # Default Host Name
 TCP_PORT        = 8088              # Default TCP Port Name
 TCP_TX_INTERVAL     = 1.            # time interval to send notification to host      
 TCP_DEV_READY_MSG   = 'DEV_READY'
@@ -272,8 +273,9 @@ class NotifyDelegate(DefaultDelegate):
                 try:
                     gSocketClient.send(string_STE_data(data).encode())
                 except:
-                    gSocketError = True
-                gSTELastTime = gSTEStopTime
+                    gSocketError = -2
+                else:    
+                    gSTELastTime = gSTEStopTime
         else:
             print("**** %2d-#%3d-[%s]" % (cHandle, gSTECount, hex_str(data)), end='\n', flush = True)
 
@@ -505,16 +507,18 @@ while not gSocketError:
             if STE_RUN_TIME > 0 and (time_stop-time_start) > STE_RUN_TIME:
                 print ( "\n\t[done] STE time exceeded", end = '\n', flush = True )
                 break
-            if gSocketError:
-                print ( "\n\t[done] sending error thru socket", end = '\n', flush = True )
-                break
+            if gSocketError == -2:
+                print ( "\n\t[done] sending error thru socket, reset error", end = '\n', flush = True )
+                gSocketError = False
+                break          
             try:
                 rx_msg = gSocketClient.recv(1024).decode()
             except BlockingIOError:
                 continue
-            print ( "\nTCP C-> [recv] '%s'" % rx_msg)
-            if rx_msg == TCP_STE_STOP_MSG or rx_msg == TCP_DEV_CLOSE_MSG:
-                break
+            else:
+                print ( "\nTCP C-> [recv] '%s'" % rx_msg)
+                if rx_msg == TCP_STE_STOP_MSG or rx_msg == TCP_DEV_CLOSE_MSG:
+                    break
 #
 # stop STE
 #
