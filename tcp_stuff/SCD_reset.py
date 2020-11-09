@@ -3,12 +3,11 @@ Code to reset SCD
 
 by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
-                    started 2020-11-05
-                    last updated 2020-11-07
+                    started 2020-11-09
+                    last updated 2020-11-10
 """
 from bluepy.btle import Scanner, DefaultDelegate, UUID, Peripheral
 import datetime
-import socket
 import struct
 import sys
 import time
@@ -48,15 +47,15 @@ SCD_BDT_DATA_FLOW_HND = 45    # RN, uuid: 02a65821-3003-1000-2000-b05cb05cb05c
 #
 SCD_MAX_MTU     = 65                # MAX SCD Comm. Packet size
 SCD_MAX_FLASH   = 0x0b0000          # 11*16**4 = 720896 = 704K
-SCD_MAX_NOTIFY  = SCD_MAX_FLASH>>4  # int(SCD_MAX_FLASH / 16)
+#SCD_MAX_NOTIFY = SCD_MAX_FLASH>>4  # int(SCD_MAX_FLASH / 16)
 
 #
 # Some constant parameters
 #
 SCAN_TIME        = 8.    # scanning duration for BLE devices 
-STE_RUN_TIME     = 0.    # STE rolling time in secconds (if 0, end-less rolling)
+STE_RUN_TIME     = 5.    # STE rolling time in secconds (if 0, end-less rolling)
 STE_FREQUENCY    = (400, 800, 1600, 3200, 6400)  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz
-MAX_STE_RUN_TIME = 30.   # max STE rolling time in seconds
+#MAX_STE_RUN_TIME= 30.   # max STE rolling time in seconds
 #
 # global variables
 #
@@ -69,28 +68,6 @@ gSTEStartTime    = 0.    # notification start timestamp
 gSTEStopTime     = 0.    # notification stop timestamp
 gSTELastTime     = 0.    # last notification timestamp
 gSTEData    = bytearray(33)
-
-#############################################
-# target definitions to TCP Server
-#############################################
-#
-# target TCP Server identifiers
-#
-# TCP_HOST_NAME   = "127.0.0.1"       # TEST Host Name
-# TCP_HOST_NAME   = "10.2.2.3"        # TEST Host Name
-TCP_HOST_NAME   = "192.168.0.3"     # TEST Host Name
-# TCP_HOST_NAME   = "125.131.73.31"   # Default Host Name
-TCP_PORT        = 8088              # Default TCP Port Name
-TCP_TX_INTERVAL     = 1.            # time interval to send notification to host      
-TCP_DEV_READY_MSG   = 'DEV_READY'
-TCP_DEV_CLOSE_MSG   = 'DEV_CLOSE'
-TCP_STE_START_MSG   = 'STE_START'
-TCP_STE_STOP_MSG    = 'STE_STOP'
-#
-# global variables
-#
-gSocketClient = None
-gSocketError  = False
 
 #############################################
 # STE(Short Time Experiment) mode configuration (35 bytes) 
@@ -122,7 +99,7 @@ STE_mode[20:22]  = b'\x80\x57'          # [20~21] magnetometer threshold
 STE_mode[26:28]  = b'\x80\xF3'          # [26~27] temperature threshold low
 STE_mode[28:30]  = b'\x00\x2D'          # [28~29] temperature threshold high
 #
-mode  = 0xf0 # F0 sensor raw value to flash
+mode  = 0xf0 # F0 sensor raw value to flash - unused
 #ode |= 0x01 # 01 sensor raw value to flash - accelerometer
 #ode |= 0x02 # 02 sensor raw value to flash - magnetometer
 #ode |= 0x04 # 04 sensor raw value to flash - light
@@ -147,44 +124,33 @@ def hex_str( vBytes ):
 def string_STE_data( pResult ):
 
     # output Accelerrometer X, Y, Z axis arithmetic mean & variation  
-    adxl_mean_x = float( int.from_bytes(pResult[0:2], byteorder='little', signed=True) ) \
-                  / 10.0
-    adxl_vari_x = float( int.from_bytes(pResult[6:10], byteorder='little', signed=True) ) \
-                  / 100.0
-    adxl_mean_y = float( int.from_bytes(pResult[2:4], byteorder='little', signed=True) ) \
-                  / 10.0
-    adxl_vari_y = float( int.from_bytes(pResult[10:14], byteorder='little', signed=True) ) \
-                  / 100.0
-    adxl_mean_z = float( int.from_bytes(pResult[4:6], byteorder='little', signed=True) ) \
-                  / 10.0
-    adxl_vari_z = float( int.from_bytes(pResult[14:18], byteorder='little', signed=True) ) \
-                  / 100.0
+    adxl_mean_x = float( int.from_bytes(pResult[ 0: 2], byteorder='little', signed=True) ) / 10.0
+    adxl_vari_x = float( int.from_bytes(pResult[ 6:10], byteorder='little', signed=True) ) / 100.0
+    adxl_mean_y = float( int.from_bytes(pResult[ 2: 4], byteorder='little', signed=True) ) / 10.0
+    adxl_vari_y = float( int.from_bytes(pResult[10:14], byteorder='little', signed=True) ) / 100.0
+    adxl_mean_z = float( int.from_bytes(pResult[ 4: 6], byteorder='little', signed=True) ) / 10.0
+    adxl_vari_z = float( int.from_bytes(pResult[14:18], byteorder='little', signed=True) ) / 100.0
     # output temperature
-    temperature = float( int.from_bytes(pResult[18:20], byteorder='little', signed=True) ) \
-                  * 0.0078
+    temperature = float( int.from_bytes(pResult[18:20], byteorder='little', signed=True) ) * 0.0078
     # output light
-    light = float( int.from_bytes(pResult[20:24], byteorder='little', signed=True) ) \
-            / 1000.0
+    light = float( int.from_bytes(pResult[20:24], byteorder='little', signed=True) ) / 1000.0
     # output Magnetometer X, Y, Z axis raw data 
-    magneto_x = float( int.from_bytes(pResult[24:26], byteorder='little', signed=True) ) \
-                / 16.0
-    magneto_y = float( int.from_bytes(pResult[26:28], byteorder='little', signed=True) ) \
-                / 16.0
-    magneto_z = float( int.from_bytes(pResult[28:30], byteorder='little', signed=True) ) \
-                / 16.0
+    magneto_x = float( int.from_bytes(pResult[24:26], byteorder='little', signed=True) ) / 16.0
+    magneto_y = float( int.from_bytes(pResult[26:28], byteorder='little', signed=True) ) / 16.0
+    magneto_z = float( int.from_bytes(pResult[28:30], byteorder='little', signed=True) ) / 16.0
     # make string to send
     str  = '('
-    str += "%.1f" % adxl_mean_x + ','
-    str += "%.2f" % adxl_vari_x + ','
-    str += "%.1f" % adxl_mean_y + ','
-    str += "%.2f" % adxl_vari_y + ','
-    str += "%.1f" % adxl_mean_z + ','
-    str += "%.2f" % adxl_vari_z + ','
-    str += "%.2f" % temperature + ','
-    str += "%.3f" % light + ','
-    str += "%.1f" % magneto_x + ','
-    str += "%.1f" % magneto_y + ','
-    str += "%.1f" % magneto_z
+    str += "%4.1f" % adxl_mean_x + ','
+    str += "%5.2f" % adxl_vari_x + ','
+    str += "%4.1f" % adxl_mean_y + ','
+    str += "%5.2f" % adxl_vari_y + ','
+    str += "%4.1f" % adxl_mean_z + ','
+    str += "%5.2f" % adxl_vari_z + ','
+    str += "%6.2f" % temperature + ','
+    str += "%7.3f" % light + ','
+    str += "%6.1f" % magneto_x + ','
+    str += "%6.1f" % magneto_y + ','
+    str += "%6.1f" % magneto_z
     str += ')'     
     return str
 
@@ -243,13 +209,10 @@ class NotifyDelegate(DefaultDelegate):
       
     def handleNotification(self, cHandle, data):
         global SCD_STE_RESULT_HND
-        global TCP_TX_INTERVAL
         global gSTECount
         global gSTEStartTime
         global gSTEStopTime
         global gSTELastTime
-        global gSocketClient
-        global gSocketError
 
         if cHandle == SCD_STE_RESULT_HND:
         # STE notification
@@ -257,14 +220,7 @@ class NotifyDelegate(DefaultDelegate):
                 gSTEStopTime = gSTELastTime  = gSTEStartTime = time.time()
             else:
                 gSTEStopTime = time.time()
-            if gSTECount < 1:
-                try:
-                    gSocketClient.send(string_STE_data(data).encode())
-                except:
-                    gSocketError = True
-                else:    
-                    gSTELastTime = gSTEStopTime
-                    gSTECount += 1
+            print("**** %s" % string_STE_data(data), end='\n', flush = True)    
         else:
             print("**** %2d-#%3d-[%s]" % (cHandle, gSTECount, hex_str(data)), end='\n', flush = True)
 
@@ -276,7 +232,6 @@ def scan_and_connect( is_first = True ):
     global TARGET_MANUFA_UUID
     global TARGET_DEVICE_NAME
     global gTargetDevice
-    global gSocketClient
     #
     # scanning for a while
     #
@@ -311,7 +266,6 @@ def scan_and_connect( is_first = True ):
     #
     if gTargetDevice == None:
         print("\tno matching device found... Exiting...")
-        gSocketClient.close()
         sys.exit(1)
     #
     # connect
@@ -327,7 +281,6 @@ def scan_and_connect( is_first = True ):
             retry += 1
             if retry > 3:
                 print("\tBLE device connection error occured... exiting...")
-                gSocketClient.close()
                 sys.exit(-1)
             time.sleep(3)    
     #
@@ -381,7 +334,6 @@ print ("\tSelf Test Result is [%s] c0:OK, otherwise not OK!" % ret_val.hex())
 ret_val = p.readCharacteristic( SCD_SET_MODE_HND )
 print ("\tMode is [%s] 00:STE, ff:Mode Selection" % ret_val.hex())
 #
-#
 STE_result_0 = p.readCharacteristic( SCD_STE_RESULT_HND )
 time.sleep(1.)
 STE_result_1 = p.readCharacteristic( SCD_STE_RESULT_HND )
@@ -410,6 +362,7 @@ if ret_val !=  b'\x00':
     print("+--- set STE mode")
     p.writeCharacteristic( SCD_SET_MODE_HND, b'\x00' )
     ret_val = p.readCharacteristic( SCD_SET_MODE_HND )
+#
 #############################################
 #
 # set STE Configuration
@@ -422,7 +375,23 @@ ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
 print ("\tSTE config. get\n[%s](%d)" % (hex_str(ret_val), len(ret_val)))
 #
 #############################################
-
+#
+# start STE
+#
+print ("+--- STE starting...")
+p.setDelegate( NotifyDelegate(p) )
+p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1))
+time.sleep(0.7)
+p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
+time_stop = time_start = time.time()
+while time_stop - time_start < STE_RUN_TIME
+    wait_flag = p.waitForNotifications(1.)
+    time_stop = time.time()
+#
+#############################################
+#
+# stop STE
+#
 p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )        
 print ("\tSTE is stopping")        
 ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
@@ -432,10 +401,8 @@ while ( ret_val != b'\x00' ):
             ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
 print ("\n+--- STE stoped")
 print_STE_result()
-#
-#
-#############################################
 
+#############################################
 #
 # clean-up and init sensor device
 #
@@ -446,9 +413,6 @@ time.sleep(0.7)
 p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x30' ) # erase sensor data
 print ("+--- erase flash memory wait for 10 seconds...wait...")
 time.sleep(10.)
-#
-# disconnect
-#
 p.disconnect()
 #
 #############################################
