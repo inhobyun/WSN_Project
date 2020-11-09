@@ -268,14 +268,14 @@ class NotifyDelegate(DefaultDelegate):
                 gSTEStopTime = gSTELastTime  = gSTEStartTime = time.time()
             else:
                 gSTEStopTime = time.time()
-            gSTECount += 1
-            if gSTEStopTime-gSTELastTime > TCP_TX_INTERVAL:
+            if gSTECount < 1:
                 try:
                     gSocketClient.send(string_STE_data(data).encode())
                 except:
                     gSocketError = -2
                 else:    
                     gSTELastTime = gSTEStopTime
+                    gSTECount += 1
         else:
             print("**** %2d-#%3d-[%s]" % (cHandle, gSTECount, hex_str(data)), end='\n', flush = True)
 
@@ -459,28 +459,26 @@ print ("\tSTE config. get\n[%s](%d)" % (hex_str(ret_val), len(ret_val)))
 #
 #############################################
 
-#############################################
-#
-# send 1'st message
-#
-try:
-    gSocketClient.send(TCP_DEV_READY_MSG.encode())
-    print("TCP C-> [send] '%s'..." % TCP_DEV_READY_MSG)
-except:
-    gSocketError = True
-    print("TCP C-> [send] error !!!")
+
 
 #############################################
 #
 # loop if not socket error and not dev_close 
 #
 while not gSocketError:
+    try:
+        gSocketClient.send(TCP_DEV_READY_MSG.encode())
+        print("TCP C-> [send] '%s'..." % TCP_DEV_READY_MSG)
+    except:
+        gSocketError = True
+        print("TCP C-> [send] error !!!")
 #
 #############################################
 #
 # wait start message
 #
-    while True:
+    rx_msg = ''
+    while not gSocketError:
         try:
             rx_msg = gSocketClient.recv(1024).decode()
         except BlockingIOError:
@@ -501,7 +499,7 @@ while not gSocketError:
         time.sleep(0.7)
         p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
         time_start = time.time()
-        while True:
+        while rx_msg != TCP_STE_STOP_MSG and rx_msg != TCP_DEV_CLOSE_MSG:
             wait_flag = p.waitForNotifications(1.)
             time_stop = time.time()
             if STE_RUN_TIME > 0 and (time_stop-time_start) > STE_RUN_TIME:
@@ -511,14 +509,13 @@ while not gSocketError:
                 print ( "\n\t[done] sending error thru socket, reset error", end = '\n', flush = True )
                 gSocketError = False
                 break          
+            rx_msg = ''
             try:
                 rx_msg = gSocketClient.recv(1024).decode()
             except BlockingIOError:
                 continue
-            else:
-                print ( "\nTCP C-> [recv] '%s'" % rx_msg)
-                if rx_msg == TCP_STE_STOP_MSG or rx_msg == TCP_DEV_CLOSE_MSG:
-                    break
+            if rx_msg != '':
+                print ( "\nTCP C-> [recv] '%s'" % rx_msg, end = '\n', flush = True)
 #
 # stop STE
 #
