@@ -70,22 +70,12 @@
 </table>
 
 <script>
+
+    var tid = setInterval(startMonitoring, 3000)
+
     function startMonitoring() {
         const value = document.getElementById('tm_period').value;
         axios.post('/post_monStart', {
-            value: Number(value),
-        }).then(response => {
-            const data = response.data;
-            dispData(data);
-            //console.log(data);
-        }).catch(function (error) {
-            alert('Error occurred on submit: ' + error);
-        });
-    }
-
-    function stopMonitoring() {
-        const value = document.getElementById('tm_period').value;
-        axios.post('/post_monStop', {
             value: Number(value),
         }).then(response => {
             const data = response.data;
@@ -108,6 +98,10 @@
         document.getElementById("row_09").innerHTML = data.row_09
         document.getElementById("row_10").innerHTML = data.row_10
         document.getElementById("row_11").innerHTML = data.row_11
+    }
+
+    function stopMonitoring() {
+        clearInterval ( tid );
     }
 </script>
 

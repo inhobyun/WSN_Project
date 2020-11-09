@@ -272,7 +272,7 @@ class NotifyDelegate(DefaultDelegate):
                 try:
                     gSocketClient.send(string_STE_data(data).encode())
                 except:
-                    gSocketError = -2
+                    gSocketError = True
                 else:    
                     gSTELastTime = gSTEStopTime
                     gSTECount += 1
@@ -472,10 +472,11 @@ while not gSocketError:
     except:
         gSocketError = True
         print("TCP C-> [send] error !!!")
+        break
 #
 #############################################
 #
-# wait start message
+# wait any message from server
 #
     rx_msg = ''
     while not gSocketError:
@@ -486,9 +487,6 @@ while not gSocketError:
         print ( "TCP C-> [recv] '%s'" % rx_msg)
         break    
     
-    if rx_msg == TCP_DEV_CLOSE_MSG:
-        break
-
     if rx_msg == TCP_STE_START_MSG:
 #
 # start STE
@@ -503,19 +501,11 @@ while not gSocketError:
             wait_flag = p.waitForNotifications(1.)
             time_stop = time.time()
             if STE_RUN_TIME > 0 and (time_stop-time_start) > STE_RUN_TIME:
-                print ( "\n\t[done] STE time exceeded", end = '\n', flush = True )
+                print ( "\n\t[done] STE time exceeded" )
                 break
-            if gSocketError == -2:
-                print ( "\n\t[done] sending error thru socket, reset error", end = '\n', flush = True )
-                gSocketError = False
+            if gSocketError:
+                print ( "\n\t[done] sending error thru socket" )
                 break          
-            rx_msg = ''
-            try:
-                rx_msg = gSocketClient.recv(1024).decode()
-            except BlockingIOError:
-                continue
-            if rx_msg != '':
-                print ( "\nTCP C-> [recv] '%s'" % rx_msg, end = '\n', flush = True)
 #
 # stop STE
 #
@@ -530,6 +520,9 @@ while not gSocketError:
         print ("\n+--- STE stoped")
         print_STE_result()
     if rx_msg == TCP_DEV_CLOSE_MSG:
+#
+# disconnect
+#        
         break    
 #
 #############################################
