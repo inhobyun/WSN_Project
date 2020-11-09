@@ -102,6 +102,16 @@
 
     function stopMonitoring() {
         clearInterval ( tid );
+        const value = document.getElementById('tm_period').value;
+        axios.post('/post_monStop', {
+            value: Number(value),
+        }).then(response => {
+            const data = response.data;
+            dispData(data);
+            //console.log(data);
+        }).catch(function (error) {
+            alert('Error occurred on submit: ' + error);
+        });
     }
 </script>
 
