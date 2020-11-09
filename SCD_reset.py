@@ -384,7 +384,7 @@ p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1))
 time.sleep(0.7)
 p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
 time_stop = time_start = time.time()
-while time_stop - time_start < STE_RUN_TIME
+while time_stop - time_start < STE_RUN_TIME:
     wait_flag = p.waitForNotifications(1.)
     time_stop = time.time()
 #
