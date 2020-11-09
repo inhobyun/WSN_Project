@@ -29,7 +29,10 @@ TCP_STE_STOP_MSG    = 'STE_STOP'
 #
 # global variables
 #
-gSocketServer = None
+gSocketServer   = None
+gSocketAccepted = False
+gSocketConn     = None
+gSocketAddr     = 0
 
 #############################################
 #############################################
@@ -53,9 +56,9 @@ if gSocketServer != None:
 else:
     print("TCP S-> socket creation fail... Exiting...")
     sys.exit(1)
-    
-print("TCP S-> socket binded")    
+print("TCP S-> binded...")    
 gSocketServer.listen(1)
+print("TCP S-> listening...") 
 
 #############################################
 #############################################
@@ -107,73 +110,73 @@ def post_monStart():
 
     # global definitions
     global gSocketServer
+    global gSocketAccepted
+    global gSocketConn
+    global gSocketAddr
     global TCP_DEV_READY_MSG
     global TCP_DEV_CLOSE_MSG
     global TCP_STE_START_MSG
     global TCP_STE_STOP_MSG
 
     # Prepare data to post
-    rows = {'row_01' : 'TBD',
-            'row_02' : 'TBD',
-            'row_03' : 'TBD',
-            'row_04' : 'TBD',
-            'row_05' : 'TBD',
-            'row_06' : 'TBD',
-            'row_07' : 'TBD',
-            'row_08' : 'TBD',
-            'row_09' : 'TBD',
-            'row_10' : 'TBD',
-            'row_11' : 'TBD'
+    rows = {'row_01' : '---',
+            'row_02' : '---',
+            'row_03' : '---',
+            'row_04' : '---',
+            'row_05' : '---',
+            'row_06' : '---',
+            'row_07' : '---',
+            'row_08' : '---',
+            'row_09' : '---',
+            'row_10' : '---',
+            'row_11' : '---'
            }
 
     # send STE start
     try:
-        print("TCP S-> listen & accepting...")
-        conn, addr = gSocketServer.accept()
+        print("TCP S-> accepting...")
+        gSocketConn, gSocketAddr = gSocketServer.accept()
+        print("TCP S-> accepted...")
         from_client = ''
         cnt = 0
         while True:
-            data = conn.recv(1024)
+            data = gSocketConn.recv(1024)
             if not data:
                 break
             cnt += 1
             from_client = data.decode()
             print ("TCP S-> received [%s]" % (from_client))
             if from_client == TCP_DEV_READY_MSG:
-                conn.send(TCP_STE_START_MSG.encode())
+                gSocketConn.send(TCP_STE_START_MSG.encode())
             elif from_client[0] == '(':
                 break
     except KeyboardInterrupt:
         print ('TCP S-> keybord interrupted... Send "%s" to client...' % TCP_STE_STOP_MSG)
-        conn.send(TCP_STE_STOP_MSG.encode())
-        time.sleep(5.)
-        print ('TCP S-> Send "%s" to client and Exiting...' % TCP_DEV_CLOSE_MSG)
-        conn.send(TCP_DEV_CLOSE_MSG.encode())
-        conn.close()
-        return json.dumps(rows)
+        gSocketConn.send(TCP_STE_STOP_MSG.encode())
     except:
-        print ('TCP S-> unknown exception... Exiting...')
-        return json.dumps(rows)
-
+        print ('TCP S-> exception...')
+        print ('TCP S-> Send "%s" to client and closing...' % TCP_DEV_CLOSE_MSG)
+        gSocketConn.send(TCP_DEV_CLOSE_MSG.encode())
+        gSocketConn.close()
+        print ('TCP S-> connection closed, rx count is', cnt)
+    else:
+        gSocketAccepted = True
     # get the data to post
-    from_client = from_client.replace(')','')
-    from_client = from_client.replace('(','')
-    vals = from_client.split(',')  
-    rows = {'row_01' : vals[ 0],
-            'row_02' : vals[ 1],
-            'row_03' : vals[ 2],
-            'row_04' : vals[ 3],
-            'row_05' : vals[ 4],
-            'row_06' : vals[ 5],
-            'row_07' : vals[ 6],
-            'row_08' : vals[ 7],
-            'row_09' : vals[ 8],
-            'row_10' : vals[ 9],
-            'row_11' : vals[10]
-           }               
-    conn.close()
-    print ('TCP S-> client disconnected, count is', cnt)
-    
+        from_client = from_client.replace(')','')
+        from_client = from_client.replace('(','')
+        vals = from_client.split(',')  
+        rows = {'row_01' : vals[ 0],
+                'row_02' : vals[ 1],
+                'row_03' : vals[ 2],
+                'row_04' : vals[ 3],
+                'row_05' : vals[ 4],
+                'row_06' : vals[ 5],
+                'row_07' : vals[ 6],
+                'row_08' : vals[ 7],
+                'row_09' : vals[ 8],
+                'row_10' : vals[ 9],
+                'row_11' : vals[10]
+               }               
     return json.dumps(rows)
 
 @app.route('/post_monStop', methods=['POST'])
@@ -183,34 +186,39 @@ def post_monStop():
 
     # global definitions
     global gSocketServer
+    global gSocketAccepted
+    global gSocketConn
+    global gSocketAddr
     global TCP_DEV_READY_MSG
     global TCP_DEV_CLOSE_MSG
     global TCP_STE_START_MSG
     global TCP_STE_STOP_MSG
 
     # Prepare data to post
-    rows = {'row_01' : '--.-',
-            'row_02' : '--.--',
-            'row_03' : '--.-',
-            'row_04' : '--.--',
-            'row_05' : '--.-',
-            'row_06' : '--.--',
-            'row_07' : '--.--',
-            'row_08' : '---.---',
-            'row_09' : '---.-',
-            'row_10' : '---.-',
-            'row_11' : '---.-'
+    rows = {'row_01' : '***',
+            'row_02' : '***',
+            'row_03' : '***',
+            'row_04' : '***',
+            'row_05' : '***',
+            'row_06' : '***',
+            'row_07' : '***',
+            'row_08' : '***',
+            'row_09' : '***',
+            'row_10' : '***',
+            'row_11' : '***'
            }
 
     # send STE stop
     try:
-        print("TCP S-> listen & accepting...")
-        conn, addr = gSocketServer.accept()
-        conn.send(TCP_STE_STOP_MSG.encode())
+        if not gSocketAccepted:
+            print("TCP S-> accepting...")
+            gSocketConn, gSocketAddr = gSocketServer.accept()
+            print("TCP S-> accepted...")
+        gSocketConn.send(TCP_STE_STOP_MSG.encode())
         from_client = ''
         cnt = 0
         while True:
-            data = conn.recv(1024)
+            data = gSocketConn.recv(1024)
             if not data:
                 break
             cnt += 1
@@ -218,34 +226,28 @@ def post_monStop():
             print ("TCP S-> received [%s]" % (from_client))
     except KeyboardInterrupt:
         print ('TCP S-> keybord interrupted... Send "%s" to client...' % TCP_STE_STOP_MSG)
-        conn.send(TCP_STE_STOP_MSG.encode())
-        time.sleep(5.)
-        print ('TCP S-> Send "%s" to client and Exiting...' % TCP_DEV_CLOSE_MSG)
-        conn.send(TCP_DEV_CLOSE_MSG.encode())
-        conn.close()
-        return json.dumps(rows)
     except:
-        print ('TCP S-> unknown exception... Exiting...')
-        return json.dumps(rows)
-
+        print ('TCP S-> exception...')
+        print ('TCP S-> Send "%s" to client and closing...' % TCP_DEV_CLOSE_MSG)
+        gSocketConn.send(TCP_DEV_CLOSE_MSG.encode())
+    else:
     # get the data to post   
-    rows = {'row_01' : '$$.$',
-            'row_02' : '00.00',
-            'row_03' : '00.0',
-            'row_04' : '00.00',
-            'row_05' : '00.0',
-            'row_06' : '00.00',
-            'row_07' : '00.00',
-            'row_08' : '000.000',
-            'row_09' : '000.0',
-            'row_10' : '000.0',
-            'row_11' : '$$$.$'
-           }               
-    conn.close()
-    print ('TCP S-> client disconnected, count is', cnt)
-
+        rows = {'row_01' : 'STOP',
+                'row_02' : 'STOP',
+                'row_03' : 'STOP',
+                'row_04' : 'STOP',
+                'row_05' : 'STOP',
+                'row_06' : 'STOP',
+                'row_07' : 'STOP',
+                'row_08' : 'STOP',
+                'row_09' : 'STOP',
+                'row_10' : 'STOP',
+                'row_11' : 'STOP'
+                }               
+    gSocketConn.close()
+    gSocketAccepted = False
+    print ('TCP S-> client connection closed, count is', cnt)
     return json.dumps(rows)
-
 
 @app.route('/post_graph', methods=['POST'])
 def post_graph():
