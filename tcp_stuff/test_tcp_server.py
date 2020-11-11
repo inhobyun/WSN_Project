@@ -71,8 +71,8 @@ while True:
     try:
         msg = input("TCP S-> input: ")
     except KeyboardInterrupt:
-        print ('TCP S-> keybord interrupted... Send "%s" to client...' % TCP_STE_CLOSE_MSG)
-        conn.send(TCP_STE_CLOSE_MSG.encode())
+        print ('TCP S-> keybord interrupted... Send "%s" to client...' % TCP_DEV_CLOSE_MSG)
+        conn.send(TCP_DEV_CLOSE_MSG.encode())
         break
 
     try:
