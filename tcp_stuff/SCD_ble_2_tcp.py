@@ -452,7 +452,6 @@ except:
 #
 # loop if not socket error and not dev_close 
 #
-on_off = True
 while not gSocketError:
 #
 #############################################
@@ -463,41 +462,40 @@ while not gSocketError:
     try:
         rx_msg = gSocketClient.recv(1024).decode()
     except BlockingIOError:
-        print ('+\b' if on_off else '\bX', end = '')
-        on_off = not On_off
+        print ('.', end = '')
     except:
         print ("\nTCP C-> [RX] error !")    
         gSocketError = True
     if rx_msg != '':
         print ("\nTCP C-> [RX] '%s'" % rx_msg)
-    #
-    if rx_msg == TCP_STE_START_MSG:
-        # start STE
-        print ("+--- STE starting...")
-        p.setDelegate( NotifyDelegate(p) )
-        p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1))
-        time.sleep(0.7)
-        p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
-    elif rx_msg == TCD_STE_REQ_MSG:
-        # request STE data
-        gSTEisDataSent = False
-    elif rx_msg == TCP_STE_STOP_MSG or rx_msg == TCP_DEV_CLOSE_MSG:
-        # stop STE or disconnect
-        p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )        
-        print ("\n+--- STE is stopping")        
-        ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
-        while ( ret_val != b'\x00' ):
-            print ("+--- STE has not completed yet, generic command is [%s]" % ret_val.hex())
+        #
+        if rx_msg == TCP_STE_START_MSG:
+            # start STE
+            print ("+--- STE starting...")
+            p.setDelegate( NotifyDelegate(p) )
+            p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1))
             time.sleep(0.7)
+            p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
+        elif rx_msg == TCP_STE_REQ_MSG:
+            # request STE data
+            gSTEisDataSent = False
+        elif rx_msg == TCP_STE_STOP_MSG or rx_msg == TCP_DEV_CLOSE_MSG:
+            # stop STE or disconnect
+            p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )        
+            print ("\n+--- STE is stopping")        
             ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
-        print ("+--- STE stoped")
-        print_STE_result()
-    else:
-        print ("+--- invalid [RX] message !")    
-    #
-    if rx_msg == TCP_DEV_CLOSE_MSG:
-        # disconnect
-        break    
+            while ( ret_val != b'\x00' ):
+                print ("+--- STE has not completed yet, generic command is [%s]" % ret_val.hex())
+                time.sleep(0.7)
+                ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
+            print ("+--- STE stoped")
+            print_STE_result()
+        else:
+            print ("+--- invalid [RX] message !")    
+        #
+        if rx_msg == TCP_DEV_CLOSE_MSG:
+            # disconnect
+            break    
     #
     # get notification
     #
