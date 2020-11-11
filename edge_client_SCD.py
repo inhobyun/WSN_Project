@@ -177,19 +177,17 @@ def string_STE_data( pResult ):
     magneto_y = float( int.from_bytes(pResult[26:28], byteorder='little', signed=True) ) / 16.0
     magneto_z = float( int.from_bytes(pResult[28:30], byteorder='little', signed=True) ) / 16.0
     # make string to send
-    str  = '('
-    str += "%.1f" % adxl_mean_x + ','
-    str += "%.2f" % adxl_vari_x + ','
-    str += "%.1f" % adxl_mean_y + ','
-    str += "%.2f" % adxl_vari_y + ','
-    str += "%.1f" % adxl_mean_z + ','
-    str += "%.2f" % adxl_vari_z + ','
-    str += "%.2f" % temperature + ','
-    str += "%.3f" % light + ','
-    str += "%.1f" % magneto_x + ','
-    str += "%.1f" % magneto_y + ','
-    str += "%.1f" % magneto_z
-    str += ')'     
+    str = "(%.1f," % adxl_mean_x
+    str += "%.2f," % adxl_vari_x
+    str += "%.1f," % adxl_mean_y
+    str += "%.2f," % adxl_vari_y
+    str += "%.1f," % adxl_mean_z
+    str += "%.2f," % adxl_vari_z
+    str += "%.2f," % temperature
+    str += "%.3f," % light
+    str += "%.1f," % magneto_x
+    str += "%.1f," % magneto_y
+    str += "%.1f)" % magneto_z   
     return str
 
 #############################################    
@@ -296,11 +294,8 @@ class NotifyDelegate(DefaultDelegate):
 # Define STE Config.
 #############################################
 def set_STE_config( is_Writng = False ):
-    global SCAN_TIME
-    global TARGET_MANUFA_UUID
-    global TARGET_DEVICE_NAME
-    global gTargetDevice
-    global gSocketClient
+    global SCD_STE_CONFIG_HND
+    global gSTEcfgMode
     #
     time_bytes = struct.pack('<l', int(time.time()))
     gSTEcfgMode = bytes( time_bytes[0:4] ) + gSTEcfgMode[4:35]
@@ -496,6 +491,7 @@ except:
 #
 # loop if not socket error and not dev_close 
 #
+gIDLElastTime = time.time()
 while not gSocketError:
 #
 #############################################
@@ -607,30 +603,31 @@ while not gSocketError:
     #
     # get notification
     #
-    wait_flag = p.waitForNotifications(0.2)
-    if gSTEnotiCnt > 0 and gSTElastData != '' and not gSTEisDataSent:
-        try:
-            tx_data = string_STE_data(gSTElastData)
-            gSocketClient.send(tx_data.encode())
-            print("TCP C-> [TX] '%s'..." % tx_data)
-        except:
-            gSocketError = True
-            print("TCP C-> [TX] error !!!")
-        else:    
-            gSTElastData = ''
-            gSTEisDataSent = True
+    if gSTEisRolling or gBDTisRolling:
+        wait_flag = p.waitForNotifications(0.2)
+        if gSTEnotiCnt > 0 and gSTElastData != '' and not gSTEisDataSent:
+            try:
+                tx_data = string_STE_data(gSTElastData)
+                gSocketClient.send(tx_data.encode())
+                print("TCP C-> [TX] '%s'..." % tx_data)
+            except:
+                gSocketError = True
+                print("TCP C-> [TX] error !!!")
+            else:    
+                gSTElastData = ''
+                gSTEisDataSent = True
+        continue 
     #
     # idling check
     #
-    if gSTEisRolling or gBDTisRolling:
-        continue
     t = time.time()
-    if gIDLElastTime - t > gIDLEinterval:
+    if t - gIDLElastTime > gIDLEinterval:
         #
         # doing some to keep BLE connection
         #
         p.readCharacteristic( SCD_STE_RESULT_HND )
         gIDLElastTime = t
+        print ("+--- STE result query to keep connection")
 #
 #############################################
 
