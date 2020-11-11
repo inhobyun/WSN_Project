@@ -82,7 +82,8 @@ gSTElastData    = ''    # last notification data
 gSTEisDataSent  = False # flag wether notification data has been sent
 gSTEisRolling   = False # flag wether STE is on rolling
 gIDLElastTime   = 0.    # last BLE traffic on connection
-gIDLEinterval   = 60.   # time interval to make BLE traffic to keep connection
+##gIDLEinterval   = 60.   # time interval to make BLE traffic to keep connection
+gIDLEinterval   = 15.   # time interval to make BLE traffic to keep connection
 
 #############################################
 # target definitions to TCP Server
@@ -455,6 +456,7 @@ except:
 #
 # loop if not socket error and not dev_close 
 #
+gIDLElastTime = time.time()
 while not gSocketError:
 #
 #############################################
@@ -488,15 +490,18 @@ while not gSocketError:
             gSTEisDataSent = False
         elif rx_msg == TCP_STE_STOP_MSG or rx_msg == TCP_DEV_CLOSE_MSG:
             # stop STE or disconnect
-            p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )        
-            print ("\n+--- STE is stopping")        
-            ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
-            while ( ret_val != b'\x00' ):
-                print ("+--- STE has not completed yet, generic command is [%s]" % ret_val.hex())
-                time.sleep(0.7)
+            if gSTEisRolling:
+                p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )        
+                print ("\n+--- STE is stopping")        
                 ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
-            print ("+--- STE stoped")
-            gSTEisRolling = False
+                while ( ret_val != b'\x00' ):
+                    print ("+--- STE has not completed yet, generic command is [%s]" % ret_val.hex())
+                    time.sleep(0.7)
+                    ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
+                print ("+--- STE stoped")
+                gSTEisRolling = False
+            else:
+                print ("+--- STE already stoped")
             print_STE_result()
         else:
             print ("+--- invalid [RX] message !")    
@@ -507,7 +512,8 @@ while not gSocketError:
     #
     # get notification
     #
-    wait_flag = p.waitForNotifications(0.2)
+    if gSTEisRolling:
+        wait_flag = p.waitForNotifications(0.2)
     if gSTEnotiCnt > 0 and gSTElastData != '' and not gSTEisDataSent:
         try:
             tx_data = string_STE_data(gSTElastData)
@@ -525,12 +531,13 @@ while not gSocketError:
     if gSTEisRolling:
         continue
     t = time.time()
-    if gIDLElastTime - t > gIDLEinterval:
+    if (t - gIDLElastTime) > gIDLEinterval:
         #
         # doing some to keep BLE connection
         #
         p.readCharacteristic( SCD_STE_RESULT_HND )
         gIDLElastTime = t
+        print ("+--- STE result query to keep connection")
 #
 #############################################
 

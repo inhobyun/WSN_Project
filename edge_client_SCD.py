@@ -585,16 +585,18 @@ while not gSocketError:
             #################################
         elif rx_msg == TCP_STE_STOP_MSG or rx_msg == TCP_DEV_CLOSE_MSG:
             # stop STE or disconnect
-            p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )        
-            print ("\n+--- Monitoring STE is stopping")        
-            ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
-            while ( ret_val != b'\x00' ):
-                print ("+--- STE has not completed yet, generic command is [%s]" % ret_val.hex())
-                time.sleep(0.7)
+            if gSTEisRolling:
+                p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )        
+                print ("\n+--- STE is stopping")        
                 ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
-            print ("+--- Monitoring STE stoped")
-            gSTEisRolling = False
-            gIDLElastTime = time.time()
+                while ( ret_val != b'\x00' ):
+                    print ("+--- STE has not completed yet, generic command is [%s]" % ret_val.hex())
+                    time.sleep(0.7)
+                    ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
+                print ("+--- STE stoped")
+                gSTEisRolling = False
+            else:
+                print ("+--- STE already stoped")
             print_STE_result()
         else:
             print ("+--- invalid [RX] message !")    
