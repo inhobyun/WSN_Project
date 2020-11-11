@@ -2,7 +2,7 @@
 Code to receive sensor data via BLE and send it to server thru TCP socket
 Target Sensor Device: blutooth ble device; BOSCH SCD 110
 
-This code does discover BOSCH SCD Sensor device via blutooth ble communication and read sensor data
+This code discovers BOSCH SCD Sensor device via ble communication and read sensor data
 followings are the brief steps included in this code;
 - discovery
 - connect
@@ -78,7 +78,8 @@ gSTECount       = 0     # count of notifications from connected device
 gSTEStartTime   = 0.    # notification start timestamp
 gSTEStopTime    = 0.    # notification stop timestamp
 gSTELastTime    = 0.    # last notification timestamp
-gSTENotiData    = ''
+gSTELastData    = ''    # last notification data
+gSTEisDataSent  = False # flag wether notification data has been sent
 
 #############################################
 # target definitions to TCP Server
@@ -87,15 +88,16 @@ gSTENotiData    = ''
 # target TCP Server identifiers
 #
 ##TCP_HOST_NAME   = "127.0.0.1"       # TEST Host Name
-TCP_HOST_NAME   = "10.2.2.3"        # TEST Host Name
+##TCP_HOST_NAME   = "10.2.2.3"        # TEST Host Name
 ##TCP_HOST_NAME   = "192.168.0.3"     # TEST Host Name
-##TCP_HOST_NAME   = "125.131.73.31"   # Default Host Name
+TCP_HOST_NAME   = "125.131.73.31"   # Default Host Name
 TCP_PORT        = 8088              # Default TCP Port Name
 ##TCP_TX_INTERVAL     = 1.            # time interval to send notification to host      
 TCP_DEV_READY_MSG   = 'DEV_READY'
 TCP_DEV_CLOSE_MSG   = 'DEV_CLOSE'
 TCP_STE_START_MSG   = 'STE_START'
 TCP_STE_STOP_MSG    = 'STE_STOP'
+TCP_STE_REQ_MSG     = 'STE_REQ'
 #
 # global variables
 #
@@ -158,10 +160,10 @@ def string_STE_data( pResult ):
 
     # output Accelerrometer X, Y, Z axis arithmetic mean & variation  
     adxl_mean_x = float( int.from_bytes(pResult[ 0: 2], byteorder='little', signed=True) ) / 10.0
-    adxl_vari_x = float( int.from_bytes(pResult[ 6:10], byteorder='little', signed=True) ) / 100.0
     adxl_mean_y = float( int.from_bytes(pResult[ 2: 4], byteorder='little', signed=True) ) / 10.0
-    adxl_vari_y = float( int.from_bytes(pResult[10:14], byteorder='little', signed=True) ) / 100.0
     adxl_mean_z = float( int.from_bytes(pResult[ 4: 6], byteorder='little', signed=True) ) / 10.0
+    adxl_vari_x = float( int.from_bytes(pResult[ 6:10], byteorder='little', signed=True) ) / 100.0
+    adxl_vari_y = float( int.from_bytes(pResult[10:14], byteorder='little', signed=True) ) / 100.0
     adxl_vari_z = float( int.from_bytes(pResult[14:18], byteorder='little', signed=True) ) / 100.0
     # output temperature
     temperature = float( int.from_bytes(pResult[18:20], byteorder='little', signed=True) ) * 0.0078
@@ -246,9 +248,7 @@ class NotifyDelegate(DefaultDelegate):
         global gSTEStartTime
         global gSTEStopTime
         global gSTELastTime
-        global gSTENotiData
-        global gSocketClient
-        global gSocketError
+        global gSTELastData
 
         if cHandle == SCD_STE_RESULT_HND:
             # STE notification
@@ -256,8 +256,9 @@ class NotifyDelegate(DefaultDelegate):
                 gSTEStopTime = gSTELastTime  = gSTEStartTime = time.time()
             else:
                 gSTEStopTime = time.time()
-            gSTENotiData = data
-            gSTELastTime = gSTEStopTime
+            if gSTELastData == '':
+                gSTELastData = data
+                gSTELastTime = gSTEStopTime
             gSTECount += 1
         else:
             print("+*** %2d-#%3d-[%s]" % (cHandle, gSTECount, hex_str(data)), end='\n', flush = True)
@@ -451,6 +452,7 @@ except:
 #
 # loop if not socket error and not dev_close 
 #
+on_off = True
 while not gSocketError:
 #
 #############################################
@@ -461,11 +463,12 @@ while not gSocketError:
     try:
         rx_msg = gSocketClient.recv(1024).decode()
     except BlockingIOError:
-        print ('.', end = '')
+        print ('+\b' if on_off else '\bX', end = '')
+        on_off = not On_off
     except:
         print ("\nTCP C-> [RX] error !")    
         gSocketError = True
-    if rx_msg ~= '':
+    if rx_msg != '':
         print ("\nTCP C-> [RX] '%s'" % rx_msg)
     #
     if rx_msg == TCP_STE_START_MSG:
@@ -475,8 +478,10 @@ while not gSocketError:
         p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1))
         time.sleep(0.7)
         p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
-
-    if rx_msg == TCP_STE_STOP_MSG or rx_msg == TCP_DEV_CLOSE_MSG:
+    elif rx_msg == TCD_STE_REQ_MSG:
+        # request STE data
+        gSTEisDataSent = False
+    elif rx_msg == TCP_STE_STOP_MSG or rx_msg == TCP_DEV_CLOSE_MSG:
         # stop STE or disconnect
         p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )        
         print ("\n+--- STE is stopping")        
@@ -487,21 +492,27 @@ while not gSocketError:
             ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
         print ("+--- STE stoped")
         print_STE_result()
-
+    else:
+        print ("+--- invalid [RX] message !")    
+    #
     if rx_msg == TCP_DEV_CLOSE_MSG:
         # disconnect
         break    
-
+    #
+    # get notification
+    #
     wait_flag = p.waitForNotifications(0.2)
-    if gSTECount > 0 and gSTENotiData != '':
+    if gSTECount > 0 and gSTELastData != '' and not gSTEisDataSent:
         try:
-            tx_data = string_STE_data(gSTENotiData)
+            tx_data = string_STE_data(gSTELastData)
             gSocketClient.send(tx_data.encode())
             print("TCP C-> [TX] '%s'..." % tx_data)
         except:
             gSocketError = True
             print("TCP C-> [TX] error !!!")
-        gSTENotiData = ''    
+        else:    
+            gSTELastData = ''
+            gSTEisDataSent = True    
 #
 #############################################
 

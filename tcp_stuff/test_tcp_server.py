@@ -4,7 +4,7 @@ Code to test socket
 by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
                     started 2020-11-05
-                    last updated 2020-11-05
+                    last updated 2020-11-11
 """
 import socket
 import sys
@@ -22,6 +22,7 @@ TCP_DEV_READY_MSG   = 'DEV_READY'
 TCP_DEV_CLOSE_MSG   = 'DEV_CLOSE'
 TCP_STE_START_MSG   = 'STE_START'
 TCP_STE_STOP_MSG    = 'STE_STOP'
+TCP_STE_REQ_MSG     = 'STE_REQ'
 #
 # global variables
 #
@@ -52,33 +53,49 @@ else:
     
 print("TCP S-> socket binded")    
 gSocketServer.listen(1)
+print("TCP S-> listen & accepting...")
+conn, addr = gSocketServer.accept()
+from_client = ''
 
+#
+# RX 1'st data 
+#
+data = conn.recv(1024)
+if data:
+    from_client = data.decode()
+    print ("TCP S-> [RX]] '%s'" % (from_client))
+#
+# Key input and TX
+#
 while True:
     try:
-        print("TCP S-> listen & accepting...")
-        conn, addr = gSocketServer.accept()
-        from_client = ''
-        cnt = 0
-        while True:
-            data = conn.recv(1024)
-            if not data:
-                break
-            cnt += 1
-            from_client = data.decode()
-            print ("TCP S-> received [%s]" % (from_client))
-            if from_client == TCP_DEV_READY_MSG:
-                conn.send(TCP_STE_START_MSG.encode())
-        conn.close()
-        print ('TCP S-> client disconnected, count is', cnt)
+        msg = input("TCP S-> input: ")
     except KeyboardInterrupt:
-        print ('TCP S-> keybord interrupted... Send "%s" to client...' % TCP_STE_STOP_MSG)
-        conn.send(TCP_STE_STOP_MSG.encode())
-        time.sleep(5.)
-        print ('TCP S-> Send "%s" to client and Exiting...' % TCP_DEV_CLOSE_MSG)
-        conn.send(TCP_DEV_CLOSE_MSG.encode())
-        conn.close()
+        print ('TCP S-> keybord interrupted... Send "%s" to client...' % TCP_STE_CLOSE_MSG)
+        conn.send(TCP_STE_CLOSE_MSG.encode())
         break
-    except:
-        print ('TCP S-> unknown exception... Exiting...')
-        break
+
+    try:
+       conn.send(msg.encode())
+    except:   
+        print("TCP S-> [TX] fail... Exiting...")
+
+    if msg == TCP_STE_START_MSG:
+        for _ in range(10):
+            time.sleep(1.)
+            try:
+                conn.send(TCP_STE_REQ_MSG.encode())
+                print ("TCP S-> [TX]] '%s'" % (TCP_STE_REQ_MSG))
+            except:   
+                print("TCP S-> [TX] fail... Exiting...")
+            data = conn.recv(1024)
+            if data:
+                from_client = data.decode()
+                print ("TCP S-> [RX]] '%s'" % (from_client))
+#
+# All done !
+#
+
+time.sleep(3.)
+conn.close()
 gSocketServer.close()        
