@@ -2,20 +2,10 @@
 Code to receive sensor data via BLE and send it to server thru TCP socket
 Target Sensor Device: blutooth ble device; BOSCH SCD 110
 
-This code discovers BOSCH SCD Sensor device via ble communication and read sensor data
-followings are the brief steps included in this code;
-- discovery
-- connect
-- set STE configuration
-- start STE(Short Time Experiment)
-- write STE notification to TCP socket
-- until stop received
-- disconnect
-
 by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
                     started 2020-11-05
-                    last updated 2020-11-10
+                    last updated 2020-11-11
 """
 from bluepy.btle import Scanner, DefaultDelegate, UUID, Peripheral
 import datetime
@@ -65,7 +55,7 @@ SCD_MAX_NOTIFY  = SCD_MAX_FLASH>>4  # int(SCD_MAX_FLASH / 16)
 # Some constant parameters
 #
 SCAN_TIME       = 8.    # scanning duration for BLE devices 
-##STE_RUN_TIME    = 0.    # STE rolling time in secconds (if 0, end-less rolling)
+STE_RUN_TIME    = 3.    # STE rolling time in secconds for SENSOR data recording
 STE_FREQUENCY   = (400, 800, 1600, 3200, 6400)  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz
 #
 # global variables
@@ -81,8 +71,16 @@ gSTElastTime    = 0.    # last notification timestamp
 gSTElastData    = ''    # last notification data
 gSTEisDataSent  = False # flag wether notification data has been sent
 gSTEisRolling   = False # flag wether STE is on rolling
+# IDLE
 gIDLElastTime   = 0.    # last BLE traffic on connection
 gIDLEinterval   = 60.   # time interval to make BLE traffic to keep connection
+# BDT - Block Data Transfer
+gBDTnotiCnt     = 0
+gBDTstartTime   = 0.   
+gBDTlastTime    = 0.
+gBDTdata        = bytearray(SCD_MAX_FLASH)
+gBDTcrc32       = bytearray(4)
+gBDTisRolling   = False
 
 #############################################
 # target definitions to TCP Server
@@ -101,6 +99,8 @@ TCP_DEV_CLOSE_MSG   = 'DEV_CLOSE'
 TCP_STE_START_MSG   = 'STE_START'
 TCP_STE_STOP_MSG    = 'STE_STOP'
 TCP_STE_REQ_MSG     = 'STE_REQ'
+TCP_BDT_START_MSG   = 'BDT_START'
+TCP_BDT_REQ_MSG     = 'BDT_REQ'
 #
 # global variables
 #
@@ -247,11 +247,17 @@ class NotifyDelegate(DefaultDelegate):
       
     def handleNotification(self, cHandle, data):
         global SCD_STE_RESULT_HND
+        global SCD_BDT_DATA_FLOW_HND
         global gSTEnotiCnt
         global gSTEstartTime
         global gSTEstopTime
         global gSTElastTime
         global gSTElastData
+        global gBDTnotiCnt
+        global gBDTstartTime
+        global gBDTlastTime
+        global gBDTdata
+        global gBDTcrc32
 
         if cHandle == SCD_STE_RESULT_HND:
             # STE notification
@@ -263,8 +269,49 @@ class NotifyDelegate(DefaultDelegate):
                 gSTElastData = data
                 gSTElastTime = gSTEstopTime
             gSTEnotiCnt += 1
+        elif cHandle == SCD_BDT_DATA_FLOW_HND:
+            # BDT notification
+            packet_no = int.from_bytes(data[0:4], byteorder='little', signed=False)
+            if packet_no == 0:
+                gBDTlastTime = gBDTstartTime = time.time()
+                # header packet
+                gBDTnotiCnt = int.from_bytes(data[4:8], byteorder='little', signed=False)
+                gBDTdata[0:16] = data[4:20]
+            elif packet_no < gBDTnotiCnt-1:    
+                # data packet
+                idx = packet_no * 16
+                gBDTdata[idx:idx+16] = data[4:20]
+            elif packet_no == gBDTnotiCnt-1:
+                gBDTlastTime = time.time()
+                # footer packet
+                gBDTcrc32 = data[4:8]
+                idx = packet_no * 16
+                gBDTdata[idx:idx+16] = data[4:20]
+            else:
+                print("+*** BDT Packet No Error !... [%d] should less than [%d]" % (packet_no, gBDTnotiCnt), end='\n', flush = True)            
         else:
             print("+*** %2d-#%3d-[%s]" % (cHandle, gSTEnotiCnt, hex_str(data)), end='\n', flush = True)
+
+#############################################
+# Define STE Config.
+#############################################
+def set_STE_config( is_Writng = False ):
+    global SCAN_TIME
+    global TARGET_MANUFA_UUID
+    global TARGET_DEVICE_NAME
+    global gTargetDevice
+    global gSocketClient
+    #
+    time_bytes = struct.pack('<l', int(time.time()))
+    gSTEcfgMode = bytes( time_bytes[0:4] ) + gSTEcfgMode[4:35]
+    mode = b'\f0' if is_writing else b'\f1'
+    gSTEcfgMode[30:31] = bytes(struct.pack('<h',mode))
+    p.writeCharacteristic( SCD_STE_CONFIG_HND, gSTEcfgMode )
+    time.sleep(1.)
+    ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
+    print ("\tSTE config. get\n[%s](%d)" % (hex_str(ret_val), len(ret_val)))
+    #
+    return
 
 #############################################
 # Define Scan_and_connect
@@ -336,8 +383,6 @@ def scan_and_connect( is_first = True ):
 #         
 # Main starts here
 #
-#############################################
-#
 if len(sys.argv) > 1:
     print ("+--- take 1'st argument as Host IP address (default: '%s')" % TCP_HOST_NAME)
     TCP_HOST_NAME = sys.argv[1]
@@ -400,7 +445,7 @@ print ("\tSelf Test Result is [%s] c0:OK, otherwise not OK!" % ret_val.hex())
 ret_val = p.readCharacteristic( SCD_SET_MODE_HND )
 print ("\tMode is [%s] 00:STE, ff:Mode Selection" % ret_val.hex())
 #
-# check wethwe STE is running or not & memory is not clean
+# check wether STE is running & memory is empty
 #
 STE_result_0 = p.readCharacteristic( SCD_STE_RESULT_HND )
 time.sleep(.5)
@@ -429,14 +474,10 @@ if ret_val !=  b'\x00':
     p.writeCharacteristic( SCD_SET_MODE_HND, b'\x00' )
     ret_val = p.readCharacteristic( SCD_SET_MODE_HND )
 #
-# set STE Configuration
+# set STE configuration
 #
-time_bytes = struct.pack('<l', int(time.time()))
-gSTEcfgMode = bytes( time_bytes[0:4] ) + gSTEcfgMode[4:35]
-p.writeCharacteristic( SCD_STE_CONFIG_HND, gSTEcfgMode )
-time.sleep(1.)
-ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
-print ("\tSTE config. get\n[%s](%d)" % (hex_str(ret_val), len(ret_val)))
+set_STE_config (False)
+
 
 #############################################
 #
@@ -476,9 +517,10 @@ while not gSocketError:
         # get & process server message
         #
         if rx_msg == TCP_STE_START_MSG:
-            # start STE
-            print ("+--- STE starting...")
+            # start STE w/o memory writing
+            print ("+--- Monitoring STE starting...")
             p.setDelegate( NotifyDelegate(p) )
+            set_STE_config (False)
             p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1))
             time.sleep(0.7)
             p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
@@ -486,17 +528,73 @@ while not gSocketError:
         elif rx_msg == TCP_STE_REQ_MSG:
             # request STE data
             gSTEisDataSent = False
-        elif rx_msg == TCP_STE_STOP_MSG or rx_msg == TCP_DEV_CLOSE_MSG:
-            # stop STE or disconnect
+        elif rx_msg == TCP_BDT_START_MSG:
+            #################################
+            # will be threading
+            #################################
+            gBDTisRolling = True
+            # start STE w/ memory writing
+            print ("+--- Recording STE starting...")
+            p.setDelegate( NotifyDelegate(p) )
+            set_STE_config (False)
+            p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1))
+            time.sleep(0.7)
+            p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
+            gSTEisRolling = True
+            # take rolling time ( added more overhead time)
+            t_s = t_e = time.time()
+            while t_e - t_s =< STE_RUN_TIME
+                wait_flag = p.waitForNotifications(1.)
+                if wait_flag :
+                    continue
+                t_e = time.time()
+            # stop STE
             p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )        
-            print ("\n+--- STE is stopping")        
+            print ("\n+--- Recording STE is stopping")        
             ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
             while ( ret_val != b'\x00' ):
                 print ("+--- STE has not completed yet, generic command is [%s]" % ret_val.hex())
                 time.sleep(0.7)
                 ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
-            print ("+--- STE stoped")
+            print ("+--- Recording STE stoped")
             gSTEisRolling = False
+            print_STE_result()            
+            # start BDT
+            print ("+--- Bulk Data Transfer after a while")
+            time.sleep(0.7)
+            p.setDelegate( NotifyDelegate(p) )
+            print ("+--- BDT Starting...")
+            time.sleep(0.7)
+            p.writeCharacteristic( SCD_BDT_DATA_FLOW_HND+1, struct.pack('<H', 1) )
+            time.sleep(0.7)
+            p.writeCharacteristic( SCD_BDT_CONTROL_HND, b'\x01' )
+            ret_val = b'x01'
+            while ret_val == b'x01':  
+                wait_flag = p.waitForNotifications(5.)
+                if wait_flag :
+                    continue
+                ret_val = p.readCharacteristic( SCD_BDT_STATUS_HND )
+            time.sleep(0.7)
+            print ("\n+--- Bulk Data Transfer completed...status is [%s], time [%.3f], count [%d]" % \
+                    (ret_val.hex(), (gBDTlastTime-gBDTstartTime), gBDTnotiCnt) )
+            #################################
+            gBDTisRolling = False
+            gIDLElastTime = time.time()        
+            #################################
+            # will be threaded
+            #################################
+        elif rx_msg == TCP_STE_STOP_MSG or rx_msg == TCP_DEV_CLOSE_MSG:
+            # stop STE or disconnect
+            p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )        
+            print ("\n+--- Monitoring STE is stopping")        
+            ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
+            while ( ret_val != b'\x00' ):
+                print ("+--- STE has not completed yet, generic command is [%s]" % ret_val.hex())
+                time.sleep(0.7)
+                ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
+            print ("+--- Monitoring STE stoped")
+            gSTEisRolling = False
+            gIDLElastTime = time.time()
             print_STE_result()
         else:
             print ("+--- invalid [RX] message !")    
@@ -522,7 +620,7 @@ while not gSocketError:
     #
     # idling check
     #
-    if gSTEisRolling:
+    if gSTEisRolling or gBDTisRolling:
         continue
     t = time.time()
     if gIDLElastTime - t > gIDLEinterval:
