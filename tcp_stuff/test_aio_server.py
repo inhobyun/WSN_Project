@@ -27,23 +27,53 @@ TCP_STE_REQ_MSG     = 'STE_REQ'
 #
 # global variables
 #
+gTCPrxMsg   = ''
+gTCPtxMsg   = TCP_STE_REQ_MSG
 
 #############################################
 # handle RX_TX
 #############################################
 #
 async def handle_RX_TX(reader, writer):
-    rx_data = await reader.read(512)
-    rx_msg = rx_data.decode()
-    addr = writer.get_extra_info('peername')
-    print("AIO S-> [RX] %r from %r" % (rx_msg, addr))
-    if rx_msg == TCP_DEV_READY_MSG:
-        tx_msg = input("TCP S-> input: ")
-        print("AIO S-> Send: %r" % tx_msg)
+    global gTCPrxMsg
+    global gTCPtxMsg
+
+    print('AIO S-> [RX] wait...')
+    gTCPrxMsg = None
+    try:
+        rx_data = await asyncio.wait_for ( reader.read(512), timeout=1.0 )
+    except asyncio.TimeoutError:
+        pass
+    else:
+        gTCPrxMsg = rx_data.decode()
+        addr = writer.get_extra_info('peername')
+        print('AIO S-> [RX] "%r" from "%r"' % (gTCPrxMsg, addr))
+
+    if gTCPrxMsg == TCP_DEV_READY_MSG:
+        tx_msg = input('AIO S-> input command to client: ')
+    elif gTCPrxMsg == '':
+        tx_msg = gTCPtxMsg
+    else:    
+        tx_msg = None
+
+    if tx_msg != None:
+        print('AIO S-> [TX] "%r"' % tx_msg)
         tx_data = tx_msg.encode()
         writer.write(tx_data)
-        await writer.drain()        
-    print("AIO S-> Close the client socket")
+        await writer.drain()
+        print('AIO C-> [TX] sent')
+
+    if tx_msg == TCP_STE_REQ_MSG:
+        try:
+            rx_data = await asyncio.wait_for ( reader.read(512), timeout=1.0 )
+        except asyncio.TimeoutError:
+            pass
+        else:
+            gTCPrxMsg = rx_data.decode()        
+            addr = writer.get_extra_info('peername')
+            print('AIO S-> [RX] "%r" from "%r"' % (gTCPrxMsg, addr))
+
+    print('AIO S-> close the client socket')
     writer.close()
 
 #############################################

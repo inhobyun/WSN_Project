@@ -27,20 +27,63 @@ TCP_STE_REQ_MSG     = 'STE_REQ'
 #
 # global variables
 #
+gTCPrxMsg   = None
 
 #############################################
-# handle RX_TX
+# handle to receive command message
 #############################################
 #
-async def tcp_TX_client(tx_msg, loop):
-    reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT,
-                                                   loop=loop)
+async def tcp_RX_command(tx_msg, loop):
+    global gTCPrxMsg
 
-    print('AIO C-> [TX] "%r"' % tx_msg)
-    writer.write(tx_msg.encode())
+    reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
 
-    rx_data = await reader.read(512)
-    print('AIO C-> [RX] "%r"' % rx_data.decode())
+    print('\nAIO C-> receive command...')
+    if tx_msg != ''
+        print('AIO C-> [TX] "%r"' % tx_msg)
+        writer.write(tx_msg.encode())
+
+    print('AIO C-> [RX] wait...')
+    gTCPrxMsg = None
+    try:
+        rx_data = await asyncio.wait_for ( reader.read(512), timeout=1.0 )
+    except asyncio.TimeoutError:
+        pass
+    else:
+        gTCPrxMsg = rx_data.decode()
+        print('AIO C-> [RX] "%r"' % gTCPrxMsg)
+
+    print('AIO C-> close the socket')
+    writer.close()
+
+#############################################
+# handle to send data
+#############################################
+#
+async def tcp_TX_data(tx_msg, loop):
+    global gTCPrxMsg
+
+    reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
+
+    print('\nAIO C-> send data...')
+    print('AIO C-> [RX] wait...')
+    gTCPrxMsg = None
+    try:
+        rx_data = await asyncio.wait_for ( reader.read(512), timeout=1.0 )
+    except asyncio.TimeoutError:
+        pass
+    else:
+        gTCPrxMsg = rx_data.decode()
+        print('AIO C-> [RX] "%r"' % gTCPrxMsg)
+
+    if gTCPrxMsg == '' or gTCPrxMsg == TCP_STE_REQ_MSG:
+        if tx_msg == '':
+            tx_msg = input('AIO C-> input data to server: ')
+        print('AIO C-> [tx] "%r"' % tx_msg)
+        tx_data = tx_msg.encode()
+        writer.write(tx_data)
+        await writer.drain()        
+        print('AIO C-> [tx] sent')
 
     print('AIO C-> close the socket')
     writer.close()
@@ -53,5 +96,12 @@ async def tcp_TX_client(tx_msg, loop):
 #############################################
 
 loop = asyncio.get_event_loop()
-loop.run_until_complete(tcp_TX_client(TCP_DEV_READY_MSG, loop))
+
+while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
+    try:
+        loop.run_until_complete(tcp_RX_command(TCP_DEV_READY_MSG, loop))
+        loop.run_until_complete(tcp_TX_data('(client data)', loop))
+    except KeyboardInterrupt:
+        break    
+
 loop.close()
