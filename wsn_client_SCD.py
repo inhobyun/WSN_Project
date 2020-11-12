@@ -1,11 +1,18 @@
 """
-Code to receive sensor data via BLE and send it to server thru TCP socket
-Target Sensor Device: blutooth ble device; BOSCH SCD 110
+client application for edge computing device
+coded functions as below
+- BLE sensor device; BOSCH SCD 110 scan & connect using bluepy.btle
+- server connect using asyncio
+- getting server message and run routine upon the message
+- setting sensor mode configuration
+- start or stop sensor running called STE; Short Time Experiment
+- getting sensor STE data
+- getting sensor memory data using BDT; Block Data Transfer
 
 by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
                     started 2020-11-05
-                    last updated 2020-11-12
+                    last updated 2020-11-13
 """
 import asyncio
 from bluepy.btle import Scanner, DefaultDelegate, UUID, Peripheral
@@ -90,9 +97,9 @@ gBDTisRolling   = False
 # target TCP Server identifiers
 #
 ##TCP_HOST_NAME   = "127.0.0.1"       # TEST Host Name
-##TCP_HOST_NAME   = "10.2.2.3"        # TEST Host Name
+TCP_HOST_NAME   = "10.2.2.3"        # TEST Host Name
 ##TCP_HOST_NAME   = "192.168.0.3"     # TEST Host Name
-TCP_HOST_NAME   = "125.131.73.31"   # Default Host Name
+##TCP_HOST_NAME   = "125.131.73.31"   # Default Host Name
 TCP_PORT        = 8088              # Default TCP Port Name
 ##TCP_TX_INTERVAL     = 1.            # time interval to send notification to host      
 TCP_DEV_READY_MSG   = 'DEV_READY'
@@ -121,15 +128,16 @@ async def tcp_RX_command(tx_msg, loop):
     print('\n+----\nAIO C-> receive command...')
 
     if tx_msg != None:
-        print('AIO C-> [TX] "%r"' % tx_msg)
+        print('AIO C-> [TX] "%r" wait...' % tx_msg)
         writer.write(tx_msg.encode())
-    print('AIO C-> [RX] wait...')
+        await writer.drain()
+        print('AIO C-> [TX] "%r" sent' % tx_msg)
+    print('AIO C-> [RX] try...')
     rx_data = None
     try:
-        rx_data = await asyncio.wait_for ( reader.read(512), timeout=30.0 )
+        rx_data = await asyncio.wait_for ( reader.read(512), timeout=300.0 )
     except asyncio.TimeoutError:
         pass 
-    ##rx_data = await reader.read(512)
     if rx_data != None:
         gTCPrxMsg = rx_data.decode()
         print('AIO C-> [RX] "%r"' % gTCPrxMsg)
@@ -151,7 +159,7 @@ async def tcp_TX_data(tx_msg, loop):
     print('AIO C-> [RX] try...')
     rx_msg = None
     try:
-        rx_data = await asyncio.wait_for ( reader.read(512), timeout=1.0 )
+        rx_data = await asyncio.wait_for ( reader.read(512), timeout=10.0 )
     except asyncio.TimeoutError:
         pass
     else:
@@ -161,11 +169,11 @@ async def tcp_TX_data(tx_msg, loop):
     if gTCPrxMsg == TCP_STE_REQ_MSG and rx_msg == None:
         if tx_msg == None:
             tx_msg = input('AIO C-> input data to server: ')
-        print('AIO C-> [tx] "%r"' % tx_msg)
+        print('AIO C-> [tx] "%r" wait...' % tx_msg)
         tx_data = tx_msg.encode()
         writer.write(tx_data)
         await writer.drain()        
-        print('AIO C-> [tx] sent')
+        print('AIO C-> [tx] "%r" sent' % tx_msg)
 
     print('AIO C-> close the socket\n----+')
     writer.close()
