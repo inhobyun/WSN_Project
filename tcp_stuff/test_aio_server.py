@@ -1,10 +1,10 @@
 """
-Code to test socket
+Code to test async I/O server 
 
 by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
                     started 2020-11-05
-                    last updated 2020-11-11
+                    last updated 2020-11-12
 """
 import asyncio
 import socket

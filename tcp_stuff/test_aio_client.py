@@ -1,10 +1,10 @@
 """
-Code to test socket
+Code to test async I/O client
 
 by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
                     started 2020-11-05
-                    last updated 2020-11-11
+                    last updated 2020-11-12
 """
 import asyncio
 import socket
@@ -17,7 +17,7 @@ import time
 #
 # target TCP Server identifiers
 #
-TCP_HOST_NAME   = socket.gethostname()
+TCP_HOST_NAME   = '125.131.73.31'
 TCP_PORT        = 8088
 TCP_DEV_READY_MSG   = 'DEV_READY'
 TCP_DEV_CLOSE_MSG   = 'DEV_CLOSE'
@@ -32,18 +32,17 @@ TCP_STE_REQ_MSG     = 'STE_REQ'
 # handle RX_TX
 #############################################
 #
-async def handle_RX_TX(reader, writer):
+async def tcp_TX_client(tx_msg, loop):
+    reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT,
+                                                   loop=loop)
+
+    print('AIO C-> [TX] "%r"' % tx_msg)
+    writer.write(tx_msg.encode())
+
     rx_data = await reader.read(512)
-    rx_msg = rx_data.decode()
-    addr = writer.get_extra_info('peername')
-    print("AIO S-> [RX] %r from %r" % (rx_msg, addr))
-    if rx_msg == TCP_DEV_READY_MSG:
-        tx_msg = input("TCP S-> input: ")
-        print("AIO S-> Send: %r" % tx_msg)
-        tx_data = tx_msg.encode()
-        writer.write(tx_data)
-        await writer.drain()        
-    print("AIO S-> Close the client socket")
+    print('AIO C-> [RX] "%r"' % rx_data.decode())
+
+    print('AIO C-> close the socket')
     writer.close()
 
 #############################################
@@ -54,17 +53,5 @@ async def handle_RX_TX(reader, writer):
 #############################################
 
 loop = asyncio.get_event_loop()
-coro = asyncio.start_server(handle_RX_TX, TCP_HOST_NAME, TCP_PORT, loop=loop)
-server = loop.run_until_complete(coro)
-
-# Serve requests until Ctrl+C is pressed
-print('AIO S-> Serving on {}'.format(server.sockets[0].getsockname()))
-try:
-    loop.run_forever()
-except KeyboardInterrupt:
-    pass
-
-# Close the server
-server.close()
-loop.run_until_complete(server.wait_closed())
+loop.run_until_complete(tcp_TX_client(TCP_DEV_READY_MSG, loop))
 loop.close()
