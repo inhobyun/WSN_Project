@@ -33,7 +33,7 @@ TCP_STE_REQ_MSG     = 'STE_REQ'
 #############################################
 #
 async def handle_RX_TX(reader, writer):
-    rx_data = await reader.read(64)
+    rx_data = await reader.read(512)
     rx_msg = rx_data.decode()
     addr = writer.get_extra_info('peername')
     print("AIO S-> [RX] %r from %r" % (rx_msg, addr))
