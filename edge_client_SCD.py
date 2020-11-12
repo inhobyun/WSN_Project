@@ -5,7 +5,7 @@ Target Sensor Device: blutooth ble device; BOSCH SCD 110
 by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
                     started 2020-11-05
-                    last updated 2020-11-11
+                    last updated 2020-11-12
 """
 from bluepy.btle import Scanner, DefaultDelegate, UUID, Peripheral
 import datetime
@@ -291,16 +291,16 @@ class NotifyDelegate(DefaultDelegate):
             print("+*** %2d-#%3d-[%s]" % (cHandle, gSTEnotiCnt, hex_str(data)), end='\n', flush = True)
 
 #############################################
-# Define STE Config.
+# Setting STE Config.
 #############################################
-def set_STE_config( is_Writng = False ):
+def set_STE_config( is_writing = False ):
     global SCD_STE_CONFIG_HND
     global gSTEcfgMode
     #
     time_bytes = struct.pack('<l', int(time.time()))
-    gSTEcfgMode = bytes( time_bytes[0:4] ) + gSTEcfgMode[4:35]
-    mode = b'\f0' if is_writing else b'\f1'
-    gSTEcfgMode[30:31] = bytes(struct.pack('<h',mode))
+    ##gSTEcfgMode = bytes( time_bytes[0:4] ) + gSTEcfgMode[4:35]
+    mode = 0xf0 if (not is_writing) else 0xf1
+    gSTEcfgMode = bytes( time_bytes[0:4] ) + gSTEcfgMode[4:30] +  bytes(struct.pack('<h',mode)) + gSTEcfgMode[31:35]
     p.writeCharacteristic( SCD_STE_CONFIG_HND, gSTEcfgMode )
     time.sleep(1.)
     ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
@@ -310,6 +310,9 @@ def set_STE_config( is_Writng = False ):
 
 #############################################
 # Define Scan_and_connect
+#
+# should implement "BTLEDisconnectError" exception
+#
 #############################################
 def scan_and_connect( is_first = True ):
     global SCAN_TIME
@@ -538,12 +541,9 @@ while not gSocketError:
             p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
             gSTEisRolling = True
             # take rolling time ( added more overhead time)
-            t_s = t_e = time.time()
-            while t_e - t_s =< STE_RUN_TIME
+            tm = time.time()
+            while time.time() - tm <= STE_RUN_TIME:
                 wait_flag = p.waitForNotifications(1.)
-                if wait_flag :
-                    continue
-                t_e = time.time()
             # stop STE
             p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )        
             print ("\n+--- Recording STE is stopping")        
