@@ -184,16 +184,16 @@ class ScanDelegate(DefaultDelegate):
 
         DefaultDelegate.__init__(self)
         gScannedCount = 0
-        print("**** scan handler is configured", end='\n', flush = True)
+        print ('**** scan handler is configured', end = '\n', flush = True)
 
     def handleDiscovery(self, dev, isNewDev, isNewData):
         global gScannedCount
 
         if isNewDev:
             gScannedCount += 1
-            print ('**** >' if gScannedCount==1 else '>', end='', flush = True)
+            print ('**** >' if gScannedCount==1 else '>', end = '', flush = True)
         elif isNewData:
-            print ('**** +' if gScannedCount==0 else '+', end='', flush = True)            
+            print ('**** +' if gScannedCount==0 else '+', end = '', flush = True)            
 
 #############################################
 # Define notification callback
