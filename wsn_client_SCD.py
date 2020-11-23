@@ -97,9 +97,9 @@ gBDTisRolling   = False
 # target TCP Server identifiers
 #
 ##TCP_HOST_NAME   = "127.0.0.1"       # TEST Host Name
-TCP_HOST_NAME   = "10.2.2.3"        # TEST Host Name
+##TCP_HOST_NAME   = "10.2.2.3"        # TEST Host Name
 ##TCP_HOST_NAME   = "192.168.0.3"     # TEST Host Name
-##TCP_HOST_NAME   = "125.131.73.31"   # Default Host Name
+TCP_HOST_NAME   = "125.131.73.31"   # Default Host Name
 TCP_PORT        = 8088              # Default TCP Port Name
 ##TCP_TX_INTERVAL     = 1.            # time interval to send notification to host      
 TCP_DEV_READY_MSG   = 'DEV_READY'
@@ -390,7 +390,7 @@ def scan_and_connect( is_first = True ):
     global TARGET_MANUFA_UUID
     global TARGET_DEVICE_NAME
     global gTargetDevice
-    global gSocketClient
+    ##global gSocketClient
     #
     # scanning for a while
     #
@@ -422,7 +422,7 @@ def scan_and_connect( is_first = True ):
     #
     if gTargetDevice == None:
         print("\tno matching device found... Exiting...")
-        gSocketClient.close()
+        ##gSocketClient.close()
         sys.exit(1)
     #
     # connect
@@ -438,7 +438,7 @@ def scan_and_connect( is_first = True ):
             retry += 1
             if retry > 3:
                 print("\tBLE device connection error occured... exiting...")
-                gSocketClient.close()
+                ##gSocketClient.close()
                 sys.exit(-1)
             time.sleep(3)    
     #
@@ -553,13 +553,14 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
             print ("+--- Monitoring STE starting...")
             p.setDelegate( NotifyDelegate(p) )
             set_STE_config (False)
-            p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1))
-            time.sleep(0.7)
+            ##p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1))
+            ##time.sleep(0.7)
             p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
             gSTEisRolling = True
         elif gTCPrxMsg == TCP_STE_REQ_MSG:
             # request STE data
             gSTEisDataSent = False
+            gSTElastData = p.readCharacteristic(SCD_STE_RESULT_HND)
         elif gTCPrxMsg == TCP_BDT_START_MSG:
             #################################
             # will be threading
