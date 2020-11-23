@@ -559,8 +559,11 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
             gSTEisRolling = True
         elif gTCPrxMsg == TCP_STE_REQ_MSG:
             # request STE data
+            print ("+--- Monitoring STE requesting...")
             gSTEisDataSent = False
+            # if not enable STE notification
             gSTElastData = p.readCharacteristic(SCD_STE_RESULT_HND)
+            gSTEnotiCnt = int(gSTElastData[32])
         elif gTCPrxMsg == TCP_BDT_START_MSG:
             #################################
             # will be threading
@@ -637,7 +640,15 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     #
     # get notification
     #
-    if gSTEisRolling or gBDTisRolling:
+    if gSTEisRolling:
+        ##wait_flag = p.waitForNotifications(0.2)
+        if gSTEnotiCnt > 0 and gSTElastData != '' and not gSTEisDataSent:
+            tx_data = string_STE_data(gSTElastData)
+            loop.run_until_complete(tcp_TX_data(tx_data, loop))
+            gSTElastData = ''
+            gSTEisDataSent = True
+        continue 
+    if gBDTisRolling:
         wait_flag = p.waitForNotifications(0.2)
         if gSTEnotiCnt > 0 and gSTElastData != '' and not gSTEisDataSent:
             tx_data = string_STE_data(gSTElastData)
