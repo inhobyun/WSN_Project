@@ -57,7 +57,6 @@ SCD_BDT_DATA_FLOW_HND = 45    # RN, uuid: 02a65821-3003-1000-2000-b05cb05cb05c
 #
 SCD_MAX_MTU     = 65                # MAX SCD Comm. Packet size
 SCD_MAX_FLASH   = 0x0b0000          # 11*16**4 = 720896 = 704K
-SCD_MAX_NOTIFY  = SCD_MAX_FLASH>>4  # int(SCD_MAX_FLASH / 16)
 
 #
 # Some constant parameters
@@ -74,14 +73,10 @@ gScannedCount   = 0     # count of scanned BLE devices
 gSTEcfgMode     = bytes(35)  # Sensor Mode
 gSTEnotiCnt     = 0     # count of notifications from connected device
 gSTEstartTime   = 0.    # notification start timestamp
-gSTEstopTime    = 0.    # notification stop timestamp
 gSTElastTime    = 0.    # last notification timestamp
-gSTElastData    = ''    # last notification data
+gSTElastData    = None    # last notification data
 gSTEisDataSent  = False # flag wether notification data has been sent
 gSTEisRolling   = False # flag wether STE is on rolling
-# IDLE
-gIDLElastTime   = 0.    # last BLE traffic on connection
-gIDLEinterval   = 60.   # time interval to make BLE traffic to keep connection
 # BDT - Block Data Transfer
 gBDTnotiCnt     = 0
 gBDTstartTime   = 0.   
@@ -89,6 +84,10 @@ gBDTlastTime    = 0.
 gBDTdata        = bytearray(SCD_MAX_FLASH)
 gBDTcrc32       = bytearray(4)
 gBDTisRolling   = False
+# IDLE
+gIDLElastTime   = 0.    # last BLE traffic on connection
+gIDLEinterval   = 60.   # time interval to make BLE traffic to keep connection
+
 
 #############################################
 # target definitions to TCP Server
@@ -112,8 +111,6 @@ TCP_BDT_REQ_MSG     = 'BDT_REQ'
 #
 # global variables
 #
-##gSocketClient = None
-##gSocketError  = False
 gTCPrxMsg           = None
 
 #############################################
@@ -121,21 +118,23 @@ gTCPrxMsg           = None
 #############################################
 #
 async def tcp_RX_message(tx_msg, loop):
+    global TCP_HOST_NAME
+    global TCP_PORT
     global gTCPrxMsg
 
-    gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
+    reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
 
     print('\n+----\nAIO C-> receive command...')
 
     if tx_msg != None:
-        print('AIO C-> [TX] "%r" wait...' % tx_msg)
-        gTCPwriter.write(tx_msg.encode())
-        await gTCPwriter.drain()
+        print('AIO C-> [TX] try...')
+        writer.write(tx_msg.encode())
+        await writer.drain()
         print('AIO C-> [TX] "%r" sent' % tx_msg)
     print('AIO C-> [RX] try...')
     rx_data = None
     try:
-        rx_data = await asyncio.wait_for ( gTCPreader.read(512), timeout=300.0 )
+        rx_data = await asyncio.wait_for ( reader.read(512), timeout=300.0 )
     except asyncio.TimeoutError:
         pass 
     if rx_data != None:
@@ -143,23 +142,26 @@ async def tcp_RX_message(tx_msg, loop):
         print('AIO C-> [RX] "%r"' % gTCPrxMsg)
 
     print('AIO C-> close the socket\n----+')
-    gTCPwriter.close()
+    writer.close()
 
 #############################################
 # handle to send data
 #############################################
 #
 async def tcp_TX_data(tx_msg, loop):
+    global TCP_HOST_NAME
+    global TCP_PORT
+    global TCP_STE_REQ_MSG
     global gTCPrxMsg
 
-    gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
+    reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
 
     print('\n+----\nAIO C-> send data...')
 
     print('AIO C-> [RX] try...')
     rx_msg = None
     try:
-        rx_data = await asyncio.wait_for ( gTCPreader.read(512), timeout=10.0 )
+        rx_data = await asyncio.wait_for ( reader.read(512), timeout=10.0 )
     except asyncio.TimeoutError:
         pass
     else:
@@ -171,54 +173,97 @@ async def tcp_TX_data(tx_msg, loop):
             tx_msg = input('AIO C-> input data to server: ')
         print('AIO C-> [tx] "%r" wait...' % tx_msg)
         tx_data = tx_msg.encode()
-        gTCPwriter.write(tx_data)
-        await gTCPwriter.drain()        
+        writer.write(tx_data)
+        await writer.drain()        
         print('AIO C-> [tx] "%r" sent' % tx_msg)
 
     print('AIO C-> close the socket\n----+')
-    gTCPwriter.close()
+    writer.close()
 
 #############################################
-# STE(Short Time Experiment) mode configuration (35 bytes) 
-#############################################
-#
-STE_mode = bytearray(35)
-STE_mode[ 0: 4]  = b'\x00\x00\x00\x00'  # [ 0~ 3] Unix time
-#
-mode  = 0xf0
-mode |= 0x01 # 01 sensor En/Disable - accelerometer
-mode |= 0x02 # 02 sensor En/Disable - magnetometer
-mode |= 0x04 # 04 sensor En/Disable - light
-mode |= 0x08 # 08 sensor En/Disable - temperature
-STE_mode[ 4: 5] = bytes(struct.pack('<h',mode))
-#
-mode  = 0x00 # ?0 data rate - accelerometer ODR 400Hz
-#ode  = 0x01 # ?1 data rate - accelerometer ODR 800Hz
-#ode  = 0x02 # ?2 data rate - accelerometer ODR 1600Hz
-#ode  = 0x03 # ?3 data rate - accelerometer ODR 3200Hz
-#ode  = 0x04 # ?4 data rate - accelerometer ODR 6400Hz
-#ode |= 0x00 # 0? data rate - light sensor ODR 100ms(10Hz)
-#ode |= 0x10 # 1? data rate - light sensor ODR 800ms(1.25Hz)
-STE_mode[ 5: 6] = bytes(struct.pack('<h',mode))
-#
-STE_mode[ 6: 8]  = b'\xE4\x07'          # [ 6~ 7] accelerometer threshold
-STE_mode[12:16]  = b'\x00\x00\x00\x00'  # [12~15] light sensor threshold low
-STE_mode[16:20]  = b'\xE8\xE4\xF5\x05'  # [16~19] light sensor threshold high
-STE_mode[20:22]  = b'\x80\x57'          # [20~21] magnetometer threshold
-STE_mode[26:28]  = b'\x80\xF3'          # [26~27] temperature threshold low
-STE_mode[28:30]  = b'\x00\x2D'          # [28~29] temperature threshold high
-#
-mode  = 0xf0 # F0 sensor raw value to flash
-#ode |= 0x01 # 01 sensor raw value to flash - accelerometer
-#ode |= 0x02 # 02 sensor raw value to flash - magnetometer
-#ode |= 0x04 # 04 sensor raw value to flash - light
-#ode |= 0x08 # 08 sensor raw value to flash - temperature
-STE_mode[30:31] = bytes(struct.pack('<h',mode))
-#
-gSTEcfgMode = bytes(STE_mode[0:35])
-                  
-#############################################
 # functions definition
+#############################################
+# STE(Short Time Experiment) mode configuration (35 bytes) 
+#
+def set_STE_config( p, is_writing = False ):
+
+    if p == None:
+        return
+
+    STE_mode = bytearray(35)
+    #
+    time_bytes = struct.pack('<l', int(time.time()))
+    STE_mode[ 0: 4]  = bytes( time_bytes[0:4] )  # [ 0~ 3] Unix time
+    #
+    mode  = 0xf0
+    mode |= 0x01 # 01 sensor En/Disable - accelerometer
+    mode |= 0x02 # 02 sensor En/Disable - magnetometer
+    mode |= 0x04 # 04 sensor En/Disable - light
+    mode |= 0x08 # 08 sensor En/Disable - temperature
+    STE_mode[ 4: 5] = bytes(struct.pack('<h',mode))
+    #
+    mode  = 0x00 # ?0 data rate - accelerometer ODR 400Hz
+    #ode  = 0x01 # ?1 data rate - accelerometer ODR 800Hz
+    #ode  = 0x02 # ?2 data rate - accelerometer ODR 1600Hz
+    #ode  = 0x03 # ?3 data rate - accelerometer ODR 3200Hz
+    #ode  = 0x04 # ?4 data rate - accelerometer ODR 6400Hz
+    #ode |= 0x00 # 0? data rate - light sensor ODR 100ms(10Hz)
+    #ode |= 0x10 # 1? data rate - light sensor ODR 800ms(1.25Hz)
+    STE_mode[ 5: 6] = bytes(struct.pack('<h',mode))
+    #
+    STE_mode[ 6: 8]  = b'\xE4\x07'          # [ 6~ 7] accelerometer threshold
+    STE_mode[12:16]  = b'\x00\x00\x00\x00'  # [12~15] light sensor threshold low
+    STE_mode[16:20]  = b'\xE8\xE4\xF5\x05'  # [16~19] light sensor threshold high
+    STE_mode[20:22]  = b'\x80\x57'          # [20~21] magnetometer threshold
+    STE_mode[26:28]  = b'\x80\xF3'          # [26~27] temperature threshold low
+    STE_mode[28:30]  = b'\x00\x2D'          # [28~29] temperature threshold high
+    #
+    #ode  = 0xf0 # F0 sensor raw value to flash - nothing
+    #ode |= 0x01 # 01 sensor raw value to flash - accelerometer
+    #ode |= 0x02 # 02 sensor raw value to flash - magnetometer
+    #ode |= 0x04 # 04 sensor raw value to flash - light
+    #ode |= 0x08 # 08 sensor raw value to flash - temperature
+    mode = 0xf0 if (not is_writing) else 0xf1
+    STE_mode[30:31] = bytes(struct.pack('<h',mode))
+    #
+    gSTEcfgMode = bytes(STE_mode[0:35])
+    #
+    p.writeCharacteristic( SCD_STE_CONFIG_HND, gSTEcfgMode )
+    time.sleep(.3)
+    ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
+    print ("\tSTE config. get\n[%s](%d)" % (hex_str(ret_val), len(ret_val)))
+    return
+
+#############################################
+# toggle STE start ot stop 
+#
+def toggle_STE_rolling( p, will_start = False, will_notify = False ):
+    global gSTEisRolling
+
+    if p == None:
+        return
+
+    if is will_start:
+        if not gSTEisRolling:
+            if is will_notify:
+                p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1))
+                time.sleep(0.7)
+            p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
+            print ("\n+--- STE is starting")        
+            gSTEisRolling = True
+    else:
+        if is gSTEisRolling:
+            p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
+            print ("\n+--- STE is stopping")        
+            ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
+            while ( ret_val != b'\x00' ):
+                print ("+--- STE has not completed yet, generic command is [%s]" % ret_val.hex())
+                time.sleep(0.7)
+                ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
+            print ("+--- STE stoped")
+            gSTEisRolling = False
+    return        
+
 #############################################
 # convert hex() string to format like "hh.hh.hh"
 #
@@ -268,7 +313,7 @@ def print_STE_result():
     global gSTEcfgMode
     global gSTEnotiCnt
     global gSTEstartTime
-    global gSTEstopTime
+    global gSTElastTime
 
     # output time stamp
     tm = float( (struct.unpack('<l', gSTEcfgMode[0:4]))[0] )   
@@ -277,7 +322,7 @@ def print_STE_result():
     print ( "\tNotification Start : %s(%.3f)" \
             % (datetime.datetime.fromtimestamp(gSTEstartTime).strftime('%Y-%m-%d %H:%M:%S'), gSTEstartTime) )
     print ( "\tNotification End   : %s(%.3f)" \
-            % (datetime.datetime.fromtimestamp(gSTEstopTime).strftime('%Y-%m-%d %H:%M:%S'), gSTEstopTime) )      
+            % (datetime.datetime.fromtimestamp(gSTElastTime).strftime('%Y-%m-%d %H:%M:%S'), gSTElastTime) )      
     print ( "\tNotification Count : %d" % gSTEnotiCnt)
     return
 
@@ -319,7 +364,6 @@ class NotifyDelegate(DefaultDelegate):
         global SCD_BDT_DATA_FLOW_HND
         global gSTEnotiCnt
         global gSTEstartTime
-        global gSTEstopTime
         global gSTElastTime
         global gSTElastData
         global gBDTnotiCnt
@@ -331,13 +375,12 @@ class NotifyDelegate(DefaultDelegate):
         if cHandle == SCD_STE_RESULT_HND:
             # STE notification
             if gSTEnotiCnt == 0:
-                gSTEstopTime = gSTElastTime  = gSTEstartTime = time.time()
+                gSTElastTime  = gSTEstartTime = time.time()
             else:
-                gSTEstopTime = time.time()
-            if gSTElastData == '':
-                gSTElastData = data
-                gSTElastTime = gSTEstopTime
+                gSTElastTime = time.time()
             gSTEnotiCnt += 1
+            gSTElastData = data
+            
         elif cHandle == SCD_BDT_DATA_FLOW_HND:
             # BDT notification
             packet_no = int.from_bytes(data[0:4], byteorder='little', signed=False)
@@ -360,24 +403,6 @@ class NotifyDelegate(DefaultDelegate):
                 print("+*** BDT Packet No Error !... [%d] should less than [%d]" % (packet_no, gBDTnotiCnt), end='\n', flush = True)            
         else:
             print("+*** %2d-#%3d-[%s]" % (cHandle, gSTEnotiCnt, hex_str(data)), end='\n', flush = True)
-
-#############################################
-# Setting STE Config.
-#############################################
-def set_STE_config( is_writing = False ):
-    global SCD_STE_CONFIG_HND
-    global gSTEcfgMode
-    #
-    time_bytes = struct.pack('<l', int(time.time()))
-    ##gSTEcfgMode = bytes( time_bytes[0:4] ) + gSTEcfgMode[4:35]
-    mode = 0xf0 if (not is_writing) else 0xf1
-    gSTEcfgMode = bytes( time_bytes[0:4] ) + gSTEcfgMode[4:30] +  bytes(struct.pack('<h',mode)) + gSTEcfgMode[31:35]
-    p.writeCharacteristic( SCD_STE_CONFIG_HND, gSTEcfgMode )
-    time.sleep(1.)
-    ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
-    print ("\tSTE config. get\n[%s](%d)" % (hex_str(ret_val), len(ret_val)))
-    #
-    return
 
 #############################################
 # Define Scan_and_connect
@@ -528,7 +553,7 @@ if ret_val !=  b'\x00':
 #
 # set STE configuration
 #
-set_STE_config (False)
+set_STE_config (p,False)
 
 #############################################
 #
@@ -550,16 +575,16 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
         #
         if gTCPrxMsg == TCP_STE_START_MSG:
             # start STE w/o memory writing
-            print ("+--- Monitoring STE starting...")
+            print ("+--- Starting STE...")
             p.setDelegate( NotifyDelegate(p) )
-            set_STE_config (False)
+            set_STE_config (p,False)
             ##p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1))
             ##time.sleep(0.7)
             p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
             gSTEisRolling = True
         elif gTCPrxMsg == TCP_STE_REQ_MSG:
             # request STE data
-            print ("+--- Monitoring STE requesting...")
+            print ("+--- Requesting STE data...")
             gSTEisDataSent = False
             # if not enable STE notification
             gSTElastData = p.readCharacteristic(SCD_STE_RESULT_HND)
