@@ -12,7 +12,7 @@ coded functions as below
 by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
                     started 2020-11-05
-                    last updated 2020-11-13
+                    last updated 2020-12-01
 """
 import asyncio
 from bluepy.btle import Scanner, DefaultDelegate, UUID, Peripheral
@@ -124,7 +124,7 @@ async def tcp_RX_message(tx_msg, loop):
 
     reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
 
-    print('\n+----\nAIO C-> receive command...')
+    print('\n>>>>>\nAIO C-> receive command...')
 
     if tx_msg != None:
         print('AIO C-> [TX] try...')
@@ -141,7 +141,7 @@ async def tcp_RX_message(tx_msg, loop):
         gTCPrxMsg = rx_data.decode()
         print('AIO C-> [RX] "%r"' % gTCPrxMsg)
 
-    print('AIO C-> close the socket\n----+')
+    print('AIO C-> close the socket\n<<<<<')
     writer.close()
 
 #############################################
@@ -156,28 +156,27 @@ async def tcp_TX_data(tx_msg, loop):
 
     reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
 
-    print('\n+----\nAIO C-> send data...')
+    print('\n>>>>>\nAIO C-> send data...')
 
     print('AIO C-> [RX] try...')
     rx_msg = None
     try:
-        rx_data = await asyncio.wait_for ( reader.read(512), timeout=10.0 )
+        rx_data = await asyncio.wait_for ( reader.read(512), timeout=1.0 )
     except asyncio.TimeoutError:
         pass
     else:
         rx_msg = rx_data.decode()
         print('AIO C-> [RX] "%r"' % rx_msg)
 
-    if gTCPrxMsg == TCP_STE_REQ_MSG and rx_msg == None:
-        if tx_msg == None:
-            tx_msg = input('AIO C-> input data to server: ')
-        print('AIO C-> [tx] "%r" wait...' % tx_msg)
-        tx_data = tx_msg.encode()
-        writer.write(tx_data)
-        await writer.drain()        
-        print('AIO C-> [tx] "%r" sent' % tx_msg)
+    if tx_msg == None:
+        tx_msg = input('AIO C-> input data to server: ')
+    print('AIO C-> [tx] "%r" wait...' % tx_msg)
+    tx_data = tx_msg.encode()
+    writer.write(tx_data)
+    await writer.drain()        
+    print('AIO C-> [tx] "%r" sent' % tx_msg)
 
-    print('AIO C-> close the socket\n----+')
+    print('AIO C-> close the socket\n<<<<<')
     writer.close()
 
 #############################################
@@ -263,9 +262,9 @@ def SCD_toggle_STE_rolling( p, will_start = False, will_notify = False ):
     if p == None:
         return
 
-    if (is will_start):
+    if will_start:
         if not gSTEisRolling:
-            if is will_notify:
+            if will_notify:
                 p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1) )
                 time.sleep(0.7)
             p.writeCharacteristic( SCD_SET_MODE_HND, b'\x00' )    
@@ -273,7 +272,7 @@ def SCD_toggle_STE_rolling( p, will_start = False, will_notify = False ):
             print ("\n+--- STE is starting")        
             gSTEisRolling = True
     else:
-        if is gSTEisRolling:
+        if gSTEisRolling:
             p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
             print ("\n+--- STE is stopping")        
             ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
@@ -603,7 +602,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
             p.setDelegate( NotifyDelegate(p) )
             SCD_set_STE_config(p, False)
             SCD_toggle_STE_rolling(p, True, False)
-       elif gTCPrxMsg == TCP_STE_REQ_MSG:
+        elif gTCPrxMsg == TCP_STE_REQ_MSG:
             # request STE data
             print ("+--- Requesting STE data...")
             gSTEisDataSent = False
