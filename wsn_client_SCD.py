@@ -235,9 +235,29 @@ def set_STE_config( p, is_writing = False ):
     return
 
 #############################################
+# check wether STE is rolling or not 
+#
+def is_STE_rolling( p ):
+    global SCD_STE_RESULT_HND
+    global gSTEisRolling
+
+    STE_result_0 = p.readCharacteristic( SCD_STE_RESULT_HND )
+    time.sleep(.5)
+    STE_result_1 = p.readCharacteristic( SCD_STE_RESULT_HND )
+    print ("\tChecking rolling counter [%d] [%d]" % (int(STE_result_0[32]), int(STE_result_1[32])) )
+    if STE_result_0[32] != STE_result_1[32] :
+        gSTEisRolling = True
+    else:
+        gSTEisRolling = False    
+    return gSTEisRolling      
+
+#############################################
 # toggle STE start ot stop 
 #
 def toggle_STE_rolling( p, will_start = False, will_notify = False ):
+    global SCD_SET_MODE_HND
+    global SCD_SET_GEN_CMD_HND
+    global SCD_STE_RESULT_HND
     global gSTEisRolling
 
     if p == None:
@@ -248,6 +268,7 @@ def toggle_STE_rolling( p, will_start = False, will_notify = False ):
             if is will_notify:
                 p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1))
                 time.sleep(0.7)
+            p.writeCharacteristic( SCD_SET_MODE_HND, b'\x00' )    
             p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
             print ("\n+--- STE is starting")        
             gSTEisRolling = True
@@ -262,6 +283,11 @@ def toggle_STE_rolling( p, will_start = False, will_notify = False ):
                 ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
             print ("+--- STE stoped")
             gSTEisRolling = False
+        ret_val = p.readCharacteristic( SCD_SET_MODE_HND )
+        while ret_val !=  b'\x00':
+            print("+--- set STE mode")
+            p.writeCharacteristic( SCD_SET_MODE_HND, b'\x00' )
+            ret_val = p.readCharacteristic( SCD_SET_MODE_HND )    
     return        
 
 #############################################
@@ -473,6 +499,25 @@ def scan_and_connect( is_first = True ):
     return p
 
 #############################################
+# clear memory 
+#
+def clear_SCD_memory( p ):
+    global SCD_MAX_FLASH
+    global SCD_STE_CONFIG_HND
+    global SCD_SET_GEN_CMD_HND
+
+    ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
+    print ("\tFlash memory remain is [%s] MAX:0b0000" % ret_val[31:34].hex())
+    if (struct.unpack('i', ret_val[31:35]))[0] < SCD_MAX_FLASH:  
+        print ("\t\t=> flash memory is not empty...cleanning-up flash and re-try")
+        print ("+--- Erase flash wait for seconds...")
+        p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x30' ) # erase sensor data
+        p.disconnect()
+        time.sleep(10.)
+        p = None
+    return p    
+
+#############################################
 #############################################
 #         
 # Main starts here
@@ -489,6 +534,10 @@ if len(sys.argv) > 2:
 # scan and connect SCD
 #
 p = scan_and_connect()
+#
+# set STE configuration
+#
+set_STE_config (p,False)
 #
 # read Device Info. such as Name, Manufacurer Name, etc.
 #
@@ -524,36 +573,11 @@ print ("\tMode is [%s] 00:STE, ff:Mode Selection" % ret_val.hex())
 #
 # check wether STE is running & memory is empty
 #
-STE_result_0 = p.readCharacteristic( SCD_STE_RESULT_HND )
-time.sleep(.5)
-STE_result_1 = p.readCharacteristic( SCD_STE_RESULT_HND )
-print ("\tChecking rolling counter [%d] [%d]" % (int(STE_result_0[32]), int(STE_result_1[32])) )
-if STE_result_0[32] != STE_result_1[32] :
-    print ("\t\t=> rolling...set STE stop")
-    p.writeCharacteristic( SCD_SET_MODE_HND, b'\x00' )
-    p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
+is_STE_rolling( p )
+toggle_STE_rolling( p, False, False )
+if  clear_SCD_memory(p) == None:
+    p = scan_and_connect(False)
 #
-ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
-print ("\tFlash memory remain is [%s] MAX:0b0000" % ret_val[31:34].hex())
-if (struct.unpack('i', ret_val[31:35]))[0] < SCD_MAX_FLASH:  
-    print ("\t\t=> flash memory is not empty...cleanning-up flash and re-try")
-    print ("+--- Erase flash wait for seconds...")
-    p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x30' ) # erase sensor data
-    p.disconnect()
-    time.sleep(10.)
-    p = scan_and_connect(False)    
-#
-# check and set STE Mode
-#
-ret_val = p.readCharacteristic( SCD_SET_MODE_HND )
-if ret_val !=  b'\x00':
-    print("+--- set STE mode")
-    p.writeCharacteristic( SCD_SET_MODE_HND, b'\x00' )
-    ret_val = p.readCharacteristic( SCD_SET_MODE_HND )
-#
-# set STE configuration
-#
-set_STE_config (p,False)
 
 #############################################
 #
@@ -577,12 +601,9 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
             # start STE w/o memory writing
             print ("+--- Starting STE...")
             p.setDelegate( NotifyDelegate(p) )
-            set_STE_config (p,False)
-            ##p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1))
-            ##time.sleep(0.7)
-            p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
-            gSTEisRolling = True
-        elif gTCPrxMsg == TCP_STE_REQ_MSG:
+            set_STE_config(p, False)
+            toggle_STE_rolling(p, True, False)
+       elif gTCPrxMsg == TCP_STE_REQ_MSG:
             # request STE data
             print ("+--- Requesting STE data...")
             gSTEisDataSent = False
@@ -597,25 +618,14 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
             # start STE w/ memory writing
             print ("+--- Recording STE starting...")
             p.setDelegate( NotifyDelegate(p) )
-            set_STE_config (False)
-            p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1))
-            time.sleep(0.7)
-            p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
-            gSTEisRolling = True
+            set_STE_config(p, True)
+            toggle_STE_rolling(p, True, True)
             # take rolling time ( added more overhead time)
             tm = time.time()
             while time.time() - tm <= STE_RUN_TIME:
                 wait_flag = p.waitForNotifications(1.)
             # stop STE
-            p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )        
-            print ("\n+--- Recording STE is stopping")        
-            ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
-            while ( ret_val != b'\x00' ):
-                print ("+--- STE has not completed yet, generic command is [%s]" % ret_val.hex())
-                time.sleep(0.7)
-                ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
-            print ("+--- Recording STE stoped")
-            gSTEisRolling = False
+            toggle_STE_rolling(p, False, False) 
             print_STE_result()            
             # start BDT
             print ("+--- Bulk Data Transfer after a while")
@@ -643,18 +653,8 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
             #################################
         elif gTCPrxMsg == TCP_STE_STOP_MSG or gTCPrxMsg == TCP_DEV_CLOSE_MSG:
             # stop STE or disconnect
-            if gSTEisRolling:
-                p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )        
-                print ("\n+--- STE is stopping")        
-                ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
-                while ( ret_val != b'\x00' ):
-                    print ("+--- STE has not completed yet, generic command is [%s]" % ret_val.hex())
-                    time.sleep(0.7)
-                    ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
-                print ("+--- STE stoped")
-                gSTEisRolling = False
-            else:
-                print ("+--- STE already stoped")
+            set_STE_config (p, False)
+            toggle_STE_rolling (p, False, False)
             print_STE_result()
         else:
             print ("+--- invalid [RX] message !")    
@@ -703,13 +703,11 @@ p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x21' ) # reset threshold flag
 time.sleep(0.7)
 ##p.writeCharacteristic( SCD_SET_MODE_HND, b'\xFF' )    # mode selection
 ##time.sleep(0.7)
-p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x30' ) # erase sensor data
-print ("+--- erase flash memory wait for 10 seconds...wait...")
-time.sleep(10.)
+if clear_SCD_memory(p) != None:
+    p.disconnect()
 #
-# disconnect
+# complete
 #
-p.disconnect()
 loop.close()
 print ("+--- All done !")
 #
