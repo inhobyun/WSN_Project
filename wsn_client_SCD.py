@@ -185,7 +185,7 @@ async def tcp_TX_data(tx_msg, loop):
 #############################################
 # STE(Short Time Experiment) mode configuration (35 bytes) 
 #
-def set_STE_config( p, is_writing = False ):
+def SCD_set_STE_config( p, is_writing = False ):
 
     if p == None:
         return
@@ -237,7 +237,7 @@ def set_STE_config( p, is_writing = False ):
 #############################################
 # check wether STE is rolling or not 
 #
-def is_STE_rolling( p ):
+def SCD_is_STE_rolling( p ):
     global SCD_STE_RESULT_HND
     global gSTEisRolling
 
@@ -254,7 +254,7 @@ def is_STE_rolling( p ):
 #############################################
 # toggle STE start ot stop 
 #
-def toggle_STE_rolling( p, will_start = False, will_notify = False ):
+def SCD_toggle_STE_rolling( p, will_start = False, will_notify = False ):
     global SCD_SET_MODE_HND
     global SCD_SET_GEN_CMD_HND
     global SCD_STE_RESULT_HND
@@ -263,10 +263,10 @@ def toggle_STE_rolling( p, will_start = False, will_notify = False ):
     if p == None:
         return
 
-    if is will_start:
+    if (is will_start):
         if not gSTEisRolling:
             if is will_notify:
-                p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1))
+                p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1) )
                 time.sleep(0.7)
             p.writeCharacteristic( SCD_SET_MODE_HND, b'\x00' )    
             p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
@@ -299,9 +299,9 @@ def hex_str( vBytes ):
     return vString
 
 #############################################
-# output STE data
+# output STE data to string
 #
-def string_STE_data( pResult ):
+def SCD_string_STE_data( pResult ):
 
     # output Accelerrometer X, Y, Z axis arithmetic mean & variation  
     adxl_mean_x = float( int.from_bytes(pResult[ 0: 2], byteorder='little', signed=True) ) / 10.0
@@ -335,7 +335,7 @@ def string_STE_data( pResult ):
 #############################################    
 # print STE result
 #
-def print_STE_result():
+def SCD_print_STE_result():
     global gSTEcfgMode
     global gSTEnotiCnt
     global gSTEstartTime
@@ -436,7 +436,7 @@ class NotifyDelegate(DefaultDelegate):
 # should implement "BTLEDisconnectError" exception
 #
 #############################################
-def scan_and_connect( is_first = True ):
+def SCD_scan_and_connect( is_first = True ):
     global SCAN_TIME
     global TARGET_MANUFA_UUID
     global TARGET_DEVICE_NAME
@@ -501,7 +501,7 @@ def scan_and_connect( is_first = True ):
 #############################################
 # clear memory 
 #
-def clear_SCD_memory( p ):
+def SCD_clear_memory( p ):
     global SCD_MAX_FLASH
     global SCD_STE_CONFIG_HND
     global SCD_SET_GEN_CMD_HND
@@ -509,8 +509,8 @@ def clear_SCD_memory( p ):
     ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
     print ("\tFlash memory remain is [%s] MAX:0b0000" % ret_val[31:34].hex())
     if (struct.unpack('i', ret_val[31:35]))[0] < SCD_MAX_FLASH:  
-        print ("\t\t=> flash memory is not empty...cleanning-up flash and re-try")
-        print ("+--- Erase flash wait for seconds...")
+        print ("\t\t=> flash memory is not empty...cleanning-up flash memory")
+        print ("\tErase flash wait for seconds...")
         p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x30' ) # erase sensor data
         p.disconnect()
         time.sleep(10.)
@@ -533,11 +533,11 @@ if len(sys.argv) > 2:
 #
 # scan and connect SCD
 #
-p = scan_and_connect()
+p = SCD_scan_and_connect(True)
 #
 # set STE configuration
 #
-set_STE_config (p,False)
+SCD_set_STE_config (p,False)
 #
 # read Device Info. such as Name, Manufacurer Name, etc.
 #
@@ -571,12 +571,12 @@ print ("\tSelf Test Result is [%s] c0:OK, otherwise not OK!" % ret_val.hex())
 ret_val = p.readCharacteristic( SCD_SET_MODE_HND )
 print ("\tMode is [%s] 00:STE, ff:Mode Selection" % ret_val.hex())
 #
-# check wether STE is running & memory is empty
+# check STE is rolling or not, memory is empty or not; stop rolling & cleanup memory
 #
-is_STE_rolling( p )
-toggle_STE_rolling( p, False, False )
-if  clear_SCD_memory(p) == None:
-    p = scan_and_connect(False)
+SCD_is_STE_rolling(p)
+SCD_toggle_STE_rolling(p, False, False)
+if  SCD_clear_memory(p) == None:
+    p = SCD_scan_and_connect(False)
 #
 
 #############################################
@@ -598,18 +598,19 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
         # get & process server message
         #
         if gTCPrxMsg == TCP_STE_START_MSG:
-            # start STE w/o memory writing
+            # start STE rolling w/o memory writing
             print ("+--- Starting STE...")
             p.setDelegate( NotifyDelegate(p) )
-            set_STE_config(p, False)
-            toggle_STE_rolling(p, True, False)
+            SCD_set_STE_config(p, False)
+            SCD_toggle_STE_rolling(p, True, False)
        elif gTCPrxMsg == TCP_STE_REQ_MSG:
             # request STE data
             print ("+--- Requesting STE data...")
             gSTEisDataSent = False
             # if not enable STE notification
             gSTElastData = p.readCharacteristic(SCD_STE_RESULT_HND)
-            gSTEnotiCnt = int(gSTElastData[32])
+            tx_data = SCD_string_STE_data(gSTElastData)
+            loop.run_until_complete(tcp_TX_data(tx_data, loop))           
         elif gTCPrxMsg == TCP_BDT_START_MSG:
             #################################
             # will be threading
@@ -618,15 +619,15 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
             # start STE w/ memory writing
             print ("+--- Recording STE starting...")
             p.setDelegate( NotifyDelegate(p) )
-            set_STE_config(p, True)
-            toggle_STE_rolling(p, True, True)
+            SCD_set_STE_config(p, True)
+            SCD_toggle_STE_rolling(p, True, True)
             # take rolling time ( added more overhead time)
             tm = time.time()
             while time.time() - tm <= STE_RUN_TIME:
                 wait_flag = p.waitForNotifications(1.)
             # stop STE
-            toggle_STE_rolling(p, False, False) 
-            print_STE_result()            
+            SCD_toggle_STE_rolling(p, False, False) 
+            SCD_print_STE_result()            
             # start BDT
             print ("+--- Bulk Data Transfer after a while")
             time.sleep(0.7)
@@ -653,9 +654,9 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
             #################################
         elif gTCPrxMsg == TCP_STE_STOP_MSG or gTCPrxMsg == TCP_DEV_CLOSE_MSG:
             # stop STE or disconnect
-            set_STE_config (p, False)
-            toggle_STE_rolling (p, False, False)
-            print_STE_result()
+            SCD_set_STE_config (p, False)
+            SCD_toggle_STE_rolling (p, False, False)
+            SCD_print_STE_result()
         else:
             print ("+--- invalid [RX] message !")    
         #
@@ -665,22 +666,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     #
     # get notification
     #
-    if gSTEisRolling:
-        ##wait_flag = p.waitForNotifications(0.2)
-        if gSTEnotiCnt > 0 and gSTElastData != '' and not gSTEisDataSent:
-            tx_data = string_STE_data(gSTElastData)
-            loop.run_until_complete(tcp_TX_data(tx_data, loop))
-            gSTElastData = ''
-            gSTEisDataSent = True
-        continue 
-    if gBDTisRolling:
-        wait_flag = p.waitForNotifications(0.2)
-        if gSTEnotiCnt > 0 and gSTElastData != '' and not gSTEisDataSent:
-            tx_data = string_STE_data(gSTElastData)
-            loop.run_until_complete(tcp_TX_data(tx_data, loop))
-            gSTElastData = ''
-            gSTEisDataSent = True
-        continue 
+
     #
     # idling check
     #
@@ -703,7 +689,7 @@ p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x21' ) # reset threshold flag
 time.sleep(0.7)
 ##p.writeCharacteristic( SCD_SET_MODE_HND, b'\xFF' )    # mode selection
 ##time.sleep(0.7)
-if clear_SCD_memory(p) != None:
+if SCD_clear_memory(p) != None:
     p.disconnect()
 #
 # complete
