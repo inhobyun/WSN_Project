@@ -163,6 +163,7 @@ async def tcp_TX_data(tx_msg, loop):
     try:
         rx_data = await asyncio.wait_for ( reader.read(512), timeout=1.0 )
     except asyncio.TimeoutError:
+        print('AIO C-> [RX] no data')
         pass
     else:
         rx_msg = rx_data.decode()
@@ -170,7 +171,7 @@ async def tcp_TX_data(tx_msg, loop):
 
     if tx_msg == None:
         tx_msg = input('AIO C-> input data to server: ')
-    print('AIO C-> [tx] "%r" wait...' % tx_msg)
+    print('AIO C-> [tx] try...')
     tx_data = tx_msg.encode()
     writer.write(tx_data)
     await writer.drain()        
@@ -185,6 +186,7 @@ async def tcp_TX_data(tx_msg, loop):
 # STE(Short Time Experiment) mode configuration (35 bytes) 
 #
 def SCD_set_STE_config( p, is_writing = False ):
+    global gSTEcfgMode
 
     if p == None:
         return
@@ -230,7 +232,7 @@ def SCD_set_STE_config( p, is_writing = False ):
     p.writeCharacteristic( SCD_STE_CONFIG_HND, gSTEcfgMode )
     time.sleep(.3)
     ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
-    print ("\tSTE config. get\n[%s](%d)" % (hex_str(ret_val), len(ret_val)))
+    print ("\tSCD: STE config. get\n[%s](%d)" % (hex_str(ret_val), len(ret_val)))
     return
 
 #############################################
@@ -243,7 +245,7 @@ def SCD_is_STE_rolling( p ):
     STE_result_0 = p.readCharacteristic( SCD_STE_RESULT_HND )
     time.sleep(.5)
     STE_result_1 = p.readCharacteristic( SCD_STE_RESULT_HND )
-    print ("\tChecking rolling counter [%d] [%d]" % (int(STE_result_0[32]), int(STE_result_1[32])) )
+    print ("\tSCD: Checking rolling counter [%d] [%d]" % (int(STE_result_0[32]), int(STE_result_1[32])) )
     if STE_result_0[32] != STE_result_1[32] :
         gSTEisRolling = True
     else:
@@ -251,7 +253,7 @@ def SCD_is_STE_rolling( p ):
     return gSTEisRolling      
 
 #############################################
-# toggle STE start ot stop 
+# toggle STE start or stop 
 #
 def SCD_toggle_STE_rolling( p, will_start = False, will_notify = False ):
     global SCD_SET_MODE_HND
@@ -269,22 +271,22 @@ def SCD_toggle_STE_rolling( p, will_start = False, will_notify = False ):
                 time.sleep(0.7)
             p.writeCharacteristic( SCD_SET_MODE_HND, b'\x00' )    
             p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
-            print ("\n+--- STE is starting")        
+            print ("\tSCD: STE is starting")        
             gSTEisRolling = True
     else:
         if gSTEisRolling:
             p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
-            print ("\n+--- STE is stopping")        
+            print ("\tSCD: STE is stopping")        
             ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
             while ( ret_val != b'\x00' ):
-                print ("+--- STE has not completed yet, generic command is [%s]" % ret_val.hex())
+                print ("\t\t=> STE has not completed yet, generic command is [%s]" % ret_val.hex())
                 time.sleep(0.7)
                 ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
-            print ("+--- STE stoped")
+            print ("\tSCD: STE stoped")
             gSTEisRolling = False
         ret_val = p.readCharacteristic( SCD_SET_MODE_HND )
         while ret_val !=  b'\x00':
-            print("+--- set STE mode")
+            print("\tSCD: set STE mode")
             p.writeCharacteristic( SCD_SET_MODE_HND, b'\x00' )
             ret_val = p.readCharacteristic( SCD_SET_MODE_HND )    
     return        
@@ -342,13 +344,13 @@ def SCD_print_STE_result():
 
     # output time stamp
     tm = float( (struct.unpack('<l', gSTEcfgMode[0:4]))[0] )   
-    print ( "\tSTE config. time   : %s(%.3f)" \
+    print ( "\tSCD: STE config. time   : %s(%.3f)" \
             % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
-    print ( "\tNotification Start : %s(%.3f)" \
+    print ( "\tSCD: Notification Start : %s(%.3f)" \
             % (datetime.datetime.fromtimestamp(gSTEstartTime).strftime('%Y-%m-%d %H:%M:%S'), gSTEstartTime) )
-    print ( "\tNotification End   : %s(%.3f)" \
+    print ( "\tSCD: Notification End   : %s(%.3f)" \
             % (datetime.datetime.fromtimestamp(gSTElastTime).strftime('%Y-%m-%d %H:%M:%S'), gSTElastTime) )      
-    print ( "\tNotification Count : %d" % gSTEnotiCnt)
+    print ( "\tSCD: Notification Count : %d" % gSTEnotiCnt)
     return
 
 #############################################
@@ -445,9 +447,9 @@ def SCD_scan_and_connect( is_first = True ):
     # scanning for a while
     #
     scanner = Scanner().withDelegate(ScanDelegate())
-    print ("+--- BLE device scan %sstarted..." % ('re' if not is_first else '') )
+    print ("\tSCD: BLE device scan %sstarted..." % ('re' if not is_first else '') )
     devices = scanner.scan(SCAN_TIME)
-    print ("\n+--- BLE device scan completed... [%d] devices are scanned" % gScannedCount)
+    print ("\n\tSCD: BLE device scan completed... [%d] devices are scanned" % gScannedCount)
     #
     # check to match BOSCH SCD device identifiers
     #
@@ -456,13 +458,13 @@ def SCD_scan_and_connect( is_first = True ):
         for (adtype, desc, value) in dev.getScanData():
             if adtype == 255 and TARGET_MANUFA_UUID in value:
                 matching_count += 1
-                print("\tfound target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value))            
+                print("\t\t=> found target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value))            
             if adtype == 9 and TARGET_DEVICE_NAME in value:
                 matching_count += 1
-                print("\tfound target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value))            
+                print("\t\t=> found target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value))            
             if matching_count >= 2:
-                print("\tfound BOSCH SCD device!")
-                print("+--- device address [%s], type=[%s], RSSI=[%d]dB" % (dev.addr, dev.addrType, dev.rssi))
+                print("\t\t=> found BOSCH SCD device!")
+                print("\tSCD: device address [%s], type=[%s], RSSI=[%d]dB" % (dev.addr, dev.addrType, dev.rssi))
                 gTargetDevice = dev
                 break
         if gTargetDevice != None:
@@ -471,23 +473,23 @@ def SCD_scan_and_connect( is_first = True ):
     # if none found then exiting    
     #
     if gTargetDevice == None:
-        print("\tno matching device found... Exiting...")
+        print("\tSCD: no matching device found... Exiting...")
         ##gSocketClient.close()
         sys.exit(1)
     #
     # connect
     #
-    print("+--- connecting [%s], type=[%s]" % (gTargetDevice.addr, gTargetDevice.addrType))
+    print("\tSCD: connecting [%s], type=[%s]" % (gTargetDevice.addr, gTargetDevice.addrType))
     p = None
     retry = 0
     while p == None:
         try:
             p = Peripheral(gTargetDevice.addr, gTargetDevice.addrType)
         except:
-            print("\tBLE device connection error occured... retry after 3 sec...")
+            print("\t\t=> BLE device connection error occured... retry after 3 sec...")
             retry += 1
             if retry > 3:
-                print("\tBLE device connection error occured... exiting...")
+                print("\t\t=> BLE device connection error occured... exiting...")
                 ##gSocketClient.close()
                 sys.exit(-1)
             time.sleep(3)    
@@ -506,10 +508,10 @@ def SCD_clear_memory( p ):
     global SCD_SET_GEN_CMD_HND
 
     ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
-    print ("\tFlash memory remain is [%s] MAX:0b0000" % ret_val[31:34].hex())
+    print ("\tSCD: Flash memory remain is [%s] MAX:0b0000" % ret_val[31:34].hex())
     if (struct.unpack('i', ret_val[31:35]))[0] < SCD_MAX_FLASH:  
         print ("\t\t=> flash memory is not empty...cleanning-up flash memory")
-        print ("\tErase flash wait for seconds...")
+        print ("\tSCD: Erase flash wait for seconds...")
         p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x30' ) # erase sensor data
         p.disconnect()
         time.sleep(10.)
@@ -541,16 +543,16 @@ SCD_set_STE_config (p,False)
 # read Device Info. such as Name, Manufacurer Name, etc.
 #
 ret_val = p.readCharacteristic( SCD_DEVICE_NAME_HND )
-print ("\tDevice Name is [%s]" % ret_val.decode("utf-8"))
+print ("\tSCD: Device Name is [%s]" % ret_val.decode("utf-8"))
 #
 ret_val = p.readCharacteristic( SCD_SYSTEM_ID_HND )
-print ("\tSystem ID is [%s][%s]" % (hex_str(ret_val[0:3]), hex_str(ret_val[3:8])))
+print ("\tSCD: System ID is [%s][%s]" % (hex_str(ret_val[0:3]), hex_str(ret_val[3:8])))
 #
 ret_val = p.readCharacteristic( SCD_SERIAL_NUM_HND )
-print ("\tSerial # is [%s]" % ret_val.decode("utf-8"))
+print ("\tSCD: Serial # is [%s]" % ret_val.decode("utf-8"))
 #
 ret_val = p.readCharacteristic( SCD_FW_REVISION_HND )
-print ("\tRevision is FW [%s]," % ret_val.decode("utf-8"), end = '')
+print ("\tSCD: Revision is FW [%s]," % ret_val.decode("utf-8"), end = '')
 #
 ret_val = p.readCharacteristic( SCD_HW_REVISION_HND )
 print ("HW [%s]," % ret_val.decode("utf-8"), end = '')
@@ -559,16 +561,16 @@ ret_val = p.readCharacteristic( SCD_SW_REVISION_HND )
 print ("SW [%s]" % ret_val.decode("utf-8"))
 #
 ret_val = p.readCharacteristic( SCD_MANUFA_NAME_HND )
-print ("\tManufacturer Name is [%s]" % ret_val.decode("utf-8"))
+print ("\tSCD: Manufacturer Name is [%s]" % ret_val.decode("utf-8"))
 #
 ret_val = p.readCharacteristic( SCD_IF_VERSION_HND )
-print ("\tIF Version is [%s]" % hex_str(ret_val))
+print ("\tSCD: IF Version is [%s]" % hex_str(ret_val))
 #
 ret_val = p.readCharacteristic( SCD_TEST_RESULT_HND )
-print ("\tSelf Test Result is [%s] c0:OK, otherwise not OK!" % ret_val.hex())
+print ("\tSCD: Self Test Result is [%s] c0:OK, otherwise not OK!" % ret_val.hex())
 #
 ret_val = p.readCharacteristic( SCD_SET_MODE_HND )
-print ("\tMode is [%s] 00:STE, ff:Mode Selection" % ret_val.hex())
+print ("\tSCD: Mode is [%s] 00:STE, ff:Mode Selection" % ret_val.hex())
 #
 # check STE is rolling or not, memory is empty or not; stop rolling & cleanup memory
 #
@@ -598,13 +600,13 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
         #
         if gTCPrxMsg == TCP_STE_START_MSG:
             # start STE rolling w/o memory writing
-            print ("+--- Starting STE...")
+            print ("+--- Start STE...")
             p.setDelegate( NotifyDelegate(p) )
             SCD_set_STE_config(p, False)
             SCD_toggle_STE_rolling(p, True, False)
         elif gTCPrxMsg == TCP_STE_REQ_MSG:
             # request STE data
-            print ("+--- Requesting STE data...")
+            print ("+--- Request STE data...")
             gSTEisDataSent = False
             # if not enable STE notification
             gSTElastData = p.readCharacteristic(SCD_STE_RESULT_HND)
@@ -653,6 +655,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
             #################################
         elif gTCPrxMsg == TCP_STE_STOP_MSG or gTCPrxMsg == TCP_DEV_CLOSE_MSG:
             # stop STE or disconnect
+            print ("+--- Stop STE ...")
             SCD_set_STE_config (p, False)
             SCD_toggle_STE_rolling (p, False, False)
             SCD_print_STE_result()
@@ -661,6 +664,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
         #
         if gTCPrxMsg == TCP_DEV_CLOSE_MSG:
             # disconnect
+            print ("+--- Close Device ...")
             break    
     #
     # get notification
