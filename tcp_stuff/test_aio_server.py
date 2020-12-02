@@ -48,10 +48,9 @@ async def handle_RX_TX(reader, writer):
     global gBDTisRolled
 
     if gSTEisRolling and gTCPtxMsg == TCP_STE_REQ_MSG:
-        print('\n>>>>>')
-        print('AIO S-> [RX] try to get STE result...')
+        print('\n>>>>>\nAIO S-> [RX] try to get STE result...')
         try:
-            rx_data = await asyncio.wait_for ( reader.read(512), timeout=3.0 )
+            rx_data = await asyncio.wait_for ( reader.read(512), timeout=60.0 )
         except asyncio.TimeoutError:
             pass
         else:
@@ -60,8 +59,7 @@ async def handle_RX_TX(reader, writer):
             print('AIO S-> [RX] "%r" from "%r"' % (gTCPrxMsg, addr))
             gTCPtxMsg = None
     if gBDTisRolled and gTCPtxMsg == TCP_BDT_REQ_MSG:
-        print('\n>>>>>')
-        print('AIO S-> [RX] try to get BDT result...')
+        print('\n>>>>>\nAIO S-> [RX] try to get BDT result...')
         #
         # implemet BDT coding here !!!
         #
@@ -77,9 +75,8 @@ async def handle_RX_TX(reader, writer):
             gSTEisRolling = gBDTisRolled = False
         elif tx_msg == TCP_DEV_CLOSE_MSG:
             gSTEisRolling = gBDTisRolled = False
-        print('\n>>>>>')
         if tx_msg != '':
-            print('AIO S-> [TX] try')
+            print('\n>>>>>\nAIO S-> [TX] try')
             tx_data = tx_msg.encode()
             writer.write(tx_data)
             await writer.drain()
@@ -87,8 +84,8 @@ async def handle_RX_TX(reader, writer):
             print('AIO C-> [TX] "%r" sent' % gTCPtxMsg)
 
     print('AIO S-> close the client socket')
-    print('<<<<<')
     writer.close()
+    print('<<<<<')
 
 #############################################
 #############################################
@@ -96,18 +93,19 @@ async def handle_RX_TX(reader, writer):
 # Main starts here
 #
 #############################################
-
+#
 loop = asyncio.get_event_loop()
 coro = asyncio.start_server(handle_RX_TX, TCP_HOST_NAME, TCP_PORT, loop=loop)
 server = loop.run_until_complete(coro)
-
+#
 # Serve requests until Ctrl+C is pressed
+#
 print('AIO S-> Serving on {}'.format(server.sockets[0].getsockname()))
 try:
     loop.run_forever()
 except KeyboardInterrupt:
     pass
-
+#
 # Close the server
 server.close()
 loop.run_until_complete(server.wait_closed())
