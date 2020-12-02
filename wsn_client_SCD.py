@@ -112,6 +112,7 @@ TCP_BDT_REQ_MSG   = 'BDT_REQ'
 #
 gTCPrxMsg = None
 gTCPtxMsg = None
+gTCPisPending = False 
 
 #############################################
 # handle to receive command message
@@ -119,8 +120,12 @@ gTCPtxMsg = None
 #
 async def tcp_RX_message(tx_msg, loop):
     global gTCPrxMsg
+    global gTCPisPending
+    global reader
+    global writer
     #
-    reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
+    if not gTCPisPending:
+        reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
     #
     print('\n>>>>\nAIO C-> receive command...')
     if tx_msg != None:
@@ -134,13 +139,17 @@ async def tcp_RX_message(tx_msg, loop):
     try:
         rx_data = await asyncio.wait_for ( reader.read(512), timeout=30.0 )
     except asyncio.TimeoutError:
+        gTCPisPending = True
         pass 
     if rx_data != None:
         gTCPrxMsg = rx_data.decode()
         print('AIO C-> [RX] "%r"' % gTCPrxMsg)
+        gTCPisPending = False
     #
     print('AIO C-> close the socket\n<<<<')
-    writer.close()
+
+    if not gTCPisPending:
+        writer.close()
 
 #############################################
 # handle to send data
@@ -156,7 +165,7 @@ async def tcp_TX_data(tx_msg, loop):
     print('AIO C-> [RX] try...')
     rx_msg = None
     try:
-        rx_data = await asyncio.wait_for ( reader.read(512), timeout=1.0 )
+        rx_data = await asyncio.wait_for ( reader.read(512), timeout=0.3 )
     except asyncio.TimeoutError:
         print('AIO C-> [RX] no data')
         pass
