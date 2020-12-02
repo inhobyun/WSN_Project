@@ -105,7 +105,7 @@ TCP_DEV_CLOSE_MSG = 'DEV_CLOSE'
 TCP_STE_START_MSG = 'STE_START'
 TCP_STE_STOP_MSG  = 'STE_STOP'
 TCP_STE_REQ_MSG   = 'STE_REQ'
-TCP_BDT_START_MSG = 'BDT_START'
+TCP_BDT_RUN_MSG   = 'BDT_RUN'
 TCP_BDT_REQ_MSG   = 'BDT_REQ'
 #
 # global variables
@@ -363,6 +363,7 @@ def SCD_print_STE_status():
         print ( ">SCD: Notification End   : %s(%.3f)" \
                 % (datetime.datetime.fromtimestamp(gSTElastTime).strftime('%Y-%m-%d %H:%M:%S'), gSTElastTime) )
         print ( ">SCD: Notification Count : %d" % gSTEnotiCnt)
+        gSTEnotiCnt = gSTElastTime = gSTEstartTime = 0
     if  gSTElastData != None:
         print ( ">SCD: Rolling Count      : %d" % int(gSTElastData[32]) )
     #
@@ -533,7 +534,7 @@ def SCD_run_STE_for_idling( p ):
     # rolls STE for short time period
     #
     # start STE w/o memory writing
-    print (">SCD: Recording STE starting ...")
+    print (">SCD: STE running for idling ...")
     p.setDelegate( NotifyDelegate(p) )
     SCD_set_STE_config(p, False)
     SCD_toggle_STE_rolling(p, True, True)
@@ -694,11 +695,13 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
                 gIDLElastTime = time.time()
             else:
                 print (">> invalid message, STE has not been started !")    
-        elif gTCPrxMsg == TCP_BDT_START_MSG:
+        elif gTCPrxMsg == TCP_BDT_RUN_MSG:
             # start BDT
             print (">> start BDT ...")
             if not (gSTEisRolling or gBDTisRolled):                
                 SCD_run_STE_and_BDT(p)
+                if SCD_clear_memory(p) == None:
+                    p = SCD_scan_and_connect(False)
                 gIDLElastTime = time.time()
             else:
                 print (">> invalid message, BDT is not allowed during rolling !")     
@@ -731,12 +734,8 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     #
     t = time.time()
     if t - gIDLElastTime > gIDLEinterval:
-        #
-        # doing some to keep BLE connection
-        #
         SCD_run_STE_for_idling(p)
         gIDLElastTime = t
-        print (">> STE result query to keep connection")
     #
     # if messae to send
     #

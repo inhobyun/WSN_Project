@@ -26,7 +26,7 @@ TCP_DEV_CLOSE_MSG = 'DEV_CLOSE'
 TCP_STE_START_MSG = 'STE_START'
 TCP_STE_STOP_MSG  = 'STE_STOP'
 TCP_STE_REQ_MSG   = 'STE_REQ'
-TCP_BDT_START_MSG = 'BDT_START'
+TCP_BDT_RUN_MSG   = 'BDT_RUN'
 TCP_BDT_REQ_MSG   = 'BDT_REQ'
 
 #
@@ -69,7 +69,7 @@ async def handle_RX_TX(reader, writer):
         tx_msg = input('\nAIO S-> input command to client: ')
         if tx_msg == TCP_STE_START_MSG:
             gSTEisRolling = True
-        elif tx_msg == TCP_BDT_START_MSG:    
+        elif tx_msg == TCP_BDT_RUN_MSG:    
             gBDTisRolled = True
         elif tx_msg == TCP_STE_STOP_MSG:
             gSTEisRolling = gBDTisRolled = False
