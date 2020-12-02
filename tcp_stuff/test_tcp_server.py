@@ -58,14 +58,7 @@ conn, addr = gSocketServer.accept()
 from_client = ''
 
 #
-# RX 1'st data 
-#
-data = conn.recv(1024)
-if data:
-    from_client = data.decode()
-    print ("TCP S-> [RX]] '%s'" % (from_client))
-#
-# Key input and TX
+# Key input and TX loop
 #
 while True:
     try:
@@ -92,6 +85,7 @@ while True:
             if data:
                 from_client = data.decode()
                 print ("TCP S-> [RX]] '%s'" % (from_client))
+       
 #
 # All done !
 #

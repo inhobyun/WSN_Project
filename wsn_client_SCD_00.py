@@ -646,7 +646,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     # wait any message from server
     #
     gTCPrxMsg = None
-    loop.run_until_complete(tcp_RX_message(None, loop))
+    loop.run_until_complete(tcp_RX_message(TCP_DEV_READY_MSG, loop))
     #
     if gTCPrxMsg != None:
         #
