@@ -82,7 +82,7 @@ gBDTstartTime = 0.
 gBDTlastTime  = 0.
 gBDTdata      = bytearray(SCD_MAX_FLASH)
 gBDTcrc32     = bytearray(4)
-gBDTisRolling = False
+gBDTisRolled = False
 # IDLE
 gIDLElastTime = 0.    # last BLE traffic on connection
 gIDLEinterval = 60.   # time interval to make BLE traffic to keep connection
@@ -95,9 +95,9 @@ gIDLEinterval = 60.   # time interval to make BLE traffic to keep connection
 # target TCP Server identifiers
 #
 ##TCP_HOST_NAME = "127.0.0.1"       # TEST Host Name
-##TCP_HOST_NAME = "10.2.2.3"        # TEST Host Name
+TCP_HOST_NAME = "10.2.2.3"        # TEST Host Name
 ##TCP_HOST_NAME = "192.168.0.3"     # TEST Host Name
-TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
+##TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
 TCP_PORT      = 8088              # Default TCP Port Name
 ##TCP_TX_INTERVAL   = 1.            # time interval to send notification to host      
 TCP_DEV_READY_MSG = 'DEV_READY'
@@ -299,21 +299,25 @@ def hex_str( vBytes ):
 #
 def SCD_string_STE_data( pResult ):
     #
-    # output Accelerrometer X, Y, Z axis arithmetic mean & variation  
+    # output Accelerrometer X, Y, Z axis arithmetic mean & variation
     adxl_mean_x = float( int.from_bytes(pResult[ 0: 2], byteorder='little', signed=True) ) / 10.0
     adxl_mean_y = float( int.from_bytes(pResult[ 2: 4], byteorder='little', signed=True) ) / 10.0
     adxl_mean_z = float( int.from_bytes(pResult[ 4: 6], byteorder='little', signed=True) ) / 10.0
     adxl_vari_x = float( int.from_bytes(pResult[ 6:10], byteorder='little', signed=True) ) / 100.0
     adxl_vari_y = float( int.from_bytes(pResult[10:14], byteorder='little', signed=True) ) / 100.0
     adxl_vari_z = float( int.from_bytes(pResult[14:18], byteorder='little', signed=True) ) / 100.0
+    #
     # output temperature
     temperature = float( int.from_bytes(pResult[18:20], byteorder='little', signed=True) ) * 0.0078
+    #
     # output light
     light = float( int.from_bytes(pResult[20:24], byteorder='little', signed=True) ) / 1000.0
+    #
     # output Magnetometer X, Y, Z axis raw data 
     magneto_x = float( int.from_bytes(pResult[24:26], byteorder='little', signed=True) ) / 16.0
     magneto_y = float( int.from_bytes(pResult[26:28], byteorder='little', signed=True) ) / 16.0
     magneto_z = float( int.from_bytes(pResult[28:30], byteorder='little', signed=True) ) / 16.0
+    #
     # make string to send
     str = "(%.1f," % adxl_mean_x
     str += "%.2f," % adxl_vari_x
@@ -362,14 +366,14 @@ class ScanDelegate(DefaultDelegate):
     
     def __init__(self):
         global gScannedCount
-
+        #
         DefaultDelegate.__init__(self)
         gScannedCount = 0
         print(">> scan handler is configured", end='\n', flush = True)
 
     def handleDiscovery(self, dev, isNewDev, isNewData):
         global gScannedCount
-
+        #
         if isNewDev:
             gScannedCount += 1
             print ('>> >' if gScannedCount==1 else '>', end='', flush = True)
@@ -440,7 +444,6 @@ class NotifyDelegate(DefaultDelegate):
 #############################################
 def SCD_scan_and_connect( is_first = True ):
     global gTargetDevice
-    ##global gSocketClient
     #
     # scanning for a while
     #
@@ -472,7 +475,6 @@ def SCD_scan_and_connect( is_first = True ):
     #
     if gTargetDevice == None:
         print(">SCD: no matching device found... Exiting...")
-        ##gSocketClient.close()
         sys.exit(1)
     #
     # connect
@@ -488,7 +490,6 @@ def SCD_scan_and_connect( is_first = True ):
             retry += 1
             if retry > 3:
                 print(">SCD: => BLE device connection error occured... exiting...")
-                ##gSocketClient.close()
                 sys.exit(-1)
             time.sleep(3)    
     #
@@ -519,7 +520,7 @@ def SCD_clear_memory( p ):
 # run STE & BLK data transfer
 #
 def SCD_run_STE_and_BDT( p ):
-    global gBDTisRolling
+    global gBDTisRolled
     global gBDTnotiCnt
     global gBDTstartTime
     global gBDTlastTime    
@@ -527,7 +528,6 @@ def SCD_run_STE_and_BDT( p ):
     #
     # rolls STE for certain time period
     #
-    gBDTisRolling = True
     # start STE w/ memory writing
     print (">SCD: Recording STE starting ...")
     p.setDelegate( NotifyDelegate(p) )
@@ -545,7 +545,6 @@ def SCD_run_STE_and_BDT( p ):
     #
     print (">SCD: Bulk Data Transfer after a while ...")
     time.sleep(0.7)
-    gBDTisRolling = True
     p.setDelegate( NotifyDelegate(p) )
     print (">SCD: BDT Starting ...")
     time.sleep(0.7)
@@ -562,8 +561,8 @@ def SCD_run_STE_and_BDT( p ):
     print ("\n>SCD: Bulk Data Transfer completed...status is [%s], time [%.3f], count [%d]" % \
             (ret_val.hex(), (gBDTlastTime-gBDTstartTime), gBDTnotiCnt) )
     #
-    gBDTisRolling = False
-    gIDLElastTime = time.time()        
+    gIDLElastTime = time.time()
+    gBDTisRolled = True        
     return
 
 #############################################
@@ -677,10 +676,22 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
         # start BDT
         #
             print (">> start BDT ...")
-            if not (gSTEisRolling or gBDTisRolling):                
+            if not (gSTEisRolling or gBDTisRolled):                
                 SCD_run_STE_and_BDT(p)
             else:
                 print (">> invalid message, BDT is not allowed during rolling !")     
+        elif gTCPrxMsg == TCP_BDT_REQ_MSG:
+        #
+        # request BDT data
+        #
+            if gBDTisRolled:
+                print (">> request BDT data ...")
+                # 
+                # BDT coding here !!! 
+                #
+                gBDTisRolled = False
+            else:
+                print (">> invalid message, BDT has not been done !")    
         elif gTCPrxMsg == TCP_STE_STOP_MSG or gTCPrxMsg == TCP_DEV_CLOSE_MSG:
         #
         # stop STE or disconnect
