@@ -29,8 +29,8 @@ TCP_STE_REQ_MSG     = 'STE_REQ'
 #
 # global variables
 #
-gTCPrxMsg   = None
-gTCPtxMsg   = None
+gTCPrxMsg   = ''
+gTCPtxMsg   = TCP_STE_REQ_MSG
 
 #############################################
 # handle RX_TX
@@ -40,28 +40,46 @@ async def handle_RX_TX(reader, writer):
     global gTCPrxMsg
     global gTCPtxMsg
 
-    gTCPtxMsg = input('AIO S-> input command to client: ')
-    print('\n>>>>>')
-    if gTCPtxMsg != None:
-        print('AIO S-> [TX] try')
-        tx_data = gTCPtxMsg.encode()
+    print('\n+----\nAIO S-> [RX] try...')
+    rx_msg = None
+    try:
+        rx_data = await asyncio.wait_for ( reader.read(512), timeout=1.0 )
+    except asyncio.TimeoutError:
+        pass
+    else:
+        rx_msg = rx_data.decode()
+        addr = writer.get_extra_info('peername')
+        print('AIO S-> [RX] "%r" from "%r"' % (rx_msg, addr))
+        gTCPrxMsg = rx_msg
+
+    if rx_msg == TCP_DEV_READY_MSG:
+        tx_msg = input('AIO S-> input command to client: ')
+    elif rx_msg == None:
+        tx_msg = gTCPtxMsg
+    else:
+        gTCPrxMsg = rx_msg    
+        tx_msg = None
+
+    if tx_msg != None:
+        print('AIO S-> [TX] "%r"' % tx_msg)
+        tx_data = tx_msg.encode()
         writer.write(tx_data)
         await writer.drain()
-        print('AIO C-> [TX] "%r" sent' % gTCPtxMsg)
+        print('AIO C-> [TX] sent')
 
-    if gTCPtxMsg == TCP_STE_REQ_MSG:
+    if rx_msg == None:
         print('AIO S-> [RX] try...')
         try:
             rx_data = await asyncio.wait_for ( reader.read(512), timeout=10.0 )
         except asyncio.TimeoutError:
             pass
         else:
-            gTCPrxMsg = rx_data.decode()
+            rx_msg = rx_data.decode()
             addr = writer.get_extra_info('peername')
-            print('AIO S-> [RX] "%r" from "%r"' % (gTCPrxMsg, addr))
+            print('AIO S-> [RX] "%r" from "%r"' % (rx_msg, addr))
+            gTCPrxMsg = rx_msg
 
-    print('AIO S-> close the client socket
-    print('<<<<<')
+    print('AIO S-> close the client socket\n----+')
     writer.close()
 
 #############################################
