@@ -140,7 +140,7 @@ async def tcp_RX_message(tx_msg, loop):
         print('AIO C-> [RX] "%r"' % gTCPrxMsg)
     #
     print('AIO C-> close the socket\n<<<<')
-    await reader.close()
+    writer.close()
 
 #############################################
 # handle to send data
@@ -173,7 +173,7 @@ async def tcp_TX_data(tx_msg, loop):
     print('AIO C-> [tx] "%r" sent' % tx_msg)
     #
     print('AIO C-> close the socket\n<<<<')
-    await writer.close()
+    writer.close()
 
 #############################################
 # functions definition
