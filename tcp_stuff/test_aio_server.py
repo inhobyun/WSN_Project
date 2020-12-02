@@ -58,7 +58,7 @@ async def handle_RX_TX(reader, writer):
             addr = writer.get_extra_info('peername')
             print('AIO S-> [RX] "%r" from "%r"' % (gTCPrxMsg, addr))
             gTCPtxMsg = None
-    if gBDTisRolled and gTCPtxMsg == TCP_BDT_REQ_MSG:
+    elif gBDTisRolled and gTCPtxMsg == TCP_BDT_REQ_MSG:
         print('\n>>>>>\nAIO S-> [RX] try to get BDT result...')
         #
         # implemet BDT coding here !!!
@@ -82,7 +82,6 @@ async def handle_RX_TX(reader, writer):
             await writer.drain()
             gTCPtxMsg = tx_msg
             print('AIO C-> [TX] "%r" sent' % gTCPtxMsg)
-
     print('AIO S-> close the client socket')
     writer.close()
     print('<<<<<')

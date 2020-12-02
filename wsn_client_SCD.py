@@ -639,31 +639,24 @@ if  SCD_clear_memory(p) == None:
 gIDLElastTime = time.time()
 loop = asyncio.get_event_loop()
 while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
-#
-#############################################
     #
     # wait any message from server
     #
-    gTCPrxMsg = None
+    gTCPtxMsg = gTCPrxMsg = None
     loop.run_until_complete(tcp_RX_message(None, loop))
     #
     if gTCPrxMsg != None:
         #
         # process server message
         #
-        gTCPtxMSG = None
         if gTCPrxMsg == TCP_STE_START_MSG:
-        #
-        # start STE rolling w/o memory writing
-        #
+            # start STE rolling w/o memory writing
             print (">> start STE ...")
             p.setDelegate( NotifyDelegate(p) )
             SCD_set_STE_config(p, False)
             SCD_toggle_STE_rolling(p, True, False)
         elif gTCPrxMsg == TCP_STE_REQ_MSG:
-        #
-        # request STE data
-        #
+            # request STE data
             if gSTEisRolling:
                 print (">> request STE data ...")
                 # if not enable STE notification
@@ -672,18 +665,14 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
             else:
                 print (">> invalid message, STE has not been started !")    
         elif gTCPrxMsg == TCP_BDT_START_MSG:
-        #
-        # start BDT
-        #
+            # start BDT
             print (">> start BDT ...")
             if not (gSTEisRolling or gBDTisRolled):                
                 SCD_run_STE_and_BDT(p)
             else:
                 print (">> invalid message, BDT is not allowed during rolling !")     
         elif gTCPrxMsg == TCP_BDT_REQ_MSG:
-        #
-        # request BDT data
-        #
+            # request BDT data
             if gBDTisRolled:
                 print (">> request BDT data ...")
                 # 
@@ -693,22 +682,16 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
             else:
                 print (">> invalid message, BDT has not been done !")    
         elif gTCPrxMsg == TCP_STE_STOP_MSG or gTCPrxMsg == TCP_DEV_CLOSE_MSG:
-        #
-        # stop STE or disconnect
-        #
+            # stop STE or disconnect
             print (">> stop STE ...")
             SCD_set_STE_config (p, False)
             SCD_toggle_STE_rolling (p, False, False)
             SCD_print_STE_status()
         else:
-        #
-        # invalid message
-        #
+            # invalid message
             print (">> invalid [RX] message !")    
         if gTCPrxMsg == TCP_DEV_CLOSE_MSG:
-        #
-        # disconnect
-        #
+            # exit from loop
             print (">> close device ...")
             break    
     #
@@ -727,6 +710,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     #
     if gTCPtxMsg != None:     
         loop.run_until_complete(tcp_TX_data(gTCPtxMsg, loop))
+
 #
 #############################################
 
