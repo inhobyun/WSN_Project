@@ -60,7 +60,7 @@ async def handle_RX_TX(reader, writer):
             addr = writer.get_extra_info('peername')
             print('AIO S-> [RX] "%r" from "%r"' % (gTCPrxMsg, addr))
 
-    print('AIO S-> close the client socket
+    print('AIO S-> close the client socket')
     print('<<<<<')
     writer.close()
 
