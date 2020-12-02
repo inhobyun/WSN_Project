@@ -526,6 +526,27 @@ def SCD_clear_memory( p ):
     return p    
 
 #############################################
+# run STE for idling
+#
+def SCD_run_STE_for_idling( p ): 
+    #
+    # rolls STE for short time period
+    #
+    # start STE w/o memory writing
+    print (">SCD: Recording STE starting ...")
+    p.setDelegate( NotifyDelegate(p) )
+    SCD_set_STE_config(p, False)
+    SCD_toggle_STE_rolling(p, True, True)
+    # take rolling time ( added more overhead time)
+    tm = time.time()
+    while time.time() - tm <= 0.3:
+        wait_flag = p.waitForNotifications(0.1)
+    # stop STE
+    SCD_toggle_STE_rolling(p, False, False) 
+    SCD_print_STE_status()
+    return
+
+#############################################
 # run STE & BLK data transfer
 #
 def SCD_run_STE_and_BDT( p ):
@@ -713,7 +734,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
         #
         # doing some to keep BLE connection
         #
-        p.readCharacteristic( SCD_STE_RESULT_HND )
+        SCD_run_STE_for_idling(p)
         gIDLElastTime = t
         print (">> STE result query to keep connection")
     #
