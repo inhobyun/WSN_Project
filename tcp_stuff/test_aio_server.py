@@ -40,15 +40,6 @@ async def handle_RX_TX(reader, writer):
     global gTCPrxMsg
     global gTCPtxMsg
 
-    gTCPtxMsg = input('AIO S-> input command to client: ')
-    print('\n>>>>>')
-    if gTCPtxMsg != None:
-        print('AIO S-> [TX] try')
-        tx_data = gTCPtxMsg.encode()
-        writer.write(tx_data)
-        await writer.drain()
-        print('AIO C-> [TX] "%r" sent' % gTCPtxMsg)
-
     if gTCPtxMsg == TCP_STE_REQ_MSG:
         print('AIO S-> [RX] try...')
         try:
@@ -59,6 +50,16 @@ async def handle_RX_TX(reader, writer):
             gTCPrxMsg = rx_data.decode()
             addr = writer.get_extra_info('peername')
             print('AIO S-> [RX] "%r" from "%r"' % (gTCPrxMsg, addr))
+    else:        
+        tx_msg = input('AIO S-> input command to client: ')
+        print('\n>>>>>')
+        if tx_msg != '':
+            print('AIO S-> [TX] try')
+            tx_data = tx_msg.encode()
+            writer.write(tx_data)
+            await writer.drain()
+            gTCPtxMsg = tx_msg
+            print('AIO C-> [TX] "%r" sent' % gTCPtxMsg)
 
     print('AIO S-> close the client socket')
     print('<<<<<')
