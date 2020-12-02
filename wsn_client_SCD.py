@@ -140,7 +140,7 @@ async def tcp_RX_message(tx_msg, loop):
         print('AIO C-> [RX] "%r"' % gTCPrxMsg)
     #
     print('AIO C-> close the socket\n<<<<')
-    writer.close()
+    await reader.close()
 
 #############################################
 # handle to send data
@@ -173,7 +173,7 @@ async def tcp_TX_data(tx_msg, loop):
     print('AIO C-> [tx] "%r" sent' % tx_msg)
     #
     print('AIO C-> close the socket\n<<<<')
-    writer.close()
+    await writer.close()
 
 #############################################
 # functions definition
@@ -524,7 +524,6 @@ def SCD_run_STE_and_BDT( p ):
     global gBDTnotiCnt
     global gBDTstartTime
     global gBDTlastTime    
-    global gIDLElastTime
     #
     # rolls STE for certain time period
     #
@@ -561,7 +560,6 @@ def SCD_run_STE_and_BDT( p ):
     print ("\n>SCD: Bulk Data Transfer completed...status is [%s], time [%.3f], count [%d]" % \
             (ret_val.hex(), (gBDTlastTime-gBDTstartTime), gBDTnotiCnt) )
     #
-    gIDLElastTime = time.time()
     gBDTisRolled = True        
     return
 
@@ -655,6 +653,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
             p.setDelegate( NotifyDelegate(p) )
             SCD_set_STE_config(p, False)
             SCD_toggle_STE_rolling(p, True, False)
+            gIDLElastTime = time.time()
         elif gTCPrxMsg == TCP_STE_REQ_MSG:
             # request STE data
             if gSTEisRolling:
@@ -662,6 +661,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
                 # if not enable STE notification
                 gSTElastData = p.readCharacteristic(SCD_STE_RESULT_HND)
                 gTCPtxMsg = SCD_string_STE_data(gSTElastData)
+                gIDLElastTime = time.time()
             else:
                 print (">> invalid message, STE has not been started !")    
         elif gTCPrxMsg == TCP_BDT_START_MSG:
@@ -669,6 +669,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
             print (">> start BDT ...")
             if not (gSTEisRolling or gBDTisRolled):                
                 SCD_run_STE_and_BDT(p)
+                gIDLElastTime = time.time()
             else:
                 print (">> invalid message, BDT is not allowed during rolling !")     
         elif gTCPrxMsg == TCP_BDT_REQ_MSG:
@@ -687,6 +688,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
             SCD_set_STE_config (p, False)
             SCD_toggle_STE_rolling (p, False, False)
             SCD_print_STE_status()
+            gIDLElastTime = time.time()
         else:
             # invalid message
             print (">> invalid [RX] message !")    
@@ -710,7 +712,6 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     #
     if gTCPtxMsg != None:     
         loop.run_until_complete(tcp_TX_data(gTCPtxMsg, loop))
-
 #
 #############################################
 
