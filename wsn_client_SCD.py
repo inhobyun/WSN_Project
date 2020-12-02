@@ -55,37 +55,37 @@ SCD_BDT_DATA_FLOW_HND = 45    # RN, uuid: 02a65821-3003-1000-2000-b05cb05cb05c
 #
 # MAX constants of BOSCH SCD
 #
-SCD_MAX_MTU     = 65                # MAX SCD Comm. Packet size
-SCD_MAX_FLASH   = 0x0b0000          # 11*16**4 = 720896 = 704K
+SCD_MAX_MTU   = 65                # MAX SCD Comm. Packet size
+SCD_MAX_FLASH = 0x0b0000          # 11*16**4 = 720896 = 704K
 
 #
 # Some constant parameters
 #
-SCAN_TIME       = 8.    # scanning duration for BLE devices 
-STE_RUN_TIME    = 3.    # STE rolling time in secconds for SENSOR data recording
-STE_FREQUENCY   = (400, 800, 1600, 3200, 6400)  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz
+SCAN_TIME     = 8.    # scanning duration for BLE devices 
+STE_RUN_TIME  = 3.    # STE rolling time in secconds for SENSOR data recording
+STE_FREQUENCY = (400, 800, 1600, 3200, 6400)  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz
 #
 # global variables
 #
-global gTargetDevice   = None  # target device object 
-global gScannedCount   = 0     # count of scanned BLE devices
+gTargetDevice = None  # target device object 
+gScannedCount = 0     # count of scanned BLE devices
 # STE - Short Time Experiment
-global gSTEcfgMode     = bytes(35)  # Sensor Mode
-global gSTEnotiCnt     = 0     # count of notifications from connected device
-global gSTEstartTime   = 0.    # notification start timestamp
-global gSTElastTime    = 0.    # last notification timestamp
-global gSTElastData    = None    # last notification data
-global gSTEisRolling   = False # flag wether STE is on rolling
+gSTEcfgMode   = bytes(35)  # Sensor Mode
+gSTEnotiCnt   = 0     # count of notifications from connected device
+gSTEstartTime = 0.    # notification start timestamp
+gSTElastTime  = 0.    # last notification timestamp
+gSTElastData  = None    # last notification data
+gSTEisRolling = False # flag wether STE is on rolling
 # BDT - Block Data Transfer
-global gBDTnotiCnt     = 0
-global gBDTstartTime   = 0.   
-global gBDTlastTime    = 0.
-global gBDTdata        = bytearray(SCD_MAX_FLASH)
-global gBDTcrc32       = bytearray(4)
-global gBDTisRolling   = False
+gBDTnotiCnt   = 0
+gBDTstartTime = 0.   
+gBDTlastTime  = 0.
+gBDTdata      = bytearray(SCD_MAX_FLASH)
+gBDTcrc32     = bytearray(4)
+gBDTisRolling = False
 # IDLE
-global gIDLElastTime   = 0.    # last BLE traffic on connection
-global gIDLEinterval   = 60.   # time interval to make BLE traffic to keep connection
+gIDLElastTime = 0.    # last BLE traffic on connection
+gIDLEinterval = 60.   # time interval to make BLE traffic to keep connection
 
 
 #############################################
@@ -94,24 +94,24 @@ global gIDLEinterval   = 60.   # time interval to make BLE traffic to keep conne
 #
 # target TCP Server identifiers
 #
-##TCP_HOST_NAME   = "127.0.0.1"       # TEST Host Name
-##TCP_HOST_NAME   = "10.2.2.3"        # TEST Host Name
-##TCP_HOST_NAME   = "192.168.0.3"     # TEST Host Name
-TCP_HOST_NAME   = "125.131.73.31"   # Default Host Name
-TCP_PORT        = 8088              # Default TCP Port Name
-##TCP_TX_INTERVAL     = 1.            # time interval to send notification to host      
-TCP_DEV_READY_MSG   = 'DEV_READY'
-TCP_DEV_CLOSE_MSG   = 'DEV_CLOSE'
-TCP_STE_START_MSG   = 'STE_START'
-TCP_STE_STOP_MSG    = 'STE_STOP'
-TCP_STE_REQ_MSG     = 'STE_REQ'
-TCP_BDT_START_MSG   = 'BDT_START'
-TCP_BDT_REQ_MSG     = 'BDT_REQ'
+##TCP_HOST_NAME = "127.0.0.1"       # TEST Host Name
+##TCP_HOST_NAME = "10.2.2.3"        # TEST Host Name
+##TCP_HOST_NAME = "192.168.0.3"     # TEST Host Name
+TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
+TCP_PORT      = 8088              # Default TCP Port Name
+##TCP_TX_INTERVAL   = 1.            # time interval to send notification to host      
+TCP_DEV_READY_MSG = 'DEV_READY'
+TCP_DEV_CLOSE_MSG = 'DEV_CLOSE'
+TCP_STE_START_MSG = 'STE_START'
+TCP_STE_STOP_MSG  = 'STE_STOP'
+TCP_STE_REQ_MSG   = 'STE_REQ'
+TCP_BDT_START_MSG = 'BDT_START'
+TCP_BDT_REQ_MSG   = 'BDT_REQ'
 #
 # global variables
 #
-global gTCPrxMsg    = None
-global gTCPtxMsg    = None
+gTCPrxMsg = None
+gTCPtxMsg = None
 
 #############################################
 # handle to receive command message
@@ -122,7 +122,7 @@ async def tcp_RX_message(tx_msg, loop):
     #
     reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
     #
-    print('\n>>\nAIO C-> receive command...')
+    print('\n>>>>\nAIO C-> receive command...')
     if tx_msg != None:
         print('AIO C-> [TX] try...')
         writer.write(tx_msg.encode())
@@ -151,7 +151,7 @@ async def tcp_TX_data(tx_msg, loop):
     #
     reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
     #
-    print('\n>>\nAIO C-> send data...')
+    print('\n>>>>\nAIO C-> send data...')
     #
     print('AIO C-> [RX] try...')
     rx_msg = None
@@ -350,7 +350,8 @@ def SCD_print_STE_status():
         print ( ">SCD: Notification End   : %s(%.3f)" \
                 % (datetime.datetime.fromtimestamp(gSTElastTime).strftime('%Y-%m-%d %H:%M:%S'), gSTElastTime) )
         print ( ">SCD: Notification Count : %d" % gSTEnotiCnt)
-    print ( ">SCD: Rolling Count      : %d" % int(gSTElastData[32]) )
+    if  gSTElastData != None:
+        print ( ">SCD: Rolling Count      : %d" % int(gSTElastData[32]) )
     #
     return
 
