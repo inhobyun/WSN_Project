@@ -180,10 +180,10 @@ def post_monStart():
         write_to_socket(TCP_STE_START_MSG)
         time.sleep(0.3)
         gIsStarted = True
-    else:    
-        write_to_socket(TCP_STE_REQ_MSG)
-        time.sleep(0.3)
-        from_client = read_from_socket()
+    
+    write_to_socket(TCP_STE_REQ_MSG)
+    time.sleep(0.3)
+    from_client = read_from_socket()
 
     # get the data to post
     if from_client != None:
