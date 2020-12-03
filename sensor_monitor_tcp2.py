@@ -46,16 +46,18 @@ gSocketAccepted = False
 # create, bind and listen socket
 #
 def open_socket(clientNum = 8):
+    global TCP_HOST_NAME
+    global TCP_PORT
     global gSocketServer
     global gSocketConn
     global gSocketAddr
     #
+    if len(sys.argv) > 1:
+        print ("TCP-S> take argument as port# (default: %d)" % TCP_PORT)
+        TCP_PORT = int(sys.argv[1])
     gSocketServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     if gSocketServer != None:
         print("TCP-S> socket created")
-        if len(sys.argv) > 1:
-            print ("TCP-S> take argument as port# (default: 8088)")
-            TCP_PORT = int(sys.argv[1])
         try:
             print("TCP-S> trying to bind %s:%d" % (TCP_HOST_NAME, TCP_PORT) )
             gSocketServer.bind((TCP_HOST_NAME, TCP_PORT))
@@ -74,7 +76,7 @@ def open_socket(clientNum = 8):
 ##############################################
 # read from socket
 #
-def read_from_socket(blockingTimer = 3):
+def read_from_socket(blockingTimer = 60):
     global gSocketServer
     global gSocketConn
     global gSocketAddr
@@ -83,7 +85,7 @@ def read_from_socket(blockingTimer = 3):
         print ("TCP-S> accepting ... ", end = '')
         gSocketServer.setblocking(blockingTimer)
         gSocketConn, gSocketAddr = gSocketServer.accept()
-        print ("accepted port# [%d]" % gSocketAddr)
+        print ("accepted port# [", gSocketAddr, "]")
         rx_msg = ''
         cnt = 0
         while True:
@@ -103,7 +105,7 @@ def read_from_socket(blockingTimer = 3):
 #############################################
 # write to socket
 #
-def write_to_socket(tx_msg, blockingTimer = 3):
+def write_to_socket(tx_msg, blockingTimer = 60):
     global gSocketServer
     global gSocketConn
     global gSocketAddr
@@ -112,7 +114,7 @@ def write_to_socket(tx_msg, blockingTimer = 3):
         print ("TCP-S> accepting ... ", end = '')
         gSocketServer.setblocking(blockingTimer)
         gSocketConn, gSocketAddr = gSocketServer.accept()
-        print ("accepted port# [%d]" % gSocketAddr)
+        print ("accepted port# [", gSocketAddr, "]")
         if tx_msg != '':
             gSocketConn.send(tx_msg.encode())
             print ("TCP-S> sent [%s]" % tx_msg)
@@ -121,7 +123,7 @@ def write_to_socket(tx_msg, blockingTimer = 3):
         print ("TCP-S> accept & write fail !" )
     #    
     return
-
+#
 #############################################
 #############################################
 #         
@@ -171,11 +173,11 @@ def post_monStart():
     value = data['value']
 
     # send STE start & request
-    write_to_socket(TCP_STE_START_MSG,3)
+    write_to_socket(TCP_STE_START_MSG)
     time.sleep(0.3)
-    write_to_socket(TCP_STE_REQ_MSG,3)
+    write_to_socket(TCP_STE_REQ_MSG)
     time.sleep(1.0)
-    from_client = read_from_socket(3)
+    from_client = read_from_socket()
 
     # get the data to post
     if from_client != None:
@@ -203,11 +205,11 @@ def post_monStop():
     value = data['value']
 
     # send STE request & stop
-    write_to_socket(TCP_STE_REQ_MSG,3)
+    write_to_socket(TCP_STE_REQ_MSG)
     time.sleep(1.0)
-    from_client = read_from_socket(3)
+    from_client = read_from_socket()
     time.sleep(0.3)
-    write_to_socket(TCP_STE_STOP_MSG,3)
+    write_to_socket(TCP_STE_STOP_MSG)
 
     # get the data to post
     if from_client != None:
