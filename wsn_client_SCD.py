@@ -12,7 +12,7 @@ coded functions as below
 by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
                     started 2020-11-05
-                    last updated 2020-12-01
+                    last updated 2020-12-03; working revision
 """
 import asyncio
 from bluepy.btle import Scanner, DefaultDelegate, UUID, Peripheral

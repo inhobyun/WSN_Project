@@ -4,7 +4,7 @@ Code to reset SCD
 by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
                     started 2020-11-09
-                    last updated 2020-11-10
+                    last updated 2020-12-02; cleaned-up
 """
 from bluepy.btle import Scanner, DefaultDelegate, UUID, Peripheral
 import datetime
@@ -47,7 +47,6 @@ SCD_BDT_DATA_FLOW_HND = 45    # RN, uuid: 02a65821-3003-1000-2000-b05cb05cb05c
 #
 SCD_MAX_MTU     = 65                # MAX SCD Comm. Packet size
 SCD_MAX_FLASH   = 0x0b0000          # 11*16**4 = 720896 = 704K
-#SCD_MAX_NOTIFY = SCD_MAX_FLASH>>4  # int(SCD_MAX_FLASH / 16)
 
 #
 # Some constant parameters
@@ -55,7 +54,6 @@ SCD_MAX_FLASH   = 0x0b0000          # 11*16**4 = 720896 = 704K
 SCAN_TIME        = 8.    # scanning duration for BLE devices 
 STE_RUN_TIME     = 5.    # STE rolling time in secconds (if 0, end-less rolling)
 STE_FREQUENCY    = (400, 800, 1600, 3200, 6400)  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz
-#MAX_STE_RUN_TIME= 30.   # max STE rolling time in seconds
 #
 # global variables
 #
@@ -352,9 +350,8 @@ if (struct.unpack('i', ret_val[31:35]))[0] < SCD_MAX_FLASH:
     p.disconnect()
     time.sleep(10.)
     p = scan_and_connect(False)    
-#
+
 #############################################
-#
 # check Mode to set STE Mode
 #
 ret_val = p.readCharacteristic( SCD_SET_MODE_HND )
@@ -362,9 +359,8 @@ if ret_val !=  b'\x00':
     print("+--- set STE mode")
     p.writeCharacteristic( SCD_SET_MODE_HND, b'\x00' )
     ret_val = p.readCharacteristic( SCD_SET_MODE_HND )
-#
+
 #############################################
-#
 # set STE Configuration
 #
 time_bytes = struct.pack('<l', int(time.time()))
@@ -373,9 +369,8 @@ p.writeCharacteristic( SCD_STE_CONFIG_HND, gSTEMode )
 time.sleep(1.)
 ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
 print ("\tSTE config. get\n[%s](%d)" % (hex_str(ret_val), len(ret_val)))
-#
+
 #############################################
-#
 # start STE
 #
 print ("+--- STE starting...")
@@ -387,9 +382,8 @@ time_stop = time_start = time.time()
 while time_stop - time_start < STE_RUN_TIME:
     wait_flag = p.waitForNotifications(1.)
     time_stop = time.time()
-#
+
 #############################################
-#
 # stop STE
 #
 p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )        
@@ -403,7 +397,6 @@ print ("\n+--- STE stoped")
 print_STE_result()
 
 #############################################
-#
 # clean-up and init sensor device
 #
 p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x21' ) # reset threshold flag
