@@ -35,7 +35,8 @@ TCP_BDT_REQ_MSG   = 'BDT_REQ'
 gSocketServer   = None
 gSocketConn     = None
 gSocketAddr     = 0
-gSocketAccepted = False
+#
+gMonitorCnt     = 0
 
 #############################################
 #############################################
@@ -45,7 +46,7 @@ gSocketAccepted = False
 #############################################
 # create, bind and listen socket
 #
-def open_socket(clientNum = 8):
+def open_socket(clientNum = 1):
     global TCP_HOST_NAME
     global TCP_PORT
     global gSocketServer
@@ -171,12 +172,15 @@ def Ooops():
 def post_monStart():
     data = json.loads(request.data)
     value = data['value']
-
+    #
+    global gMonitorCnt
+    
     # send STE start & request
-    write_to_socket(TCP_STE_START_MSG)
-    time.sleep(0.3)
+    if gMonitorCnt == 0: 
+        write_to_socket(TCP_STE_START_MSG)
+        time.sleep(0.3)
     write_to_socket(TCP_STE_REQ_MSG)
-    time.sleep(1.0)
+    time.sleep(0.3)
     from_client = read_from_socket()
 
     # get the data to post
@@ -203,13 +207,16 @@ def post_monStart():
 def post_monStop():
     data = json.loads(request.data)
     value = data['value']
+    #
+    global gMonitorCnt
 
     # send STE request & stop
     write_to_socket(TCP_STE_REQ_MSG)
-    time.sleep(1.0)
+    time.sleep(0.3)
     from_client = read_from_socket()
     time.sleep(0.3)
     write_to_socket(TCP_STE_STOP_MSG)
+    gMonitorCnt += 1
 
     # get the data to post
     if from_client != None:
@@ -255,5 +262,5 @@ def post_graph():
 #############################################
 #
 if __name__ == '__main__':
-    open_socket(4)
+    open_socket()
     app.run(host='0.0.0.0')
