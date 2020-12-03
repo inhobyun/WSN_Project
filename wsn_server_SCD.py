@@ -180,9 +180,10 @@ def post_monStart():
         write_to_socket(TCP_STE_START_MSG)
         time.sleep(0.3)
         gIsStarted = True
-    write_to_socket(TCP_STE_REQ_MSG)
-    time.sleep(0.3)
-    from_client = read_from_socket()
+    else    
+        write_to_socket(TCP_STE_REQ_MSG)
+        time.sleep(0.3)
+        from_client = read_from_socket()
 
     # get the data to post
     if from_client != None:
@@ -212,29 +213,21 @@ def post_monStop():
     global gIsStarted
 
     # send STE request & stop
-    write_to_socket(TCP_STE_REQ_MSG)
-    time.sleep(0.3)
-    from_client = read_from_socket()
-    time.sleep(0.3)
-    write_to_socket(TCP_STE_STOP_MSG)
-    gIsStarted = False
-
-    # get the data to post
-    if from_client != None:
-        from_client = from_client.replace(')','')
-        from_client = from_client.replace('(','')
-        vals = from_client.split(',')  
-        rows = {'row_01' : vals[ 0],
-                'row_02' : vals[ 1],
-                'row_03' : vals[ 2],
-                'row_04' : vals[ 3],
-                'row_05' : vals[ 4],
-                'row_06' : vals[ 5],
-                'row_07' : vals[ 6],
-                'row_08' : vals[ 7],
-                'row_09' : vals[ 8],
-                'row_10' : vals[ 9],
-                'row_11' : vals[10]
+    if gIsStarted:
+        time.sleep(0.3)
+        write_to_socket(TCP_STE_STOP_MSG)
+        gIsStarted = False
+        rows = {'row_01' : '-',
+                'row_02' : '-',
+                'row_03' : '-',
+                'row_04' : '-',
+                'row_05' : '-',
+                'row_06' : '-',
+                'row_07' : '-',
+                'row_08' : '-',
+                'row_09' : '-',
+                'row_10' : '-',
+                'row_11' : '-'
                }               
 
     return json.dumps(rows)
