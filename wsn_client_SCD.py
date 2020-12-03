@@ -127,14 +127,14 @@ async def tcp_RX_message(tx_msg, loop):
     if not gTCPisPending:
         reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
     #
-    print('\n>>>>\nAIO C-> receive command...')
+    print('\n>++++\nAIO-C> receive command...')
     if tx_msg != None:
-        print('AIO C-> [TX] try...')
+        print('AIO-C> [TX] try...')
         writer.write(tx_msg.encode())
         await writer.drain()
-        print('AIO C-> [TX] "%r" sent' % tx_msg)
+        print('AIO-C> [TX] "%r" sent' % tx_msg)
     #    
-    print('AIO C-> [RX] try...')
+    print('AIO-C> [RX] try...')
     rx_data = None
     try:
         rx_data = await asyncio.wait_for ( reader.read(512), timeout=30.0 )
@@ -143,10 +143,10 @@ async def tcp_RX_message(tx_msg, loop):
         pass 
     if rx_data != None:
         gTCPrxMsg = rx_data.decode()
-        print('AIO C-> [RX] "%r"' % gTCPrxMsg)
+        print('AIO-C> [RX] "%r"' % gTCPrxMsg)
         gTCPisPending = False
     #
-    print('AIO C-> close the socket\n<<<<')
+    print('AIO-C> close the socket\n++++<')
 
     if not gTCPisPending:
         writer.close()
@@ -160,28 +160,28 @@ async def tcp_TX_data(tx_msg, loop):
     #
     reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
     #
-    print('\n>>>>\nAIO C-> send data...')
+    print('\n>++++\nAIO-C> send data...')
     #
-    print('AIO C-> [RX] try...')
+    print('AIO-C> [RX] try...')
     rx_msg = None
     try:
         rx_data = await asyncio.wait_for ( reader.read(512), timeout=0.3 )
     except asyncio.TimeoutError:
-        print('AIO C-> [RX] no data')
+        print('AIO-C> [RX] no data')
         pass
     else:
         rx_msg = rx_data.decode()
-        print('AIO C-> [RX] "%r"' % rx_msg)
+        print('AIO-C> [RX] "%r"' % rx_msg)
     #
     if tx_msg == None:
-        tx_msg = input('AIO C-> input data to server: ')
-    print('AIO C-> [tx] try...')
+        tx_msg = input('AIO-C> input data to server: ')
+    print('AIO-C> [tx] try...')
     tx_data = tx_msg.encode()
     writer.write(tx_data)
     await writer.drain()        
-    print('AIO C-> [tx] "%r" sent' % tx_msg)
+    print('AIO-C> [tx] "%r" sent' % tx_msg)
     #
-    print('AIO C-> close the socket\n<<<<')
+    print('AIO-C> close the socket\n++++<')
     writer.close()
 
 #############################################
@@ -236,7 +236,7 @@ def SCD_set_STE_config( p, is_writing = False ):
     p.writeCharacteristic( SCD_STE_CONFIG_HND, gSTEcfgMode )
     time.sleep(.3)
     ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
-    print (">SCD: STE config. get\n[%s](%d)" % (hex_str(ret_val), len(ret_val)))
+    print ("SCD> STE config. get\n[%s](%d)" % (hex_str(ret_val), len(ret_val)))
     #
     return
 
@@ -249,7 +249,7 @@ def SCD_check_STE_rolling( p ):
     STE_result_0 = p.readCharacteristic( SCD_STE_RESULT_HND )
     time.sleep(.3)
     STE_result_1 = p.readCharacteristic( SCD_STE_RESULT_HND )
-    print (">SCD: checking rolling counter [%d] [%d]" % (int(STE_result_0[32]), int(STE_result_1[32])) )
+    print ("SCD> checking rolling counter [%d] [%d]" % (int(STE_result_0[32]), int(STE_result_1[32])) )
     if STE_result_0[32] != STE_result_1[32] :
         gSTEisRolling = True
     else:
@@ -273,22 +273,22 @@ def SCD_toggle_STE_rolling( p, will_start = False, will_notify = False ):
                 time.sleep(0.7)
             p.writeCharacteristic( SCD_SET_MODE_HND, b'\x00' )    
             p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
-            print (">SCD: STE is starting")        
+            print ("SCD> STE is starting")        
             gSTEisRolling = True
     else:
         if gSTEisRolling:
             p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
-            print (">SCD: STE is stopping")        
+            print ("SCD> STE is stopping")        
             ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
             while ( ret_val != b'\x00' ):
-                print (">SCD: => STE has not completed yet, generic command is [%s]" % ret_val.hex())
+                print ("SCD> => STE has not completed yet, generic command is [%s]" % ret_val.hex())
                 time.sleep(0.7)
                 ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
-            print (">SCD: STE stoped")
+            print ("SCD> STE stoped")
             gSTEisRolling = False
         ret_val = p.readCharacteristic( SCD_SET_MODE_HND )
         while ret_val !=  b'\x00':
-            print(">SCD: set STE mode")
+            print("SCD> set STE mode")
             p.writeCharacteristic( SCD_SET_MODE_HND, b'\x00' )
             ret_val = p.readCharacteristic( SCD_SET_MODE_HND )
     #        
@@ -355,17 +355,17 @@ def SCD_print_STE_status():
     # output time stamp & notification, rolling count
     #
     tm = float( (struct.unpack('<l', gSTEcfgMode[0:4]))[0] )   
-    print ( ">SCD: STE config. time   : %s(%.3f)" \
+    print ( "SCD> STE config. time   : %s(%.3f)" \
             % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
     if gSTEnotiCnt > 0:
-        print ( ">SCD: Notification Start : %s(%.3f)" \
+        print ( "SCD> Notification Start : %s(%.3f)" \
                 % (datetime.datetime.fromtimestamp(gSTEstartTime).strftime('%Y-%m-%d %H:%M:%S'), gSTEstartTime) )
-        print ( ">SCD: Notification End   : %s(%.3f)" \
+        print ( "SCD> Notification End   : %s(%.3f)" \
                 % (datetime.datetime.fromtimestamp(gSTElastTime).strftime('%Y-%m-%d %H:%M:%S'), gSTElastTime) )
-        print ( ">SCD: Notification Count : %d" % gSTEnotiCnt)
+        print ( "SCD> Notification Count : %d" % gSTEnotiCnt)
         gSTEnotiCnt = gSTElastTime = gSTEstartTime = 0
     if  gSTElastData != None:
-        print ( ">SCD: Rolling Count      : %d" % int(gSTElastData[32]) )
+        print ( "SCD> Rolling Count      : %d" % int(gSTElastData[32]) )
     #
     return
 
@@ -379,16 +379,16 @@ class ScanDelegate(DefaultDelegate):
         #
         DefaultDelegate.__init__(self)
         gScannedCount = 0
-        print(">> scan handler is configured", end='\n', flush = True)
+        print("WSN> scan handler is configured", end='\n', flush = True)
 
     def handleDiscovery(self, dev, isNewDev, isNewData):
         global gScannedCount
         #
         if isNewDev:
             gScannedCount += 1
-            print ('>> >' if gScannedCount==1 else '>', end='', flush = True)
+            print ('WSN> >' if gScannedCount==1 else '>', end='', flush = True)
         elif isNewData:
-            print ('>> +' if gScannedCount==0 else '+', end='', flush = True)            
+            print ('WSN> +' if gScannedCount==0 else '+', end='', flush = True)            
 
 #############################################
 # Define notification callback
@@ -400,7 +400,7 @@ class NotifyDelegate(DefaultDelegate):
         #
         DefaultDelegate.__init__(self)
         gSTEnotiCnt = 0
-        print(">> device notification handler is configured", end='\n', flush = True)
+        print("WSN> device notification handler is configured", end='\n', flush = True)
       
     def handleNotification(self, cHandle, data):
         global gSTEnotiCnt
@@ -441,10 +441,10 @@ class NotifyDelegate(DefaultDelegate):
                 idx = packet_no * 16
                 gBDTdata[idx:idx+16] = data[4:20]
             else:
-                print(">> BDT Packet No Error !... [%d] should less than [%d]" % (packet_no, gBDTnotiCnt), end='\n', flush = True)            
+                print("WSN> BDT Packet No Error !... [%d] should less than [%d]" % (packet_no, gBDTnotiCnt), end='\n', flush = True)            
         #        
         else:
-            print(">> %2d-#%3d-[%s]" % (cHandle, gSTEnotiCnt, hex_str(data)), end='\n', flush = True)
+            print("WSN> %2d-#%3d-[%s]" % (cHandle, gSTEnotiCnt, hex_str(data)), end='\n', flush = True)
 
 #############################################
 # Define Scan_and_connect
@@ -458,9 +458,9 @@ def SCD_scan_and_connect( is_first = True ):
     # scanning for a while
     #
     scanner = Scanner().withDelegate(ScanDelegate())
-    print (">SCD: BLE device scan %sstarted..." % ('re' if not is_first else '') )
+    print ("SCD> BLE device scan %sstarted..." % ('re' if not is_first else '') )
     devices = scanner.scan(SCAN_TIME)
-    print ("\n>SCD: BLE device scan completed... [%d] devices are scanned" % gScannedCount)
+    print ("\nSCD> BLE device scan completed... [%d] devices are scanned" % gScannedCount)
     #
     # check to match BOSCH SCD device identifiers
     #
@@ -469,13 +469,13 @@ def SCD_scan_and_connect( is_first = True ):
         for (adtype, desc, value) in dev.getScanData():
             if adtype == 255 and TARGET_MANUFA_UUID in value:
                 matching_count += 1
-                print(">SCD: => found target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value))            
+                print("SCD> => found target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value))            
             if adtype == 9 and TARGET_DEVICE_NAME in value:
                 matching_count += 1
-                print(">SCD: => found target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value))            
+                print("SCD> => found target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value))            
             if matching_count >= 2:
-                print(">SCD: => found BOSCH SCD device!")
-                print(">SCD: device address [%s], type=[%s], RSSI=[%d]dB" % (dev.addr, dev.addrType, dev.rssi))
+                print("SCD> => found BOSCH SCD device!")
+                print("SCD> device address [%s], type=[%s], RSSI=[%d]dB" % (dev.addr, dev.addrType, dev.rssi))
                 gTargetDevice = dev
                 break
         if gTargetDevice != None:
@@ -484,22 +484,22 @@ def SCD_scan_and_connect( is_first = True ):
     # if none found then exiting    
     #
     if gTargetDevice == None:
-        print(">SCD: no matching device found... Exiting...")
+        print("SCD> no matching device found... Exiting...")
         sys.exit(1)
     #
     # connect
     #
-    print(">SCD: connecting [%s], type=[%s]" % (gTargetDevice.addr, gTargetDevice.addrType))
+    print("SCD> connecting [%s], type=[%s]" % (gTargetDevice.addr, gTargetDevice.addrType))
     p = None
     retry = 0
     while p == None:
         try:
             p = Peripheral(gTargetDevice.addr, gTargetDevice.addrType)
         except:
-            print(">SCD: => BLE device connection error occured... retry after 3 sec...")
+            print("SCD> => BLE device connection error occured... retry after 3 sec...")
             retry += 1
             if retry > 3:
-                print(">SCD: => BLE device connection error occured... exiting...")
+                print("SCD> => BLE device connection error occured... exiting...")
                 sys.exit(-1)
             time.sleep(3)    
     #
@@ -515,10 +515,10 @@ def SCD_scan_and_connect( is_first = True ):
 def SCD_clear_memory( p ):
     #
     ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
-    print (">SCD: Flash memory remain is [%s] MAX:0b0000" % ret_val[31:34].hex())
+    print ("SCD> Flash memory remain is [%s] MAX:0b0000" % ret_val[31:34].hex())
     if (struct.unpack('i', ret_val[31:35]))[0] < SCD_MAX_FLASH:  
-        print (">SCD: => flash memory is not empty ... cleanning-up flash memory")
-        print (">SCD: Erase flash wait for seconds ... should reconnect device")
+        print ("SCD> => flash memory is not empty ... cleanning-up flash memory")
+        print ("SCD> Erase flash wait for seconds ... should reconnect device")
         p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x30' ) # erase sensor data
         p.disconnect()
         time.sleep(10.)
@@ -534,7 +534,7 @@ def SCD_run_STE_for_idling( p ):
     # rolls STE for short time period
     #
     # start STE w/o memory writing
-    print (">SCD: STE running for idling ...")
+    print ("SCD> STE running for idling ...")
     p.setDelegate( NotifyDelegate(p) )
     SCD_set_STE_config(p, False)
     SCD_toggle_STE_rolling(p, True, True)
@@ -559,7 +559,7 @@ def SCD_run_STE_and_BDT( p ):
     # rolls STE for certain time period
     #
     # start STE w/ memory writing
-    print (">SCD: Recording STE starting ...")
+    print ("SCD> Recording STE starting ...")
     p.setDelegate( NotifyDelegate(p) )
     SCD_set_STE_config(p, True)
     SCD_toggle_STE_rolling(p, True, True)
@@ -573,10 +573,10 @@ def SCD_run_STE_and_BDT( p ):
     #
     # start BDT
     #
-    print (">SCD: Bulk Data Transfer after a while ...")
+    print ("SCD> Bulk Data Transfer after a while ...")
     time.sleep(0.7)
     p.setDelegate( NotifyDelegate(p) )
-    print (">SCD: BDT Starting ...")
+    print ("SCD> BDT Starting ...")
     time.sleep(0.7)
     p.writeCharacteristic( SCD_BDT_DATA_FLOW_HND+1, struct.pack('<H', 1) )
     time.sleep(0.7)
@@ -588,7 +588,7 @@ def SCD_run_STE_and_BDT( p ):
             continue
         ret_val = p.readCharacteristic( SCD_BDT_STATUS_HND )
         time.sleep(0.7)
-    print ("\n>SCD: Bulk Data Transfer completed...status is [%s], time [%.3f], count [%d]" % \
+    print ("\nSCD> Bulk Data Transfer completed...status is [%s], time [%.3f], count [%d]" % \
             (ret_val.hex(), (gBDTlastTime-gBDTstartTime), gBDTnotiCnt) )
     #
     gBDTisRolled = True        
@@ -600,16 +600,16 @@ def SCD_run_STE_and_BDT( p ):
 def SCD_print_info( p ):
 
     ret_val = p.readCharacteristic( SCD_DEVICE_NAME_HND )
-    print (">SCD: Device Name is [%s]" % ret_val.decode("utf-8"))
+    print ("SCD> Device Name is [%s]" % ret_val.decode("utf-8"))
     #
     ret_val = p.readCharacteristic( SCD_SYSTEM_ID_HND )
-    print (">SCD: System ID is [%s][%s]" % (hex_str(ret_val[0:3]), hex_str(ret_val[3:8])))
+    print ("SCD> System ID is [%s][%s]" % (hex_str(ret_val[0:3]), hex_str(ret_val[3:8])))
     #
     ret_val = p.readCharacteristic( SCD_SERIAL_NUM_HND )
-    print (">SCD: Serial # is [%s]" % ret_val.decode("utf-8"))
+    print ("SCD> Serial # is [%s]" % ret_val.decode("utf-8"))
     #
     ret_val = p.readCharacteristic( SCD_FW_REVISION_HND )
-    print (">SCD: Revision is FW [%s]," % ret_val.decode("utf-8"), end = '')
+    print ("SCD> Revision is FW [%s]," % ret_val.decode("utf-8"), end = '')
     #
     ret_val = p.readCharacteristic( SCD_HW_REVISION_HND )
     print ("HW [%s]," % ret_val.decode("utf-8"), end = '')
@@ -618,16 +618,16 @@ def SCD_print_info( p ):
     print ("SW [%s]" % ret_val.decode("utf-8"))
     #
     ret_val = p.readCharacteristic( SCD_MANUFA_NAME_HND )
-    print (">SCD: Manufacturer Name is [%s]" % ret_val.decode("utf-8"))
+    print ("SCD> Manufacturer Name is [%s]" % ret_val.decode("utf-8"))
     #
     ret_val = p.readCharacteristic( SCD_IF_VERSION_HND )
-    print (">SCD: IF Version is [%s]" % hex_str(ret_val))
+    print ("SCD> IF Version is [%s]" % hex_str(ret_val))
     #
     ret_val = p.readCharacteristic( SCD_TEST_RESULT_HND )
-    print (">SCD: Self Test Result is [%s] c0:OK, otherwise not OK!" % ret_val.hex())
+    print ("SCD> Self Test Result is [%s] c0:OK, otherwise not OK!" % ret_val.hex())
     #
     ret_val = p.readCharacteristic( SCD_SET_MODE_HND )
-    print (">SCD: Mode is [%s] 00:STE, ff:Mode Selection" % ret_val.hex())
+    print ("SCD> Mode is [%s] 00:STE, ff:Mode Selection" % ret_val.hex())
     return
 
 #############################################
@@ -636,10 +636,10 @@ def SCD_print_info( p ):
 # Main starts here
 #
 if len(sys.argv) > 1:
-    print (">> take 1'st argument as Host IP address (default: '%s')" % TCP_HOST_NAME)
+    print ("WSN> take 1'st argument as Host IP address (default: '%s')" % TCP_HOST_NAME)
     TCP_HOST_NAME = sys.argv[1]
 if len(sys.argv) > 2:
-    print (">> take 2'nd argument as port# (default: '%d')" % TCP_PORT)
+    print ("WSN> take 2'nd argument as port# (default: '%d')" % TCP_PORT)
     TCP_PORT = int(sys.argv[2])
 #
 # scan and connect SCD
@@ -672,7 +672,11 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     # wait any message from server
     #
     gTCPtxMsg = gTCPrxMsg = None
-    loop.run_until_complete(tcp_RX_message(None, loop))
+    try:
+        loop.run_until_complete(tcp_RX_message(None, loop))
+    except ConnectionResetError:
+        print ("WSN> server connection is broken !")
+        break;    
     #
     if gTCPrxMsg != None:
         #
@@ -680,7 +684,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
         #
         if gTCPrxMsg == TCP_STE_START_MSG:
             # start STE rolling w/o memory writing
-            print (">> start STE ...")
+            print ("WSN> start STE ...")
             p.setDelegate( NotifyDelegate(p) )
             SCD_set_STE_config(p, False)
             SCD_toggle_STE_rolling(p, True, False)
@@ -688,46 +692,46 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
         elif gTCPrxMsg == TCP_STE_REQ_MSG:
             # request STE data
             if gSTEisRolling:
-                print (">> request STE data ...")
+                print ("WSN> request STE data ...")
                 # if not enable STE notification
                 gSTElastData = p.readCharacteristic(SCD_STE_RESULT_HND)
                 gTCPtxMsg = SCD_string_STE_data(gSTElastData)
                 gIDLElastTime = time.time()
             else:
-                print (">> invalid message, STE has not been started !")    
+                print ("WSN> invalid message, STE has not been started !")    
         elif gTCPrxMsg == TCP_BDT_RUN_MSG:
             # start BDT
-            print (">> start BDT ...")
+            print ("WSN> start BDT ...")
             if not (gSTEisRolling or gBDTisRolled):                
                 SCD_run_STE_and_BDT(p)
                 if SCD_clear_memory(p) == None:
                     p = SCD_scan_and_connect(False)
                 gIDLElastTime = time.time()
             else:
-                print (">> invalid message, BDT is not allowed during rolling !")     
+                print ("WSN> invalid message, BDT is not allowed during rolling !")     
         elif gTCPrxMsg == TCP_BDT_REQ_MSG:
             # request BDT data
             if gBDTisRolled:
-                print (">> request BDT data ...")
+                print ("WSN> request BDT data ...")
                 # 
                 # BDT coding here !!! 
                 #
                 gBDTisRolled = False
             else:
-                print (">> invalid message, BDT has not been done !")    
+                print ("WSN> invalid message, BDT has not been done !")    
         elif gTCPrxMsg == TCP_STE_STOP_MSG or gTCPrxMsg == TCP_DEV_CLOSE_MSG:
             # stop STE or disconnect
-            print (">> stop STE ...")
+            print ("WSN> stop STE ...")
             SCD_set_STE_config (p, False)
             SCD_toggle_STE_rolling (p, False, False)
             SCD_print_STE_status()
             gIDLElastTime = time.time()
         else:
             # invalid message
-            print (">> invalid [RX] message !")    
+            print ("WSN> invalid [RX] message !")    
         if gTCPrxMsg == TCP_DEV_CLOSE_MSG:
             # exit from loop
-            print (">> close device ...")
+            print ("WSN> close device ...")
             break    
     #
     # idling check
@@ -739,8 +743,14 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     #
     # if messae to send
     #
-    if gTCPtxMsg != None:     
+    if gTCPtxMsg == None:
+        continue
+    try:     
         loop.run_until_complete(tcp_TX_data(gTCPtxMsg, loop))
+    except ConnectionResetError:
+        print ("WSN> server connection is broken !")
+        break;    
+    
 #
 #############################################
 
@@ -758,6 +768,6 @@ if SCD_clear_memory(p) != None:
 # complete
 #
 loop.close()
-print (">> all done ...")
+print ("WSN> all done ...")
 #
 #############################################
