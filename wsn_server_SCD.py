@@ -36,7 +36,7 @@ gSocketServer   = None
 gSocketConn     = None
 gSocketAddr     = 0
 #
-gMonitorCnt     = 0
+gIsStarted      = False
 
 #############################################
 #############################################
@@ -173,12 +173,13 @@ def post_monStart():
     data = json.loads(request.data)
     value = data['value']
     #
-    global gMonitorCnt
+    global gIsStarted
     
     # send STE start & request
-    if gMonitorCnt == 0: 
+    if not gIsStarted: 
         write_to_socket(TCP_STE_START_MSG)
         time.sleep(0.3)
+        gIsStarted = True
     write_to_socket(TCP_STE_REQ_MSG)
     time.sleep(0.3)
     from_client = read_from_socket()
@@ -208,7 +209,7 @@ def post_monStop():
     data = json.loads(request.data)
     value = data['value']
     #
-    global gMonitorCnt
+    global gIsStarted
 
     # send STE request & stop
     write_to_socket(TCP_STE_REQ_MSG)
@@ -216,7 +217,7 @@ def post_monStop():
     from_client = read_from_socket()
     time.sleep(0.3)
     write_to_socket(TCP_STE_STOP_MSG)
-    gMonitorCnt += 1
+    gIsStarted = False
 
     # get the data to post
     if from_client != None:
