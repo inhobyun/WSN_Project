@@ -71,7 +71,7 @@
 
 <script>
 
-    //var tid = setInterval(startMonitoring, 3000)
+    var tid = null
 
     function dispData(data) {
         document.getElementById("row_01").innerHTML = data.row_01
@@ -87,7 +87,7 @@
         document.getElementById("row_11").innerHTML = data.row_11
     }
 
-    function startMonitoring() {
+    function doingMonitoring() {
         const value = document.getElementById('tm_period').value;
         axios.post('/post_monStart', {
             value: Number(value),
@@ -99,9 +99,14 @@
             alert('Error occurred on submit: ' + error);
         });
     }
+    
+    function startMonitoring() {
+        tid = setInterval(doingMonitoring, 2000)
+    }
 
     function stopMonitoring() {
-        //clearInterval ( tid );
+        const value = document.getElementById('tm_period').value;
+        clearInterval ( tid );
         axios.post('/post_monStop', {
             value: Number(value),
         }).then(response => {

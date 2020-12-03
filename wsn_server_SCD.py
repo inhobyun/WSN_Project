@@ -201,6 +201,19 @@ def post_monStart():
                 'row_09' : vals[ 8],
                 'row_10' : vals[ 9],
                 'row_11' : vals[10]
+               }
+    else:                          
+        rows = {'row_01' : '?',
+                'row_02' : '?',
+                'row_03' : '?',
+                'row_04' : '?',
+                'row_05' : '?',
+                'row_06' : '?',
+                'row_07' : '?',
+                'row_08' : '?',
+                'row_09' : '?',
+                'row_10' : '?',
+                'row_11' : '?'
                }               
 
     return json.dumps(rows)
