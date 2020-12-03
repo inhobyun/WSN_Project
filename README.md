@@ -45,7 +45,7 @@ or in Windows:
 And then, run server.
 
 ```bash
-python sensor_monitor.py
+python wsn_server_???.py
 ```
 
 ## Check out these documents
