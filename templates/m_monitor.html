@@ -7,7 +7,7 @@
 
     <p style="position:absolute; left:  8px; top:172px;"><label>Option</label></p>
     <p style="position:absolute; left: 50px; top:172px;"><label>period</label></p>
-    <p style="position:absolute; left:100px; top:170px;"><input type="text" id="tm_period" value="3"></p>    
+    <p style="position:absolute; left:100px; top:170px;"><input type="text" id="tm_period" value="1"></p>    
 {% endblock %}
 
 {% block foot %}
@@ -71,20 +71,7 @@
 
 <script>
 
-    var tid = setInterval(startMonitoring, 3000)
-
-    function startMonitoring() {
-        const value = document.getElementById('tm_period').value;
-        axios.post('/post_monStart', {
-            value: Number(value),
-        }).then(response => {
-            const data = response.data;
-            dispData(data);
-            //console.log(data);
-        }).catch(function (error) {
-            alert('Error occurred on submit: ' + error);
-        });
-    }
+    var tid = null
 
     function dispData(data) {
         document.getElementById("row_01").innerHTML = data.row_01
@@ -100,9 +87,26 @@
         document.getElementById("row_11").innerHTML = data.row_11
     }
 
-    function stopMonitoring() {
-        clearInterval ( tid );
+    function doingMonitoring() {
         const value = document.getElementById('tm_period').value;
+        axios.post('/post_monStart', {
+            value: Number(value),
+        }).then(response => {
+            const data = response.data;
+            dispData(data);
+            //console.log(data);
+        }).catch(function (error) {
+            alert('Error occurred on submit: ' + error);
+        });
+    }
+    
+    function startMonitoring() {
+        tid = setInterval(doingMonitoring, 2000)
+    }
+
+    function stopMonitoring() {
+        const value = document.getElementById('tm_period').value;
+        clearInterval ( tid );
         axios.post('/post_monStop', {
             value: Number(value),
         }).then(response => {
