@@ -41,6 +41,7 @@ gSocketAddr     = 0
 # read from socket
 #
 def read_from_socket():
+    global gSocketServer
     global gSocketConn
     global gSocketAddr
     #
@@ -68,6 +69,7 @@ def read_from_socket():
 # write to socket
 #
 def write_to_socket(tx_msg):
+    global gSocketServer
     global gSocketConn
     global gSocketAddr
     #
