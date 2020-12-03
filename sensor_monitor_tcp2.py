@@ -20,8 +20,8 @@ import time
 #
 # target TCP Server identifiers
 #
-TCP_HOST_NAME   = socket.gethostname()
-TCP_PORT        = 8088
+TCP_HOST_NAME = socket.gethostname()
+TCP_PORT      = 8088
 TCP_DEV_READY_MSG = 'DEV_READY'
 TCP_DEV_CLOSE_MSG = 'DEV_CLOSE'
 TCP_STE_START_MSG = 'STE_START'
@@ -33,20 +33,55 @@ TCP_BDT_REQ_MSG   = 'BDT_REQ'
 # global variables
 #
 gSocketServer   = None
-gSocketAccepted = False
 gSocketConn     = None
 gSocketAddr     = 0
+gSocketAccepted = False
 
 #############################################
+#############################################
+#         
+# socket stuffs
+#
+#############################################
+# create, bind and listen socket
+#
+def open_socket(clientNum = 8):
+    global gSocketServer
+    global gSocketConn
+    global gSocketAddr
+    #
+    gSocketServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    if gSocketServer != None:
+        print("TCP-S> socket created")
+        if len(sys.argv) > 1:
+            print ("TCP-S> take argument as port# (default: 8088)")
+            TCP_PORT = int(sys.argv[1])
+        try:
+            print("TCP-S> trying to bind %s:%d" % (TCP_HOST_NAME, TCP_PORT) )
+            gSocketServer.bind((TCP_HOST_NAME, TCP_PORT))
+        except:
+            print("TCP-S> binding fail... Exiting...")
+            sys.exit(1)
+    else:
+        print("TCP-S> socket creation fail... Exiting...")
+        sys.exit(1)
+    print("TCP-S> binded...")    
+    gSocketServer.listen(clientNum)
+    print("TCP-S> listening...") 
+    #
+    return  
+
+##############################################
 # read from socket
 #
-def read_from_socket():
+def read_from_socket(blockingTimer = 3):
     global gSocketServer
     global gSocketConn
     global gSocketAddr
     #
     try:
         print ("TCP-S> accepting ... ", end = '')
+        gSocketServer.setblocking(blockingTimer)
         gSocketConn, gSocketAddr = gSocketServer.accept()
         print ("accepted port# [%d]" % gSocketAddr)
         rx_msg = ''
@@ -68,13 +103,14 @@ def read_from_socket():
 #############################################
 # write to socket
 #
-def write_to_socket(tx_msg):
+def write_to_socket(tx_msg, blockingTimer = 3):
     global gSocketServer
     global gSocketConn
     global gSocketAddr
     #
     try:
         print ("TCP-S> accepting ... ", end = '')
+        gSocketServer.setblocking(blockingTimer)
         gSocketConn, gSocketAddr = gSocketServer.accept()
         print ("accepted port# [%d]" % gSocketAddr)
         if tx_msg != '':
@@ -85,32 +121,6 @@ def write_to_socket(tx_msg):
         print ("TCP-S> accept & write fail !" )
     #    
     return
-
-#############################################
-#############################################
-#         
-# Main starts here
-#
-#############################################
-#
-gSocketServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-if gSocketServer != None:
-    print("TCP-S> socket created")
-    if len(sys.argv) > 1:
-        print ("TCP-S> take argument as port# (default: 8088)")
-        TCP_PORT = int(sys.argv[1])
-    try:
-        print("TCP-S> trying to bind %s:%d" % (TCP_HOST_NAME, TCP_PORT) )
-        gSocketServer.bind((TCP_HOST_NAME, TCP_PORT))
-    except:
-        print("TCP-S> binding fail... Exiting...")
-        sys.exit(1)
-else:
-    print("TCP-S> socket creation fail... Exiting...")
-    sys.exit(1)
-print("TCP-S> binded...")    
-gSocketServer.listen(1)
-print("TCP-S> listening...") 
 
 #############################################
 #############################################
@@ -160,25 +170,13 @@ def post_monStart():
     data = json.loads(request.data)
     value = data['value']
 
-    # Prepare data to post
-    rows = {'row_01' : '---',
-            'row_02' : '---',
-            'row_03' : '---',
-            'row_04' : '---',
-            'row_05' : '---',
-            'row_06' : '---',
-            'row_07' : '---',
-            'row_08' : '---',
-            'row_09' : '---',
-            'row_10' : '---',
-            'row_11' : '---'
-           }
     # send STE start & request
-    write_to_socket(TCP_STE_START_MSG)
+    write_to_socket(TCP_STE_START_MSG,3)
     time.sleep(0.3)
-    write_to_socket(TCP_STE_REQ_MSG)
+    write_to_socket(TCP_STE_REQ_MSG,3)
     time.sleep(1.0)
-    from_client = read_from_socket()
+    from_client = read_from_socket(3)
+
     # get the data to post
     if from_client != None:
         from_client = from_client.replace(')','')
@@ -196,6 +194,7 @@ def post_monStart():
                 'row_10' : vals[ 9],
                 'row_11' : vals[10]
                }               
+
     return json.dumps(rows)
 
 @app.route('/post_monStop', methods=['POST'])
@@ -203,25 +202,13 @@ def post_monStop():
     data = json.loads(request.data)
     value = data['value']
 
-    # Prepare data to post
-    rows = {'row_01' : '***',
-            'row_02' : '***',
-            'row_03' : '***',
-            'row_04' : '***',
-            'row_05' : '***',
-            'row_06' : '***',
-            'row_07' : '***',
-            'row_08' : '***',
-            'row_09' : '***',
-            'row_10' : '***',
-            'row_11' : '***'
-           }
-    # send STE start & request
-    write_to_socket(TCP_STE_REQ_MSG)
+    # send STE request & stop
+    write_to_socket(TCP_STE_REQ_MSG,3)
     time.sleep(1.0)
-    from_client = read_from_socket()
+    from_client = read_from_socket(3)
     time.sleep(0.3)
-    write_to_socket(TCP_STE_STOP_MSG)
+    write_to_socket(TCP_STE_STOP_MSG,3)
+
     # get the data to post
     if from_client != None:
         from_client = from_client.replace(')','')
@@ -239,6 +226,7 @@ def post_monStop():
                 'row_10' : vals[ 9],
                 'row_11' : vals[10]
                }               
+
     return json.dumps(rows)
 
 @app.route('/post_graph', methods=['POST'])
@@ -257,5 +245,13 @@ def post_graph():
     
     return json.dumps({ 'x': x, 'y': y })
 
+#############################################
+#############################################
+#         
+# Main starts here
+#
+#############################################
+#
 if __name__ == '__main__':
+    open_socket(4)
     app.run(host='0.0.0.0')
