@@ -83,7 +83,7 @@ def read_from_socket(blockingTimer = 60):
     global gSocketAddr
     #
     try:
-        print ("TCP-S> accepting ... ", end = '')
+        print ("\nTCP-S> accepting to read ... ", end = '')
         gSocketServer.setblocking(blockingTimer)
         gSocketConn, gSocketAddr = gSocketServer.accept()
         print ("accepted port# [", gSocketAddr, "]")
@@ -112,7 +112,7 @@ def write_to_socket(tx_msg, blockingTimer = 60):
     global gSocketAddr
     #
     try:
-        print ("TCP-S> accepting ... ", end = '')
+        print ("\nTCP-S> accepting to write ... ", end = '')
         gSocketServer.setblocking(blockingTimer)
         gSocketConn, gSocketAddr = gSocketServer.accept()
         print ("accepted port# [", gSocketAddr, "]")
@@ -177,13 +177,15 @@ def post_monStart():
     
     # send STE start & request
     if not gIsStarted: 
+        time.sleep(0.2)
         write_to_socket(TCP_STE_START_MSG)
-        time.sleep(0.3)
         gIsStarted = True
-    
-    write_to_socket(TCP_STE_REQ_MSG)
-    time.sleep(0.3)
-    from_client = read_from_socket()
+        from_client = None
+    else:    
+        time.sleep(0.2)
+        write_to_socket(TCP_STE_REQ_MSG)
+        time.sleep(0.2)
+        from_client = read_from_socket()
 
     # get the data to post
     if from_client != None:
@@ -227,7 +229,7 @@ def post_monStop():
 
     # send STE request & stop
     if gIsStarted:
-        time.sleep(0.3)
+        time.sleep(0.2)
         write_to_socket(TCP_STE_STOP_MSG)
         gIsStarted = False
         rows = {'row_01' : '-',
