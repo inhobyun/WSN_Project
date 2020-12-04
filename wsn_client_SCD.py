@@ -200,10 +200,10 @@ def SCD_set_STE_config( p, is_writing = False ):
     mode |= 0x08 # 08 sensor En/Disable - temperature
     STE_mode[ 4: 5] = bytes( struct.pack('<h',mode) )
     #
-    mode  = 0x00 # ?0 data rate - accelerometer ODR 400Hz
+    #ode  = 0x00 # ?0 data rate - accelerometer ODR 400Hz
     #ode  = 0x01 # ?1 data rate - accelerometer ODR 800Hz
     #ode  = 0x02 # ?2 data rate - accelerometer ODR 1600Hz
-    #ode  = 0x03 # ?3 data rate - accelerometer ODR 3200Hz
+    mode  = 0x03 # ?3 data rate - accelerometer ODR 3200Hz
     #ode  = 0x04 # ?4 data rate - accelerometer ODR 6400Hz
     #ode |= 0x00 # 0? data rate - light sensor ODR 100ms(10Hz)
     #ode |= 0x10 # 1? data rate - light sensor ODR 800ms(1.25Hz)
@@ -632,9 +632,9 @@ def SCD_BDT_text_block():
     global gBDTtextBlock
     
     print ("SCD> text block creation from BDT ...")
-    if gBDTtexyBlock != '':
-        del gBDTtexyBlock
-        gBDTtexyBlock = ''
+    if gBDTtextBlock != '':
+        del gBDTtextBlock
+        gBDTtextBlock = ''
     # find EOD(End-of-Data: 0xaaaa, 0xaaaa)
     is_aa = 0
     for EOD_pos in range((gBDTnotiCnt+1)*16, (gBDTnotiCnt-3)*16, -1):
