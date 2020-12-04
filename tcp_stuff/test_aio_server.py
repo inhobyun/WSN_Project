@@ -4,7 +4,7 @@ Code to test async I/O server
 by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
                     started 2020-11-05
-                    last updated 2020-11-12
+                    last updated 2020-12-04
 """
 import asyncio
 import socket
@@ -18,16 +18,16 @@ import time
 # target TCP Server identifiers
 #
 TCP_HOST_NAME     = socket.gethostname()
-##TCP_HOST_NAME     = '10.2.2.3'
-##TCP_HOST_NAME     = '127.0.0.1'
 TCP_PORT          = 8088
-TCP_DEV_READY_MSG = 'DEV_READY'
-TCP_DEV_CLOSE_MSG = 'DEV_CLOSE'
-TCP_STE_START_MSG = 'STE_START'
-TCP_STE_STOP_MSG  = 'STE_STOP'
-TCP_STE_REQ_MSG   = 'STE_REQ'
-TCP_BDT_RUN_MSG   = 'BDT_RUN'
-TCP_BDT_REQ_MSG   = 'BDT_REQ'
+#
+TCP_DEV_READY_MSG = 'DEV_READY'     # server message to check client ready
+TCP_DEV_CLOSE_MSG = 'DEV_CLOSE'     # server message to disconnect client
+TCP_STE_START_MSG = 'STE_START'     # server message to start STE for monitoring
+TCP_STE_STOP_MSG  = 'STE_STOP'      # server message to stop STE
+TCP_STE_REQ_MSG   = 'STE_REQ'       # server message to request a STE result data 
+TCP_BDT_RUN_MSG   = 'BDT_RUN'       # server message to run BDT advanced STE /w memory write
+TCP_BDT_REQ_MSG   = 'BDT_REQ'       # server message to request BDT data
+TCP_BDT_END_MSG   = 'BDT_END'       # client message to inform BDT data transfer completed
 
 #
 # global variables
@@ -48,7 +48,7 @@ async def handle_RX_TX(reader, writer):
     global gBDTisRolled
 
     if gSTEisRolling and gTCPtxMsg == TCP_STE_REQ_MSG:
-        print('\n>++++\nAIO S-> [RX] try to get STE result...')
+        print('\n>--->\nAIO-S> [RX] try to get STE result...')
         try:
             rx_data = await asyncio.wait_for ( reader.read(512), timeout=60.0 )
         except asyncio.TimeoutError:
@@ -56,17 +56,17 @@ async def handle_RX_TX(reader, writer):
         else:
             gTCPrxMsg = rx_data.decode()
             addr = writer.get_extra_info('peername')
-            print('AIO S-> [RX] "%r" from "%r"' % (gTCPrxMsg, addr))
+            print('AIO-S> [RX] "%r" from "%r"' % (gTCPrxMsg, addr))
             gTCPtxMsg = None
     elif gBDTisRolled and gTCPtxMsg == TCP_BDT_REQ_MSG:
-        print('\n>++++\nAIO S-> [RX] try to get BDT result...')
+        print('\n>--->\nAIO-S> [RX] try to get BDT result...')
         #
         # implemet BDT coding here !!!
         #
         gBDTisRolled = False
         gTCPtxMsg = None
     else:        
-        tx_msg = input('\nAIO S-> input command to client: ')
+        tx_msg = input('\nAIO-S> input command to client: ')
         if tx_msg == TCP_STE_START_MSG:
             gSTEisRolling = True
         elif tx_msg == TCP_BDT_RUN_MSG:    
@@ -76,15 +76,15 @@ async def handle_RX_TX(reader, writer):
         elif tx_msg == TCP_DEV_CLOSE_MSG:
             gSTEisRolling = gBDTisRolled = False
         if tx_msg != '':
-            print('\n>++++\nAIO S-> [TX] try')
+            print('\n>--->\nAIO-S> [TX] try')
             tx_data = tx_msg.encode()
             writer.write(tx_data)
             await writer.drain()
             gTCPtxMsg = tx_msg
             print('AIO C-> [TX] "%r" sent' % gTCPtxMsg)
-    print('AIO S-> close the client socket')
+    print('AIO-S> close the client socket')
     writer.close()
-    print('++++<')
+    print('<---<')
 
 #############################################
 #############################################
@@ -99,7 +99,7 @@ server = loop.run_until_complete(coro)
 #
 # Serve requests until Ctrl+C is pressed
 #
-print('AIO S-> Serving on {}'.format(server.sockets[0].getsockname()))
+print('AIO-S> Serving on {}'.format(server.sockets[0].getsockname()))
 try:
     loop.run_forever()
 except KeyboardInterrupt:
