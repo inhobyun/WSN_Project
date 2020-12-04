@@ -2,8 +2,8 @@
 
 {% block left %}
     <p style="text-align:center;"><Strong>Sensor Data Monitoring</Strong><cr></p> 
-    <p style="text-align:right;"><button onclick="startMonitoring()"> Start </button></p>
-    <p style="text-align:right;"><button onclick="stopMonitoring()"> Stop </button></p>
+    <p style="text-align:right;"><button id="startBtn" onclick="startMonitoring()"> Start </button></p>
+    <p style="text-align:right;"><button id="stopBtn" disabled onclick="stopMonitoring()"> Stop </button></p>
 
     <p style="position:absolute; left:  8px; top:172px;"><label>Option</label></p>
     <p style="position:absolute; left: 50px; top:172px;"><label>period</label></p>
@@ -101,10 +101,18 @@
     }
     
     function startMonitoring() {
-        tid = setInterval(doingMonitoring, 2000)
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        startBtn.disbled = true;
+        stopBtn.disbled = false;
+        tid = setInterval(doingMonitoring, 2000);
     }
 
     function stopMonitoring() {
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        startBtn.disbled = false;
+        stopBtn.disbled = true;         
         const value = document.getElementById('tm_period').value;
         clearInterval ( tid );
         axios.post('/post_monStop', {
