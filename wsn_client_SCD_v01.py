@@ -12,8 +12,7 @@ coded functions as below
 by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
                     started 2020-11-05
-                    updated 2020-12-03; working revision
-                    last updated 2020-12-04; comm protocol updated
+                    last updated 2020-12-03; working revision
 """
 import asyncio
 from bluepy.btle import Scanner, DefaultDelegate, UUID, Peripheral
@@ -82,7 +81,6 @@ gBDTnotiCnt   = 0
 gBDTstartTime = 0.   
 gBDTlastTime  = 0.
 gBDTdata      = bytearray(SCD_MAX_FLASH)
-gBDTtextBlock = ''
 gBDTcrc32     = bytearray(4)
 gBDTisRolled = False
 # IDLE
@@ -96,20 +94,18 @@ gIDLEinterval = 60.   # time interval to make BLE traffic to keep connection
 #
 # target TCP Server identifiers
 #
-##TCP_HOST_NAME = "127.0.0.1"       # TEST Host Name
-##TCP_HOST_NAME = "10.2.2.3"        # TEST Host Name
-##TCP_HOST_NAME = "192.168.0.3"     # TEST Host Name
+##TCP_HOST_NAME = "127.0.0.1"       # TEST Host Name at local PC
+##TCP_HOST_NAME = "10.2.2.3"        # TEST Host Name at home
+##TCP_HOST_NAME = "192.168.0.3"     # TEST Host Name at office
 TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
 TCP_PORT      = 8088              # Default TCP Port Name
-#
-TCP_DEV_READY_MSG = 'DEV_READY'     # server message to check client ready
-TCP_DEV_CLOSE_MSG = 'DEV_CLOSE'     # server message to disconnect client
-TCP_STE_START_MSG = 'STE_START'     # server message to start STE for monitoring
-TCP_STE_STOP_MSG  = 'STE_STOP'      # server message to stop STE
-TCP_STE_REQ_MSG   = 'STE_REQ'       # server message to request a STE result data 
-TCP_BDT_RUN_MSG   = 'BDT_RUN'       # server message to run BDT advanced STE /w memory write
-TCP_BDT_REQ_MSG   = 'BDT_REQ'       # server message to request BDT data
-TCP_BDT_END_MSG   = 'BDT_END'       # client message to inform BDT data transfer completed
+TCP_DEV_READY_MSG = 'DEV_READY'
+TCP_DEV_CLOSE_MSG = 'DEV_CLOSE'
+TCP_STE_START_MSG = 'STE_START'
+TCP_STE_STOP_MSG  = 'STE_STOP'
+TCP_STE_REQ_MSG   = 'STE_REQ'
+TCP_BDT_RUN_MSG   = 'BDT_RUN'
+TCP_BDT_REQ_MSG   = 'BDT_REQ'
 #
 # global variables
 #
@@ -121,19 +117,24 @@ gTCPisPending = False
 # handle to receive command message
 #############################################
 #
-async def tcp_RX_message(loop):
+async def tcp_RX_message(tx_msg, loop):
     global gTCPrxMsg
     global gTCPisPending
     global reader
     global writer
     #
     if not gTCPisPending:
-        print('\n>--->')
         reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
-        print('AIO-C> open the socket to receive')
     #
+    print('\n>++++\nAIO-C> receive command...')
+    if tx_msg != None:
+        print('AIO-C> [TX] try...')
+        writer.write(tx_msg.encode())
+        await writer.drain()
+        print('AIO-C> [TX] "%r" sent' % tx_msg)
+    #    
+    print('AIO-C> [RX] try...')
     rx_data = None
-    print('AIO-C> [rx] try ...')
     try:
         rx_data = await asyncio.wait_for ( reader.read(512), timeout=30.0 )
     except asyncio.TimeoutError:
@@ -141,13 +142,13 @@ async def tcp_RX_message(loop):
         pass 
     if rx_data != None:
         gTCPrxMsg = rx_data.decode()
-        print('AIO-C> [RX] "%r" received' % gTCPrxMsg)
+        print('AIO-C> [RX] "%r"' % gTCPrxMsg)
         gTCPisPending = False
     #
+    print('AIO-C> close the socket\n++++<')
+
     if not gTCPisPending:
-        print('AIO-C> close the socket')
         writer.close()
-        print('<---<')
 
 #############################################
 # handle to send data
@@ -156,26 +157,31 @@ async def tcp_RX_message(loop):
 async def tcp_TX_data(tx_msg, loop):
     global gTCPrxMsg
     #
-    print('\n>--->')
     reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
-    print('AIO-C> open the socket to send')
     #
-    if tx_msg != None and tx_msg != '':
-        print('AIO-C> [tx] try ...')
-        tx_data = tx_msg.encode()
-        try:
-            writer.write(tx_data)
-            await asyncio.wait_for ( writer.drain(), timeout=30.0 )        
-        except:
-            print('AIO-C> [tx] write error !')
-        else:        
-            print('AIO-C> [tx] "%r" sent' % tx_msg)
+    print('\n>++++\nAIO-C> send data...')
+    #
+    print('AIO-C> [RX] try...')
+    rx_msg = None
+    try:
+        rx_data = await asyncio.wait_for ( reader.read(512), timeout=0.3 )
+    except asyncio.TimeoutError:
+        print('AIO-C> [RX] no data')
+        pass
     else:
-        print('AIO-C> [tx] nothing to send !')    
+        rx_msg = rx_data.decode()
+        print('AIO-C> [RX] "%r"' % rx_msg)
     #
-    print('AIO-C> close the socket')
+    if tx_msg == None:
+        tx_msg = input('AIO-C> input data to server: ')
+    print('AIO-C> [tx] try...')
+    tx_data = tx_msg.encode()
+    writer.write(tx_data)
+    await writer.drain()        
+    print('AIO-C> [tx] "%r" sent' % tx_msg)
+    #
+    print('AIO-C> close the socket\n++++<')
     writer.close()
-    print('<---<')
 
 #############################################
 # functions definition
@@ -190,7 +196,7 @@ def SCD_set_STE_config( p, is_writing = False ):
     #
     STE_mode = bytearray(35)
     #
-    time_bytes = struct.pack( '<l', int(time.time()) )
+    time_bytes = struct.pack('<l', int(time.time()))
     STE_mode[ 0: 4]  = bytes( time_bytes[0:4] )  # [ 0~ 3] Unix time
     #
     mode  = 0xf0
@@ -198,16 +204,16 @@ def SCD_set_STE_config( p, is_writing = False ):
     mode |= 0x02 # 02 sensor En/Disable - magnetometer
     mode |= 0x04 # 04 sensor En/Disable - light
     mode |= 0x08 # 08 sensor En/Disable - temperature
-    STE_mode[ 4: 5] = bytes( struct.pack('<h',mode) )
+    STE_mode[ 4: 5] = bytes(struct.pack('<h',mode))
     #
-    mode  = 0x00 # ?0 data rate - accelerometer ODR 400Hz
+    #ode  = 0x00 # ?0 data rate - accelerometer ODR 400Hz
     #ode  = 0x01 # ?1 data rate - accelerometer ODR 800Hz
-    #ode  = 0x02 # ?2 data rate - accelerometer ODR 1600Hz
+    mode  = 0x02 # ?2 data rate - accelerometer ODR 1600Hz
     #ode  = 0x03 # ?3 data rate - accelerometer ODR 3200Hz
     #ode  = 0x04 # ?4 data rate - accelerometer ODR 6400Hz
     #ode |= 0x00 # 0? data rate - light sensor ODR 100ms(10Hz)
     #ode |= 0x10 # 1? data rate - light sensor ODR 800ms(1.25Hz)
-    STE_mode[ 5: 6] = bytes( struct.pack('<h',mode) )
+    STE_mode[ 5: 6] = bytes(struct.pack('<h',mode))
     #
     STE_mode[ 6: 8]  = b'\xE4\x07'          # [ 6~ 7] accelerometer threshold
     STE_mode[12:16]  = b'\x00\x00\x00\x00'  # [12~15] light sensor threshold low
@@ -222,7 +228,7 @@ def SCD_set_STE_config( p, is_writing = False ):
     #ode |= 0x04 # 04 sensor raw value to flash - light
     #ode |= 0x08 # 08 sensor raw value to flash - temperature
     mode = 0xf0 if (not is_writing) else 0xf1
-    STE_mode[30:31] = bytes( struct.pack('<h',mode) )
+    STE_mode[30:31] = bytes(struct.pack('<h',mode))
     #
     gSTEcfgMode = bytes(STE_mode[0:35])
     #
@@ -534,7 +540,7 @@ def SCD_run_STE_for_idling( p ):
     # take rolling time ( added more overhead time)
     tm = time.time()
     while time.time() - tm <= 0.3:
-        p.waitForNotifications(0.1)
+        wait_flag = p.waitForNotifications(0.1)
     # stop STE
     SCD_toggle_STE_rolling(p, False, False) 
     SCD_print_STE_status()
@@ -624,81 +630,6 @@ def SCD_print_info( p ):
     return
 
 #############################################
-# create text memory block from BDT w/o non-data
-#
-def SCD_BDT_text_block():
-    global gBDTnotiCnt
-    global gBDTdata
-    global gBDTtextBlock
-    
-    print ("SCD> text block creation from BDT ...")
-    if gBDTtexyBlock != '':
-        del gBDTtexyBlock
-        gBDTtexyBlock = ''
-    # find EOD(End-of-Data: 0xaaaa, 0xaaaa)
-    is_aa = 0
-    for EOD_pos in range((gBDTnotiCnt+1)*16, (gBDTnotiCnt-3)*16, -1):
-        if gBDTdata[EOD_pos] != 0xaa:
-            is_aa = 0
-        else:    
-            is_aa += 1
-            if is_aa == 4:
-                break
-    EOD_pos -= 2 # Skip CRC32
-    # =====================================       
-    # sensor data storage structure in BDT packet
-    # =====================================
-    #  16 bytes : packet header
-    # =====================================
-    #   4 bytes : start maker 0x55 0x55 0x55 0x55
-    #  13 bytes : container
-    # >>>>>>>>>>> repeat from
-    #   5 bytes : Sensor type(1N) + TimeStamp(6N) + FIFO Len(3N)
-    # 888 bytes : raw data
-    # <<<<<<<<<<< repeat to
-    #   2 bytes : CRC32
-    #   4 bytes : end marker 0xaa 0xaa 0xaa 0xaa
-    # =====================================
-    #  16 bytes : packet footer
-    # ====================================== 
-    idx  = 16 # skip paket header
-    # container information
-    time_unix  = int.from_bytes(gBDTdata[idx+ 5:idx+ 9], byteorder='little', signed=True)
-    time_delay = int.from_bytes(gBDTdata[idx+ 9:idx+13], byteorder='little', signed=True)
-    ODR_adxl   = gBDTdata[idx+13]
-    idx += 17 # skip start maker & container
-    gBDTtextBlock  = ("server time    : %s(%d)\n" %  ( (datetime.datetime.fromtimestamp(float(time_unix)).strftime('%Y-%m-%d %H:%M:%S'), time_unix) ))
-    gBDTtextBlock += ("delay time     : %.3f\n" % ( float(time_delay)/1000. ))
-    gBDTtextBlock += ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ ODR_adxl ]) 
-    gBDTtextBlock += (" Row #, Time-Stamp, X-AXIS, Y-AXIS, Z-AXIS\n")
-    line = 1
-    while (idx < EOD_pos):
-        sensor_type =  gBDTdata[idx  ] & 0x0f
-        time_stamp  = (gBDTdata[idx  ] & 0xf0) >> 4
-        time_stamp +=  gBDTdata[idx+1] << 4
-        time_stamp +=  gBDTdata[idx+2] << 12
-        time_stamp += (gBDTdata[idx+3] & 0x0f) << 28
-        data_len  = (gBDTdata[idx+3] & 0xf0) >> 4
-        data_len +=  gBDTdata[idx+4] << 4
-        idx += 5
-        for n in range(data_len):
-            if idx >= EOD_pos:
-                break
-            if (n == 0):
-                gBDTtextBlock += ( "%6d, %10.3f" % (line,(float(time_stamp)/1000.)))                          
-            elif (n % 3) == 0:
-                line += 1
-                gBDTtextBlock += ( "\n%6d,           " % line )
-            gBDTtextBlock += ( ", %6d" % (int.from_bytes(gBDTdata[idx:idx+2], byteorder='little', signed=True)) )
-            idx += 2
-        gBDTtextBlock += ( "\n" )     
-    gBDTtextBlock += ("End of Data")    
-    #    
-    print ("SCD> text block [%d] bytes recorded !" % len(gBDTtextBlock))
-#
-#############################################
-
-#############################################
 #############################################
 #         
 # Main starts here
@@ -741,10 +672,10 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     #
     gTCPtxMsg = gTCPrxMsg = None
     try:
-        loop.run_until_complete(tcp_RX_message(loop))
+        loop.run_until_complete(tcp_RX_message(None, loop))
     except ConnectionResetError:
         print ("WSN> server connection is broken !")
-        break    
+        break;    
     #
     if gTCPrxMsg != None:
         #
@@ -784,8 +715,6 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
                 # 
                 # BDT coding here !!! 
                 #
-                SCD_BDT_text_block()
-                #
                 gBDTisRolled = False
             else:
                 print ("WSN> invalid message, BDT has not been done !")    
@@ -811,13 +740,10 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
         SCD_run_STE_for_idling(p)
         gIDLElastTime = t
     #
-    # if no messae to send
+    # if messae to send
     #
     if gTCPtxMsg == None:
         continue
-    #
-    # message to send
-    #
     try:     
         loop.run_until_complete(tcp_TX_data(gTCPtxMsg, loop))
     except ConnectionResetError:
