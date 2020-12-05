@@ -1,0 +1,26 @@
+{% extends "m_base.html" %}
+
+{% block left %}
+    <p style="text-align:center;"><Strong>Sensor Data Analysis</Strong><cr></p> 
+    <p style="text-align: right; padding-right:8px;"><button id="btn_start" onclick="startMonitoring()"> Start </button></p>
+    <p style="position:absolute; left:  8px; top: 70x;"><label>Run accelometer sensor for seconds</label></p>
+    <p style="position:absolute; left:  8px; top:120x;"><label>Sensor data transfer (CSV formattd text)</label></p>
+    <p style="position:absolute; left:  8px; top:170x;"><label>Sensor data save to *.csv file</label></p>
+    <p style="position:absolute; left:  8px; top: 70x; padding-right:8px;"><button id="btn_start_1" onclick="startSTEnBDT()"> Start </button></p>
+    <p style="position:absolute; left:  8px; top: 70x; padding-right:8px;"><button id="btn_start_2" onclick="startTransBDT() disabled"> Start </button></p>
+    <p style="position:absolute; left:  8px; top: 70x; padding-right:8px;"><button id="btn_start_3" onclick="startSaveBDT()  disabled"> Start </button></p>
+{% endblock %}
+
+{% block foot %}
+    <p style="color:aqua;">Display Sensor Data...</p>
+{% endblock %}
+
+{% block right %}
+
+<p style="text-align:left;  padding-top:4px; padding-left:8px"><Strong>SCD Sensor Analysis - on-time running</Strong><cr></p>
+
+<script>
+
+</script>
+
+{% endblock %}
