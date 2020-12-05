@@ -149,12 +149,12 @@ async def tcp_RX(loop):
     else:
         if rx_data != None:
             gTCPrxMsg = rx_data.decode()
-            print('AIO-C> [RX] "%r" received' % gTCPrxMsg)
-    #        
-    if gTCPrxMsg == None or gTCPrxMsg == '':
-        print('AIO-C> [RX] null received: %d times' % (gTCPnullRXcnt += 1) )
-    else:
-        gTCPnullRXcnt = 0    
+        if gTCPrxMsg == '':
+            gTCPnullRXcnt += 1
+            print('AIO-C> [RX] null received: %d times' % gTCPnullRXcnt)
+        else:
+            gTCPnullRXcnt = 0
+            print('AIO-C> [RX] "%r" received' % gTCPrxMsg) 
     
 #############################################
 # handle to send data
