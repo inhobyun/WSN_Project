@@ -108,7 +108,7 @@ def accept_socket(blockingTimer = 60):
     global gSocketAddr
     #
     if gSocketConn == None:
-        print ("\nTCP-S> accepting to read ... ", end = '')
+        print ("\nTCP-S> accepting => ", end = '')
         try:
             gSocketServer.setblocking(blockingTimer)
             gSocketConn, gSocketAddr = gSocketServer.accept()
@@ -126,7 +126,7 @@ def read_from_socket(blockingTimer = 8):
     global gSocketServer
     global gSocketConn
     #
-    print ("\nTCP-S> read ... ", end = '')
+    print ("\nTCP-S> reading => ", end = '')
     rx_msg = ''
     try:
         gSocketServer.setblocking(blockingTimer)
@@ -148,7 +148,7 @@ def write_to_socket(tx_msg):
     global gSocketServer
     global gSocketConn
     #
-    print ("\nTCP-S> write ... ", end = '')
+    print ("\nTCP-S> writing => ", end = '')
     try:
         gSocketConn.send(tx_msg.encode())
     except:
@@ -324,7 +324,7 @@ def post_graph():
     y = []
     for i in range(100):
         # Sine value for example.
-        curr_x = float(i / 10)
+        curr_x = float(i / 100)
         x.append(curr_x)
         y.append(math.sin(curr_x) * value)
     

@@ -136,14 +136,14 @@ async def tcp_RX(loop):
         print('<---<')
     #
     rx_data = None
-    print('\nAIO-C> [RX] wait ...')
+    print('\nAIO-C> [RX] wait => ', end = '')
     try:
         rx_data = await asyncio.wait_for ( gTCPreader.read(512), timeout=10.0 )
     except asyncio.TimeoutError:
-        print('AIO-C> [RX] timeout ...')
+        print('timeout')
         pass
     except:
-        print('AIO-C> [RX] error !')
+        print('error !')
         gTCPwriter = gTCPreader = None
         pass
     else:
@@ -151,10 +151,10 @@ async def tcp_RX(loop):
             gTCPrxMsg = rx_data.decode()
         if gTCPrxMsg == '':
             gTCPnullRXcnt += 1
-            print('AIO-C> [RX] null received: %d times' % gTCPnullRXcnt)
+            print('null received: %d times' % gTCPnullRXcnt)
         else:
             gTCPnullRXcnt = 0
-            print('AIO-C> [RX] "%r" received' % gTCPrxMsg) 
+            print('"%r" received' % gTCPrxMsg) 
     
 #############################################
 # handle to send data
@@ -172,18 +172,18 @@ async def tcp_TX(tx_msg, loop):
         print('<---<')
     #
     if tx_msg != None and tx_msg != '':
-        print('\nAIO-C> [TX] try ...')
+        print('AIO-C> [TX] try => ', end = '')
         tx_data = tx_msg.encode()
         try:
             gTCPwriter.write(tx_data)
             await asyncio.wait_for ( gTCPwriter.drain(), timeout=10.0 )        
         except asyncio.TimeoutError:
-            print('AIO-C> [TX] timeout error !')
+            print('timeout !')
         except:
-            print('AIO-C> [TX] error !')
+            print('error !')
             gTCPwriter = gTCPreader = None
         else:        
-            print('AIO-C> [TX] "%r" sent' % tx_msg)
+            print('"%r" sent' % tx_msg)
     else:
         print('AIO-C> [TX] nothing to send !')    
 
@@ -773,7 +773,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPnullRXcnt < 10:
         elif gTCPrxMsg == TCP_STE_REQ_MSG:
             # request STE data
             if gSTEisRolling:
-                print ("WSN-C> request STE data ...")
+                print ("WSN-C> getting STE data ...")
                 # if not enable STE notification
                 gSTElastData = p.readCharacteristic(SCD_STE_RESULT_HND)
                 gSTElastTime = time.time()
