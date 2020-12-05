@@ -302,7 +302,7 @@ def hex_str( vBytes ):
 def SCD_string_STE_data( pTime, pResult ):
     #
     # output time stamp
-    tm_stamp = ( "%s[%.3f]" % (datetime.datetime.fromtimestamp(pTime).strftime('%Y-%m-%d %H:%M:%S'), pTime) )
+    tm_stamp = ( "%s [%.3f]" % (datetime.datetime.fromtimestamp(pTime).strftime('%Y-%m-%d %H:%M:%S'), pTime) )
     # output Accelerrometer X, Y, Z axis arithmetic mean & variation
     adxl_mean_x = float( int.from_bytes(pResult[ 0: 2], byteorder='little', signed=True) ) / 10.0
     adxl_mean_y = float( int.from_bytes(pResult[ 2: 4], byteorder='little', signed=True) ) / 10.0
