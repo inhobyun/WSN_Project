@@ -135,7 +135,7 @@ async def tcp_RX_message(loop):
         print('<---<')
     #
     rx_data = None
-    print('AIO-C> [RX] wait ...')
+    print('\nAIO-C> [RX] wait ...')
     try:
         rx_data = await asyncio.wait_for ( gTCPreader.read(512), timeout=10.0 )
     except asyncio.TimeoutError:
@@ -166,7 +166,7 @@ async def tcp_TX_data(tx_msg, loop):
         print('<---<')
     #
     if tx_msg != None and tx_msg != '':
-        print('AIO-C> [TX] try ...')
+        print('\nAIO-C> [TX] try ...')
         tx_data = tx_msg.encode()
         try:
             gTCPwriter.write(tx_data)
