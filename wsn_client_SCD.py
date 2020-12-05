@@ -13,7 +13,7 @@ by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
                     started 2020-11-05
                     updated 2020-12-03; working revision
-                    last updated 2020-12-04; comm protocol updated
+                    updated 2020-12-05; comm protocol updated
 """
 import asyncio
 from bluepy.btle import Scanner, DefaultDelegate, UUID, Peripheral
@@ -97,9 +97,9 @@ gIDLEinterval = 60.   # time interval to make BLE traffic to keep connection
 # target TCP Server identifiers
 #
 ##TCP_HOST_NAME = "127.0.0.1"       # TEST Host Name
-##TCP_HOST_NAME = "10.2.2.3"        # TEST Host Name
+TCP_HOST_NAME = "10.2.2.3"        # TEST Host Name
 ##TCP_HOST_NAME = "192.168.0.3"     # TEST Host Name
-TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
+##TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
 TCP_PORT      = 8088              # Default TCP Port Name
 #
 TCP_DEV_READY_MSG = 'DEV_READY'     # server message to check client ready
@@ -117,7 +117,6 @@ gTCPreader = None
 gTCPwriter = None
 gTCPrxMsg  = None
 gTCPtxMsg  = None
-gTCPisPending = False 
 
 #############################################
 # handle to receive command message
@@ -129,28 +128,28 @@ async def tcp_RX_message(loop):
     global gTCPreader
     global gTCPwriter
     #
-    if not gTCPisPending:
+    if gTCPwriter == None:
         print('\n>--->')
         gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
-        print('AIO-C> open the socket to receive')
+        print('AIO-C> connect the socket')
+        print('<---<')
     #
     rx_data = None
-    print('AIO-C> [rx] try ...')
+    print('AIO-C> [RX] wait ...')
     try:
-        rx_data = await asyncio.wait_for ( gTCPreader.read(512), timeout=30.0 )
+        rx_data = await asyncio.wait_for ( gTCPreader.read(512), timeout=10.0 )
     except asyncio.TimeoutError:
-        gTCPisPending = True
-        pass 
+        print('AIO-C> [RX] timeout ...')
+        pass
+    except:
+        print('AIO-C> [RX] error !')
+        gTCPwriter = gTCPreader = None
     if rx_data != None:
         gTCPrxMsg = rx_data.decode()
         print('AIO-C> [RX] "%r" received' % gTCPrxMsg)
         gTCPisPending = False
     #
-    if not gTCPisPending:
-        print('AIO-C> close the socket')
-        gTCPwriter.close()
-        print('<---<')
-
+    
 #############################################
 # handle to send data
 #############################################
@@ -160,26 +159,27 @@ async def tcp_TX_data(tx_msg, loop):
     global gTCPreader
     global gTCPwriter
     #
-    print('\n>--->')
-    gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
-    print('AIO-C> open the socket to send')
+    if gTCPwriter == None:
+        print('\n>--->')
+        gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
+        print('AIO-C> connect the socket')
+        print('<---<')
     #
     if tx_msg != None and tx_msg != '':
-        print('AIO-C> [tx] try ...')
+        print('AIO-C> [TX] try ...')
         tx_data = tx_msg.encode()
         try:
             gTCPwriter.write(tx_data)
-            await asyncio.wait_for ( gTCPwriter.drain(), timeout=30.0 )        
+            await asyncio.wait_for ( gTCPwriter.drain(), timeout=10.0 )        
+        except asyncio.TimeoutError:
+            print('AIO-C> [TX] timeout error !')
         except:
-            print('AIO-C> [tx] write error !')
+            print('AIO-C> [TX] error !')
+            gTCPwriter = gTCPreader = None
         else:        
-            print('AIO-C> [tx] "%r" sent' % tx_msg)
+            print('AIO-C> [TX] "%r" sent' % tx_msg)
     else:
-        print('AIO-C> [tx] nothing to send !')    
-    #
-    print('AIO-C> close the socket')
-    gTCPwriter.close()
-    print('<---<')
+        print('AIO-C> [TX] nothing to send !')    
 
 #############################################
 # functions definition
@@ -819,19 +819,14 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
         SCD_run_STE_for_idling(p)
         gIDLElastTime = t
     #
-    # if no messae to send
+    # if any messae to send
     #
-    if gTCPtxMsg == None:
-        continue
-    #
-    # message to send
-    #
-    try:     
-        loop.run_until_complete(tcp_TX_data(gTCPtxMsg, loop))
-    except ConnectionResetError:
-        print ("WSN-C> server connection is broken !")
-        break;    
-    
+    if gTCPtxMsg != None:
+        try:     
+            loop.run_until_complete(tcp_TX_data(gTCPtxMsg, loop))
+        except ConnectionResetError:
+            print ("WSN-C> server connection is broken !")
+            break;        
 #
 #############################################
 

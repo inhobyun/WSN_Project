@@ -41,9 +41,9 @@ TCP_BDT_END_MSG   = 'BDT_END'       # client message to inform BDT data transfer
 #
 gSocketServer   = None
 gSocketConn     = None
-gSocketAddr     = 0
+gSocketAddr     = None
 #
-gIsMonStarted      = False
+gIsMonStarted   = False
 
 #############################################
 #############################################
@@ -80,6 +80,26 @@ def open_socket(clientNum = 1):
     return True 
 
 ##############################################
+# accept socket
+#
+def accept_socket(blockingTimer = 60):
+    global gSocketServer
+    global gSocketConn
+    global gSocketAddr
+    #
+    if gSocketConn == None:
+        print ("\nTCP-S> accepting to read ... ", end = '')
+        try:
+            gSocketServer.setblocking(blockingTimer)
+            gSocketConn, gSocketAddr = gSocketServer.accept()
+        except:
+            print ("error !")
+            gSocketConn = gSocketAddr = None
+            retuen False         
+        print ("accepted port# [", gSocketAddr, "]")
+    return True    
+
+##############################################
 # read from socket
 #
 def read_from_socket(blockingTimer = 60):
@@ -87,11 +107,10 @@ def read_from_socket(blockingTimer = 60):
     global gSocketConn
     global gSocketAddr
     #
+    accept_socket(blockingTimer)
     try:
-        print ("\nTCP-S> accepting to read ... ", end = '')
+        print ("\nTCP-S> read ... ", end = '')
         gSocketServer.setblocking(blockingTimer)
-        gSocketConn, gSocketAddr = gSocketServer.accept()
-        print ("accepted port# [", gSocketAddr, "]")
         rx_msg = ''
         cnt = 0
         while True:
@@ -101,7 +120,6 @@ def read_from_socket(blockingTimer = 60):
             cnt += 1
             rx_msg += data.decode()
         print ("TCP-S> received [%d]time(s), [%s]" % (cnt, rx_msg))
-        gSocketConn.close()
     except:
         rx_msg = None
         print ("TCP-S> accept & read fail !" )
@@ -116,15 +134,13 @@ def write_to_socket(tx_msg, blockingTimer = 60):
     global gSocketConn
     global gSocketAddr
     #
+    accept_socket(blockingTimer)
     try:
-        print ("\nTCP-S> accepting to write ... ", end = '')
+        print ("\nTCP-S> write ... ", end = '')
         gSocketServer.setblocking(blockingTimer)
-        gSocketConn, gSocketAddr = gSocketServer.accept()
-        print ("accepted port# [", gSocketAddr, "]")
         if tx_msg != '':
             gSocketConn.send(tx_msg.encode())
             print ("TCP-S> sent [%s]" % tx_msg)
-        gSocketConn.close()
     except:
         print ("TCP-S> accept & write fail !" )
     #    
