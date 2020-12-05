@@ -63,19 +63,19 @@ def open_socket(clientNum = 1):
         TCP_PORT = int(sys.argv[1])
     gSocketServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     if gSocketServer != None:
-        print("TCP-S> socket created")
-        print("TCP-S> trying to bind %s:%d" % (TCP_HOST_NAME, TCP_PORT) )
+        print ("TCP-S> socket created")
+        print ("TCP-S> trying to bind %s:%d" % (TCP_HOST_NAME, TCP_PORT) )
         try:
             gSocketServer.bind((TCP_HOST_NAME, TCP_PORT))
         except:
-            print("TCP-S> binding fail... Exiting...")
+            print ("TCP-S> binding fail... Exiting...")
             return False
     else:
-        print("TCP-S> socket creation fail... Exiting...")
+        print ("TCP-S> socket creation fail... Exiting...")
         return False
-    print("TCP-S> binded...")    
+    print ("TCP-S> binded...")    
     gSocketServer.listen(clientNum)
-    print("TCP-S> listening...") 
+    print ("TCP-S> listening...") 
     #
     return True 
 
@@ -88,10 +88,12 @@ def close_socket():
     global gSocketAddr
     #
     if gSocketConn != None:
+        print ("TCP-S> close accepted connection")
         gSocketConn.close()
         gSocketConn = gSocketAddr = None
     #
     if gSocketServer != None:
+        print ("TCP-S> close socket")
         gSocketServer.close()
         gSocketServer = None
     #
@@ -337,12 +339,8 @@ def post_graph():
 #
 if __name__ == '__main__':
     if open_socket():
-        try:
-            app.run(host='0.0.0.0')
-        except KeyboardInterrupt:
-            close_socket()
-        except:
-            print()
+        app.run(host='0.0.0.0')
+    close_socket()
     print("WSN-S> all done !")
 #
 #############################################        

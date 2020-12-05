@@ -117,6 +117,7 @@ gTCPreader = None
 gTCPwriter = None
 gTCPrxMsg  = None
 gTCPtxMsg  = None
+gTCPnullRXcnt = 0
 
 #############################################
 # handle to receive command message
@@ -124,9 +125,9 @@ gTCPtxMsg  = None
 #
 async def tcp_RX(loop):
     global gTCPrxMsg
-    global gTCPisPending
     global gTCPreader
     global gTCPwriter
+    global gTCPnullRXcnt
     #
     if gTCPwriter == None:
         print('\n>--->')
@@ -144,11 +145,16 @@ async def tcp_RX(loop):
     except:
         print('AIO-C> [RX] error !')
         gTCPwriter = gTCPreader = None
-    if rx_data != None:
-        gTCPrxMsg = rx_data.decode()
-        print('AIO-C> [RX] "%r" received' % gTCPrxMsg)
-        gTCPisPending = False
-    #
+        pass
+    else:
+        if rx_data != None:
+            gTCPrxMsg = rx_data.decode()
+            print('AIO-C> [RX] "%r" received' % gTCPrxMsg)
+    #        
+    if gTCPrxMsg == None or gTCPrxMsg == '':
+        print('AIO-C> [RX] null received: %d times' % (gTCPnullRXcnt += 1) )
+    else:
+        gTCPnullRXcnt = 0    
     
 #############################################
 # handle to send data
@@ -742,7 +748,7 @@ if  SCD_clear_memory(p) == None:
 #
 gIDLElastTime = time.time()
 loop = asyncio.get_event_loop()
-while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
+while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPnullRXcnt < 10:
     #
     # wait any message from server
     #
@@ -751,9 +757,9 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
         loop.run_until_complete( tcp_RX(loop) )
     except ConnectionResetError:
         print ("WSN-C> server connection is broken !")
-        break    
+        break
     #
-    if gTCPrxMsg != None:
+    if gTCPrxMsg != None and gTCPrxMsg != '':
         #
         # process server message
         #
