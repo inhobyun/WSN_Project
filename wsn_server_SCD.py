@@ -95,7 +95,7 @@ def accept_socket(blockingTimer = 60):
         except:
             print ("error !")
             gSocketConn = gSocketAddr = None
-            retuen False         
+            return False         
         print ("accepted port# [", gSocketAddr, "]")
     return True    
 
@@ -108,9 +108,8 @@ def read_from_socket(blockingTimer = 60):
     global gSocketAddr
     #
     accept_socket(blockingTimer)
+    print ("\nTCP-S> read ... ", end = '')
     try:
-        print ("\nTCP-S> read ... ", end = '')
-        gSocketServer.setblocking(blockingTimer)
         rx_msg = ''
         cnt = 0
         while True:
@@ -122,7 +121,7 @@ def read_from_socket(blockingTimer = 60):
         print ("TCP-S> received [%d]time(s), [%s]" % (cnt, rx_msg))
     except:
         rx_msg = None
-        print ("TCP-S> accept & read fail !" )
+        print ("TCP-S> read fail !" )
     #    
     return rx_msg   
 
@@ -135,14 +134,13 @@ def write_to_socket(tx_msg, blockingTimer = 60):
     global gSocketAddr
     #
     accept_socket(blockingTimer)
+    print ("\nTCP-S> write ... ", end = '')
     try:
-        print ("\nTCP-S> write ... ", end = '')
-        gSocketServer.setblocking(blockingTimer)
         if tx_msg != '':
             gSocketConn.send(tx_msg.encode())
             print ("TCP-S> sent [%s]" % tx_msg)
     except:
-        print ("TCP-S> accept & write fail !" )
+        print ("TCP-S> write fail !" )
     #    
     return
 #
