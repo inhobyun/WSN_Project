@@ -136,7 +136,7 @@ async def tcp_RX(loop):
         print('<---<')
     #
     rx_data = None
-    print('\nAIO-C> [RX] wait => ', end = '')
+    print('AIO-C> [RX] wait => ', end = '')
     try:
         rx_data = await asyncio.wait_for ( gTCPreader.read(512), timeout=10.0 )
     except asyncio.TimeoutError:
@@ -752,6 +752,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPnullRXcnt < 10:
     #
     # wait any message from server
     #
+    print ("\nWSN-C> keep running until [%r] message from server ..." % TCP_DEV_CLOSE_MSG)
     gTCPtxMsg = gTCPrxMsg = None
     try:
         loop.run_until_complete( tcp_RX(loop) )
@@ -765,7 +766,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPnullRXcnt < 10:
         #
         if gTCPrxMsg == TCP_STE_START_MSG:
             # start STE rolling w/o memory writing
-            print ("WSN-C> start STE ...")
+            print ("WSN-C> start STE rolling...")
             p.setDelegate( NotifyDelegate(p) )
             SCD_set_STE_config(p, False)
             SCD_toggle_STE_rolling(p, True, False)
@@ -783,7 +784,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPnullRXcnt < 10:
                 print ("WSN-C> invalid message, STE has not been started !")    
         elif gTCPrxMsg == TCP_BDT_RUN_MSG:
             # start BDT
-            print ("WSN-C> start BDT ...")
+            print ("WSN-C> start BDT running ...")
             if not (gSTEisRolling or gBDTisRolled):                
                 SCD_run_STE_and_BDT(p)
                 if SCD_clear_memory(p) == None:
@@ -805,7 +806,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPnullRXcnt < 10:
                 print ("WSN-C> invalid message, BDT has not been done !")    
         elif gTCPrxMsg == TCP_STE_STOP_MSG or gTCPrxMsg == TCP_DEV_CLOSE_MSG:
             # stop STE or disconnect
-            print ("WSN-C> stop STE ...")
+            print ("WSN-C> stop STE rolling ...")
             SCD_set_STE_config (p, False)
             SCD_toggle_STE_rolling (p, False, False)
             SCD_print_STE_status()
