@@ -2,13 +2,13 @@
 
 {% block left %}
     <p style="text-align:center;"><Strong>Sensor Data Monitoring</Strong><cr></p> 
-    <p style="text-align:right;"><button id="startBtn" onclick="startMonitoring()"> Start </button></p>
-    <p style="text-align:right;"><button id="stopBtn" onclick="stopMonitoring()" disabled> Stop </button></p>
+    <p style="text-align: right;"><button id="startBtn" onclick="startMonitoring()"> Start </button></p>
+    <p style="text-align: right;"><button id="stopBtn" onclick="stopMonitoring()" disabled> Stop </button></p>
 
-    <p style="position:absolute; left:  8px; top:172px;"><label>Option</label></p>
-    <p style="position:absolute; left: 50px; top:172px;"><label>period</label></p>
-    <p style="position:absolute; left:100px; top:170px;"><input type="text" id="tm_period" value="3"></p>
-    <p style="position:absolute; left:150px; top:172px;"><label>sec</label></p>    
+    <p style="position:absolute; left:  8px; top:122px;"><label>Option</label></p>
+    <p style="position:absolute; left: 50px; top:122px;"><label>period</label></p>
+    <p style="position:absolute; left:100px; top:120px; width:100px;"><input type="text" id="tm_period" value="3"></p>
+    <p style="position:absolute; left:120px; top:122px;"><label>sec</label></p>    
 {% endblock %}
 
 {% block foot %}
@@ -17,9 +17,9 @@
 
 {% block right %}
 
-<p style="text-align:left; padding-top:4px; padding-left:8px"><Strong>SCD Sensor Data - on-time display</Strong><cr></p>
-<p style="text-align:right; position:absolute; top:172px;"><label>Sensor Measured Time : </label></p>
-<p style="text-align:left; position:absolute; top:172px;"><label id="row_00">YYYY-MM-DD hh:mm:ss[unix time]</label></p>
+<p style="text-align:left;  padding-top:4px; padding-left:8px"><Strong>SCD Sensor Data - on-time display</Strong><cr></p>
+<p style="text-align:right; position:absolute; top:70px; left:288px;"><label>Sensor Measured Time : </label></p>
+<p style="text-align:left;  position:absolute; top:70px; left:420px;"><label id="row_00">YYYY-MM-DD hh:mm:ss [unix time]</label></p>
 
 <table id="monitor">
         <tr>
@@ -29,57 +29,57 @@
         </tr>
         <tr>
             <td class="col_00">accelerometer mean X-axis</td>
-            <td id="row_01">-</td>
+            <td class="col_01" id="row_01">-</td>
             <td class="col_02" style="text-align:left;">g</td>
         </tr>
         <tr>
             <td class="col_00">accelerometer variance X-axis</td>
-            <td id="row_02">-</td>
+            <td class="col_01" id="row_02">-</td>
             <td class="col_02" style="text-align:left;">g**2</td>
         </tr>
         <tr>
             <td class="col_00">accelerometer mean. Y-axis</td>
-            <td id="row_03">-</td>
+            <td class="col_01" id="row_03">-</td>
             <td class="col_02" style="text-align:left;">g</td>
         </tr>
         <tr>
             <td class="col_00">accelerometer variance Y-axis</td>
-            <td id="row_04">-</td>
+            <td class="col_01" id="row_04">-</td>
             <td class="col_02" style="text-align:left;">g**2</td>
         </tr>
         <tr>
             <td class="col_00">accelerometer mean. Z-axis</td>
-            <td id="row_05">-</td>
+            <td class="col_01" id="row_05">-</td>
             <td class="col_02" style="text-align:left;">g</td>
         </tr>
         <tr>
             <td class="col_00">accelerometer variance Z-axis</td>
-            <td id="row_06">-</td>
+            <td class="col_01" id="row_06">-</td>
             <td class="col_02" style="text-align:left;">g**2</td>
         </tr>
         <tr>
             <td class="col_00">temperature</td>
-            <td id="row_07">-</td>
+            <td class="col_01" id="row_07">-</td>
             <td class="col_02" style="text-align:left;">celcius</td>
         </tr>
         <tr>
             <td class="col_00">light</td>
-            <td id="row_08">-</td>
+            <td class="col_01" id="row_08">-</td>
             <td class="col_02" style="text-align:left;">Lux</td>
         </tr>
         <tr>
             <td class="col_00">magnetometer X-axis</td>
-            <td id="row_09">-</td>
+            <td class="col_01" id="row_09">-</td>
             <td class="col_02" style="text-align:left;">uT</td>
         </tr>
         <tr>
             <td class="col_00">magnetometer Y-axis</td>
-            <td id="row_10">-</td>
+            <td class="col_01" id="row_10">-</td>
             <td class="col_02" style="text-align:left;">uT</td>
         </tr>
         <tr>
             <td class="col_00">magnetometer Z-axis</td>
-            <td id="row_11">-</td>
+            <td class="col_01" id="row_11">-</td>
             <td class="col_02" style="text-align:left;">uT</td>
         </tr>
 </table>
@@ -89,7 +89,7 @@
     var tid = null
 
     function dispData(data) {
-        document.getElementById("row_00").innerHTML = data.row_01
+        document.getElementById("row_00").innerHTML = data.row_00
         document.getElementById("row_01").innerHTML = data.row_01
         document.getElementById("row_02").innerHTML = data.row_02
         document.getElementById("row_03").innerHTML = data.row_03

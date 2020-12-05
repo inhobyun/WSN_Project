@@ -6,6 +6,7 @@ by Inho Byun, Researcher/KAIST
                     started 2020-10-01
                     last updated 2020-12-03
 """
+import datetime
 from flask import Flask, redirect, request
 from jinja2 import Environment, PackageLoader, Markup, select_autoescape
 import json
@@ -240,7 +241,7 @@ def post_monStop():
         write_to_socket(TCP_STE_STOP_MSG)
         gIsStarted = False
         tm = time.time()
-        tm_stamp = ( "%s[%.3f]" % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
+        tm_stamp = ( "%s [%.3f]" % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
         rows = {'row_00' : tm_stamp,
                 'row_01' : '-',
                 'row_02' : '-',
