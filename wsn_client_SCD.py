@@ -13,7 +13,7 @@ by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
                     started 2020-11-05
                     updated 2020-12-03; working revision
-                    last updated 2020-12-04; comm protocol updated
+                    updated 2020-12-05; comm protocol updated
 """
 import asyncio
 from bluepy.btle import Scanner, DefaultDelegate, UUID, Peripheral
@@ -97,9 +97,9 @@ gIDLEinterval = 60.   # time interval to make BLE traffic to keep connection
 # target TCP Server identifiers
 #
 ##TCP_HOST_NAME = "127.0.0.1"       # TEST Host Name
-##TCP_HOST_NAME = "10.2.2.3"        # TEST Host Name
+TCP_HOST_NAME = "10.2.2.3"        # TEST Host Name
 ##TCP_HOST_NAME = "192.168.0.3"     # TEST Host Name
-TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
+##TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
 TCP_PORT      = 8088              # Default TCP Port Name
 #
 TCP_DEV_READY_MSG = 'DEV_READY'     # server message to check client ready
@@ -113,9 +113,10 @@ TCP_BDT_END_MSG   = 'BDT_END'       # client message to inform BDT data transfer
 #
 # global variables
 #
-gTCPrxMsg = None
-gTCPtxMsg = None
-gTCPisPending = False 
+gTCPreader = None
+gTCPwriter = None
+gTCPrxMsg  = None
+gTCPtxMsg  = None
 
 #############################################
 # handle to receive command message
@@ -124,58 +125,61 @@ gTCPisPending = False
 async def tcp_RX_message(loop):
     global gTCPrxMsg
     global gTCPisPending
-    global reader
-    global writer
+    global gTCPreader
+    global gTCPwriter
     #
-    if not gTCPisPending:
+    if gTCPwriter == None:
         print('\n>--->')
-        reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
-        print('AIO-C> open the socket to receive')
+        gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
+        print('AIO-C> connect the socket')
+        print('<---<')
     #
     rx_data = None
-    print('AIO-C> [rx] try ...')
+    print('AIO-C> [RX] wait ...')
     try:
-        rx_data = await asyncio.wait_for ( reader.read(512), timeout=30.0 )
+        rx_data = await asyncio.wait_for ( gTCPreader.read(512), timeout=10.0 )
     except asyncio.TimeoutError:
-        gTCPisPending = True
-        pass 
+        print('AIO-C> [RX] timeout ...')
+        pass
+    except:
+        print('AIO-C> [RX] error !')
+        gTCPwriter = gTCPreader = None
     if rx_data != None:
         gTCPrxMsg = rx_data.decode()
         print('AIO-C> [RX] "%r" received' % gTCPrxMsg)
         gTCPisPending = False
     #
-    if not gTCPisPending:
-        print('AIO-C> close the socket')
-        writer.close()
-        print('<---<')
-
+    
 #############################################
 # handle to send data
 #############################################
 #
 async def tcp_TX_data(tx_msg, loop):
     global gTCPrxMsg
+    global gTCPreader
+    global gTCPwriter
     #
-    print('\n>--->')
-    reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
-    print('AIO-C> open the socket to send')
+    if gTCPwriter == None:
+        print('\n>--->')
+        gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
+        print('AIO-C> connect the socket')
+        print('<---<')
     #
     if tx_msg != None and tx_msg != '':
-        print('AIO-C> [tx] try ...')
+        print('AIO-C> [TX] try ...')
         tx_data = tx_msg.encode()
         try:
-            writer.write(tx_data)
-            await asyncio.wait_for ( writer.drain(), timeout=30.0 )        
+            gTCPwriter.write(tx_data)
+            await asyncio.wait_for ( gTCPwriter.drain(), timeout=10.0 )        
+        except asyncio.TimeoutError:
+            print('AIO-C> [TX] timeout error !')
         except:
-            print('AIO-C> [tx] write error !')
+            print('AIO-C> [TX] error !')
+            gTCPwriter = gTCPreader = None
         else:        
-            print('AIO-C> [tx] "%r" sent' % tx_msg)
+            print('AIO-C> [TX] "%r" sent' % tx_msg)
     else:
-        print('AIO-C> [tx] nothing to send !')    
-    #
-    print('AIO-C> close the socket')
-    writer.close()
-    print('<---<')
+        print('AIO-C> [TX] nothing to send !')    
 
 #############################################
 # functions definition
@@ -375,16 +379,16 @@ class ScanDelegate(DefaultDelegate):
         #
         DefaultDelegate.__init__(self)
         gScannedCount = 0
-        print("WSN> scan handler is configured", end='\n', flush = True)
+        print("WSN-C> scan handler is configured", end='\n', flush = True)
 
     def handleDiscovery(self, dev, isNewDev, isNewData):
         global gScannedCount
         #
         if isNewDev:
             gScannedCount += 1
-            print ('WSN> >' if gScannedCount==1 else '>', end='', flush = True)
+            print ('WSN-C> >' if gScannedCount==1 else '>', end='', flush = True)
         elif isNewData:
-            print ('WSN> +' if gScannedCount==0 else '+', end='', flush = True)            
+            print ('WSN-C> +' if gScannedCount==0 else '+', end='', flush = True)            
 
 #############################################
 # Define notification callback
@@ -396,7 +400,7 @@ class NotifyDelegate(DefaultDelegate):
         #
         DefaultDelegate.__init__(self)
         gSTEnotiCnt = 0
-        print("WSN> device notification handler is configured", end='\n', flush = True)
+        print("WSN-C> device notification handler is configured", end='\n', flush = True)
       
     def handleNotification(self, cHandle, data):
         global gSTEnotiCnt
@@ -437,10 +441,10 @@ class NotifyDelegate(DefaultDelegate):
                 idx = packet_no * 16
                 gBDTdata[idx:idx+16] = data[4:20]
             else:
-                print("WSN> BDT Packet No Error !... [%d] should less than [%d]" % (packet_no, gBDTnotiCnt), end='\n', flush = True)            
+                print("WSN-C> BDT Packet No Error !... [%d] should less than [%d]" % (packet_no, gBDTnotiCnt), end='\n', flush = True)            
         #        
         else:
-            print("WSN> %2d-#%3d-[%s]" % (cHandle, gSTEnotiCnt, hex_str(data)), end='\n', flush = True)
+            print("WSN-C> %2d-#%3d-[%s]" % (cHandle, gSTEnotiCnt, hex_str(data)), end='\n', flush = True)
 
 #############################################
 # Define Scan_and_connect
@@ -707,10 +711,10 @@ def SCD_BDT_text_block():
 # Main starts here
 #
 if len(sys.argv) > 1:
-    print ("WSN> take 1'st argument as Host IP address (default: '%s')" % TCP_HOST_NAME)
+    print ("WSN-C> take 1'st argument as Host IP address (default: '%s')" % TCP_HOST_NAME)
     TCP_HOST_NAME = sys.argv[1]
 if len(sys.argv) > 2:
-    print ("WSN> take 2'nd argument as port# (default: '%d')" % TCP_PORT)
+    print ("WSN-C> take 2'nd argument as port# (default: '%d')" % TCP_PORT)
     TCP_PORT = int(sys.argv[2])
 #
 # scan and connect SCD
@@ -746,7 +750,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     try:
         loop.run_until_complete(tcp_RX_message(loop))
     except ConnectionResetError:
-        print ("WSN> server connection is broken !")
+        print ("WSN-C> server connection is broken !")
         break    
     #
     if gTCPrxMsg != None:
@@ -755,7 +759,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
         #
         if gTCPrxMsg == TCP_STE_START_MSG:
             # start STE rolling w/o memory writing
-            print ("WSN> start STE ...")
+            print ("WSN-C> start STE ...")
             p.setDelegate( NotifyDelegate(p) )
             SCD_set_STE_config(p, False)
             SCD_toggle_STE_rolling(p, True, False)
@@ -763,28 +767,28 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
         elif gTCPrxMsg == TCP_STE_REQ_MSG:
             # request STE data
             if gSTEisRolling:
-                print ("WSN> request STE data ...")
+                print ("WSN-C> request STE data ...")
                 # if not enable STE notification
                 gSTElastData = p.readCharacteristic(SCD_STE_RESULT_HND)
                 gSTElastTime = time.time()
                 gTCPtxMsg = SCD_string_STE_data(gSTElastTime, gSTElastData)
                 gIDLElastTime = gSTElastTime   
             else:
-                print ("WSN> invalid message, STE has not been started !")    
+                print ("WSN-C> invalid message, STE has not been started !")    
         elif gTCPrxMsg == TCP_BDT_RUN_MSG:
             # start BDT
-            print ("WSN> start BDT ...")
+            print ("WSN-C> start BDT ...")
             if not (gSTEisRolling or gBDTisRolled):                
                 SCD_run_STE_and_BDT(p)
                 if SCD_clear_memory(p) == None:
                     p = SCD_scan_and_connect(False)
                 gIDLElastTime = time.time()
             else:
-                print ("WSN> invalid message, BDT is not allowed during rolling !")     
+                print ("WSN-C> invalid message, BDT is not allowed during rolling !")     
         elif gTCPrxMsg == TCP_BDT_REQ_MSG:
             # request BDT data
             if gBDTisRolled:
-                print ("WSN> request BDT data ...")
+                print ("WSN-C> request BDT data ...")
                 # 
                 # BDT coding here !!! 
                 #
@@ -792,20 +796,20 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
                 #
                 gBDTisRolled = False
             else:
-                print ("WSN> invalid message, BDT has not been done !")    
+                print ("WSN-C> invalid message, BDT has not been done !")    
         elif gTCPrxMsg == TCP_STE_STOP_MSG or gTCPrxMsg == TCP_DEV_CLOSE_MSG:
             # stop STE or disconnect
-            print ("WSN> stop STE ...")
+            print ("WSN-C> stop STE ...")
             SCD_set_STE_config (p, False)
             SCD_toggle_STE_rolling (p, False, False)
             SCD_print_STE_status()
             gIDLElastTime = time.time()
         else:
             # invalid message
-            print ("WSN> invalid [RX] message !")    
+            print ("WSN-C> invalid [RX] message !")    
         if gTCPrxMsg == TCP_DEV_CLOSE_MSG:
             # exit from loop
-            print ("WSN> close device ...")
+            print ("WSN-C> close device ...")
             break    
     #
     # idling check
@@ -815,19 +819,14 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
         SCD_run_STE_for_idling(p)
         gIDLElastTime = t
     #
-    # if no messae to send
+    # if any messae to send
     #
-    if gTCPtxMsg == None:
-        continue
-    #
-    # message to send
-    #
-    try:     
-        loop.run_until_complete(tcp_TX_data(gTCPtxMsg, loop))
-    except ConnectionResetError:
-        print ("WSN> server connection is broken !")
-        break;    
-    
+    if gTCPtxMsg != None:
+        try:     
+            loop.run_until_complete(tcp_TX_data(gTCPtxMsg, loop))
+        except ConnectionResetError:
+            print ("WSN-C> server connection is broken !")
+            break;        
 #
 #############################################
 
@@ -845,6 +844,6 @@ if SCD_clear_memory(p) != None:
 # complete
 #
 loop.close()
-print ("WSN> all done ...")
+print ("WSN-C> all done ...")
 #
 #############################################
