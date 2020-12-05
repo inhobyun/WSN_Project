@@ -79,6 +79,24 @@ def open_socket(clientNum = 1):
     #
     return True 
 
+#############################################
+# close socket
+#
+def close_socket():
+    global gSocketServer
+    global gSocketConn
+    global gSocketAddr
+    #
+    if gSocketConn != None:
+        gSocketConn.close()
+        gSocketConn = gSocketAddr = None
+    #
+    if gSocketServer != None:
+        gSocketServer.close()
+        gSocketServer = None
+    #
+    return    
+
 ##############################################
 # accept socket
 #
@@ -319,6 +337,12 @@ def post_graph():
 #
 if __name__ == '__main__':
     if open_socket():
-        app.run(host='0.0.0.0')
+        try:
+            app.run(host='0.0.0.0')
+        except KeyboardInterrupt:
+            close_socket()
+        except:
+            print()
+    print("WSN-S> all done !")
 #
 #############################################        
