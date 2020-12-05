@@ -122,7 +122,7 @@ gTCPtxMsg  = None
 # handle to receive command message
 #############################################
 #
-async def tcp_RX_message(loop):
+async def tcp_RX(loop):
     global gTCPrxMsg
     global gTCPisPending
     global gTCPreader
@@ -154,7 +154,7 @@ async def tcp_RX_message(loop):
 # handle to send data
 #############################################
 #
-async def tcp_TX_data(tx_msg, loop):
+async def tcp_TX(tx_msg, loop):
     global gTCPrxMsg
     global gTCPreader
     global gTCPwriter
@@ -748,7 +748,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     #
     gTCPtxMsg = gTCPrxMsg = None
     try:
-        loop.run_until_complete(tcp_RX_message(loop))
+        loop.run_until_complete( tcp_RX(loop) )
     except ConnectionResetError:
         print ("WSN-C> server connection is broken !")
         break    
@@ -823,7 +823,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     #
     if gTCPtxMsg != None:
         try:     
-            loop.run_until_complete(tcp_TX_data(gTCPtxMsg, loop))
+            loop.run_until_complete( tcp_TX(gTCPtxMsg, loop) )
         except ConnectionResetError:
             print ("WSN-C> server connection is broken !")
             break;        
