@@ -53,7 +53,7 @@ gIsMonStarted   = False
 #############################################
 # create, bind and listen socket
 #
-def open_socket(clientNum = 1):
+def open_socket(clientNum = 2):
     global TCP_HOST_NAME
     global TCP_PORT
     global gSocketServer
@@ -102,45 +102,37 @@ def accept_socket(blockingTimer = 60):
 ##############################################
 # read from socket
 #
-def read_from_socket(blockingTimer = 60):
+def read_from_socket(blockingTimer = 8):
     global gSocketServer
     global gSocketConn
-    global gSocketAddr
     #
-    accept_socket(blockingTimer)
     print ("\nTCP-S> read ... ", end = '')
+    rx_msg = ''
     try:
-        rx_msg = ''
-        cnt = 0
-        while True:
-            data = gSocketConn.recv(1024)
-            if not data:
-                break
-            cnt += 1
-            rx_msg += data.decode()
-        print ("TCP-S> received [%d]time(s), [%s]" % (cnt, rx_msg))
+        gSocketServer.setblocking(blockingTimer)
+        data = gSocketConn.recv(1024)
     except:
-        rx_msg = None
-        print ("TCP-S> read fail !" )
+        print ("timeout or error !")
+    else:
+        rx_msg = data.decode()
+        print ("received [%s]" % rx_msg))
     #    
     return rx_msg   
 
 #############################################
 # write to socket
 #
-def write_to_socket(tx_msg, blockingTimer = 60):
+def write_to_socket(tx_msg):
     global gSocketServer
     global gSocketConn
-    global gSocketAddr
     #
-    accept_socket(blockingTimer)
     print ("\nTCP-S> write ... ", end = '')
     try:
-        if tx_msg != '':
-            gSocketConn.send(tx_msg.encode())
-            print ("TCP-S> sent [%s]" % tx_msg)
+        gSocketConn.send(tx_msg.encode())
     except:
-        print ("TCP-S> write fail !" )
+        print ("error !" )
+    else:
+        print ("[%s] sent" % tx_msg)
     #    
     return
 #
@@ -216,6 +208,7 @@ def post_monStart():
     global gIsMonStarted
     
     # send STE start & request
+    accept_socket()
     if not gIsMonStarted: 
         time.sleep(0.2)
         write_to_socket(TCP_STE_START_MSG)
@@ -273,6 +266,7 @@ def post_monStop():
     global gIsMonStarted
 
     # send STE request & stop
+    accept_socket()
     if gIsMonStarted:
         time.sleep(0.2)
         write_to_socket(TCP_STE_STOP_MSG)
