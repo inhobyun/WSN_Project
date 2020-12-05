@@ -7,7 +7,8 @@
 
     <p style="position:absolute; left:  8px; top:172px;"><label>Option</label></p>
     <p style="position:absolute; left: 50px; top:172px;"><label>period</label></p>
-    <p style="position:absolute; left:100px; top:170px;"><input type="text" id="tm_period" value="1"></p>    
+    <p style="position:absolute; left:100px; top:170px;"><input type="text" id="tm_period" value="3"></p>
+    <p style="position:absolute; left:150px; top:172px;"><label>sec</label></p>    
 {% endblock %}
 
 {% block foot %}
@@ -17,6 +18,8 @@
 {% block right %}
 
 <p style="text-align:left; padding-top:4px; padding-left:8px"><Strong>SCD Sensor Data - on-time display</Strong><cr></p>
+<p style="text-align:right; position:absolute; top:172px;"><label>Sensor Measured Time : </label></p>
+<p style="text-align:left; position:absolute; top:172px;"><label id="row_00">YYYY-MM-DD hh:mm:ss[unix time]</label></p>
 
 <table id="monitor">
         <tr>
@@ -86,6 +89,7 @@
     var tid = null
 
     function dispData(data) {
+        document.getElementById("row_00").innerHTML = data.row_01
         document.getElementById("row_01").innerHTML = data.row_01
         document.getElementById("row_02").innerHTML = data.row_02
         document.getElementById("row_03").innerHTML = data.row_03

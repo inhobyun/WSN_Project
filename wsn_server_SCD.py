@@ -20,15 +20,20 @@ import time
 #
 # target TCP Server identifiers
 #
-TCP_HOST_NAME = socket.gethostname()
-TCP_PORT      = 8088
-TCP_DEV_READY_MSG = 'DEV_READY'
-TCP_DEV_CLOSE_MSG = 'DEV_CLOSE'
-TCP_STE_START_MSG = 'STE_START'
-TCP_STE_STOP_MSG  = 'STE_STOP'
-TCP_STE_REQ_MSG   = 'STE_REQ'
-TCP_BDT_RUN_MSG   = 'BDT_RUN'
-TCP_BDT_REQ_MSG   = 'BDT_REQ'
+##TCP_HOST_NAME = "127.0.0.1"       # TEST Host Name
+TCP_HOST_NAME = "10.2.2.3"        # TEST Host Name
+##TCP_HOST_NAME = "192.168.0.3"     # TEST Host Name
+##TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
+TCP_PORT      = 8088              # Default TCP Port Name
+#
+TCP_DEV_READY_MSG = 'DEV_READY'     # server message to check client ready
+TCP_DEV_CLOSE_MSG = 'DEV_CLOSE'     # server message to disconnect client
+TCP_STE_START_MSG = 'STE_START'     # server message to start STE for monitoring
+TCP_STE_STOP_MSG  = 'STE_STOP'      # server message to stop STE
+TCP_STE_REQ_MSG   = 'STE_REQ'       # server message to request a STE result data 
+TCP_BDT_RUN_MSG   = 'BDT_RUN'       # server message to run BDT advanced STE /w memory write
+TCP_BDT_REQ_MSG   = 'BDT_REQ'       # server message to request BDT data
+TCP_BDT_END_MSG   = 'BDT_END'       # client message to inform BDT data transfer completed
 #
 # global variables
 #
@@ -179,8 +184,8 @@ def post_monStart():
     if not gIsStarted: 
         time.sleep(0.2)
         write_to_socket(TCP_STE_START_MSG)
-        gIsStarted = True
         from_client = None
+        gIsStarted = True
     else:    
         time.sleep(0.2)
         write_to_socket(TCP_STE_REQ_MSG)
@@ -192,20 +197,22 @@ def post_monStart():
         from_client = from_client.replace(')','')
         from_client = from_client.replace('(','')
         vals = from_client.split(',')  
-        rows = {'row_01' : vals[ 0],
-                'row_02' : vals[ 1],
-                'row_03' : vals[ 2],
-                'row_04' : vals[ 3],
-                'row_05' : vals[ 4],
-                'row_06' : vals[ 5],
-                'row_07' : vals[ 6],
-                'row_08' : vals[ 7],
-                'row_09' : vals[ 8],
-                'row_10' : vals[ 9],
-                'row_11' : vals[10]
+        rows = {'row_00' : vals[ 0],
+                'row_01' : vals[ 1],
+                'row_02' : vals[ 2],
+                'row_03' : vals[ 3],
+                'row_04' : vals[ 4],
+                'row_05' : vals[ 5],
+                'row_06' : vals[ 6],
+                'row_07' : vals[ 7],
+                'row_08' : vals[ 8],
+                'row_09' : vals[ 9],
+                'row_10' : vals[10],
+                'row_11' : vals[11]
                }
     else:                          
-        rows = {'row_01' : '?',
+        rows = {'row_00' : '?',
+                'row_01' : '?',
                 'row_02' : '?',
                 'row_03' : '?',
                 'row_04' : '?',
@@ -232,7 +239,10 @@ def post_monStop():
         time.sleep(0.2)
         write_to_socket(TCP_STE_STOP_MSG)
         gIsStarted = False
-        rows = {'row_01' : '-',
+        tm = time.time()
+        tm_stamp = ( "%s[%.3f]" % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
+        rows = {'row_00' : tm_stamp,
+                'row_01' : '-',
                 'row_02' : '-',
                 'row_03' : '-',
                 'row_04' : '-',
