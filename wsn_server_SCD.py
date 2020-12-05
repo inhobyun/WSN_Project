@@ -43,7 +43,7 @@ gSocketServer   = None
 gSocketConn     = None
 gSocketAddr     = 0
 #
-gIsStarted      = False
+gIsMonStarted      = False
 
 #############################################
 #############################################
@@ -57,8 +57,6 @@ def open_socket(clientNum = 1):
     global TCP_HOST_NAME
     global TCP_PORT
     global gSocketServer
-    global gSocketConn
-    global gSocketAddr
     #
     if len(sys.argv) > 1:
         print ("TCP-S> take argument as port# (default: %d)" % TCP_PORT)
@@ -66,20 +64,20 @@ def open_socket(clientNum = 1):
     gSocketServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     if gSocketServer != None:
         print("TCP-S> socket created")
+        print("TCP-S> trying to bind %s:%d" % (TCP_HOST_NAME, TCP_PORT) )
         try:
-            print("TCP-S> trying to bind %s:%d" % (TCP_HOST_NAME, TCP_PORT) )
             gSocketServer.bind((TCP_HOST_NAME, TCP_PORT))
         except:
             print("TCP-S> binding fail... Exiting...")
-            sys.exit(1)
+            return False
     else:
         print("TCP-S> socket creation fail... Exiting...")
-        sys.exit(1)
+        return False
     print("TCP-S> binded...")    
     gSocketServer.listen(clientNum)
     print("TCP-S> listening...") 
     #
-    return  
+    return True 
 
 ##############################################
 # read from socket
@@ -145,49 +143,70 @@ env = Environment(
     autoescape=select_autoescape(['html', 'xml'])
 )
 
+#############################################
+# base UI
+#
 @app.route('/')
 def root():
     template = env.get_template('main.html')
     return template.render()
 
+#############################################
+# sensor monitoring UI
+#
 @app.route('/m_monitor')
 def monitor():
     template = env.get_template('m_monitor.html')
     return template.render()
 
+#############################################
+# graphics UI
+#
 @app.route('/m_dashboard')
 def dashboard():
     template = env.get_template('m_dashboard.html')
     return template.render()
 
+#############################################
+# about UI - page #1
+#
 @app.route('/m_intro_1')
 def intro_1():
     template = env.get_template('m_intro_1.html')
     return template.render()
 
+#############################################
+# about UI - page #2
+#
 @app.route('/m_intro_2')
 def intro_2():
     template = env.get_template('m_intro_2.html')
     return template.render()
 
+#############################################
+# Ooops UI
+#
 @app.route('/m_Ooops')
 def Ooops():
     template = env.get_template('m_Ooops.html')
     return template.render()
 
+#############################################
+# monitoring UI - start
+#
 @app.route('/post_monStart', methods=['POST'])
 def post_monStart():
     data = json.loads(request.data)
     value = data['value']
     #
-    global gIsStarted
+    global gIsMonStarted
     
     # send STE start & request
-    if not gIsStarted: 
+    if not gIsMonStarted: 
         time.sleep(0.2)
         write_to_socket(TCP_STE_START_MSG)
         from_client = None
-        gIsStarted = True
+        gIsMonStarted = True
     else:    
         time.sleep(0.2)
         write_to_socket(TCP_STE_REQ_MSG)
@@ -229,18 +248,21 @@ def post_monStart():
 
     return json.dumps(rows)
 
+#############################################
+# monitoring UI - stop
+#
 @app.route('/post_monStop', methods=['POST'])
 def post_monStop():
     data = json.loads(request.data)
     value = data['value']
     #
-    global gIsStarted
+    global gIsMonStarted
 
     # send STE request & stop
-    if gIsStarted:
+    if gIsMonStarted:
         time.sleep(0.2)
         write_to_socket(TCP_STE_STOP_MSG)
-        gIsStarted = False
+        gIsMonStarted = False
         tm = time.time()
         tm_stamp = ( "%s [%.3f]" % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
         rows = {'row_00' : tm_stamp,
@@ -259,6 +281,9 @@ def post_monStop():
 
     return json.dumps(rows)
 
+#############################################
+# graphics UI - drawing
+#
 @app.route('/post_graph', methods=['POST'])
 def post_graph():
     data = json.loads(request.data)
@@ -283,5 +308,7 @@ def post_graph():
 #############################################
 #
 if __name__ == '__main__':
-    open_socket()
-    app.run(host='0.0.0.0')
+    if open_socket():
+        app.run(host='0.0.0.0')
+#
+#############################################        
