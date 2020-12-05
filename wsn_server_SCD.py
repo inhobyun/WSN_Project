@@ -53,7 +53,7 @@ gIsMonStarted   = False
 #############################################
 # create, bind and listen socket
 #
-def open_socket(clientNum = 2):
+def open_socket(clientNum = 1):
     global TCP_HOST_NAME
     global TCP_PORT
     global gSocketServer
@@ -111,11 +111,13 @@ def read_from_socket(blockingTimer = 8):
     try:
         gSocketServer.setblocking(blockingTimer)
         data = gSocketConn.recv(1024)
+    except TimeoutError:
+        print ("timeout !")
     except:
-        print ("timeout or error !")
+        print ("error !")
     else:
         rx_msg = data.decode()
-        print ("received [%s]" % rx_msg))
+        print ("received [%s]" % rx_msg)
     #    
     return rx_msg   
 
