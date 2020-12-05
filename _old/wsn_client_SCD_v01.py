@@ -299,8 +299,10 @@ def hex_str( vBytes ):
 #############################################
 # output STE data to string
 #
-def SCD_string_STE_data( pResult ):
+def SCD_string_STE_data( pTime, pResult ):
     #
+    # output time stamp
+    tm_stamp = ( "%s [%.3f]" % (datetime.datetime.fromtimestamp(pTime).strftime('%Y-%m-%d %H:%M:%S'), pTime) )
     # output Accelerrometer X, Y, Z axis arithmetic mean & variation
     adxl_mean_x = float( int.from_bytes(pResult[ 0: 2], byteorder='little', signed=True) ) / 10.0
     adxl_mean_y = float( int.from_bytes(pResult[ 2: 4], byteorder='little', signed=True) ) / 10.0
@@ -321,7 +323,8 @@ def SCD_string_STE_data( pResult ):
     magneto_z = float( int.from_bytes(pResult[28:30], byteorder='little', signed=True) ) / 16.0
     #
     # make string to send
-    str = "(%.1f," % adxl_mean_x
+    str  = "(" + tm_stamp + ","
+    str += "%.1f," % adxl_mean_x
     str += "%.2f," % adxl_vari_x
     str += "%.1f," % adxl_mean_y
     str += "%.2f," % adxl_vari_y
@@ -763,8 +766,9 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
                 print ("WSN> request STE data ...")
                 # if not enable STE notification
                 gSTElastData = p.readCharacteristic(SCD_STE_RESULT_HND)
-                gTCPtxMsg = SCD_string_STE_data(gSTElastData)
-                gIDLElastTime = time.time()
+                gSTElastTime = time.time()
+                gTCPtxMsg = SCD_string_STE_data(gSTElastTime, gSTElastData)
+                gIDLElastTime = gSTElastTime   
             else:
                 print ("WSN> invalid message, STE has not been started !")    
         elif gTCPrxMsg == TCP_BDT_RUN_MSG:
