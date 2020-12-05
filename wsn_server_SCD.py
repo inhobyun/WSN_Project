@@ -196,6 +196,14 @@ def dashboard():
     return template.render()
 
 #############################################
+# analysis UI
+#
+@app.route('/m_analysis')
+def analysis():
+    template = env.get_template('m_analysis.html')
+    return template.render()
+
+#############################################
 # about UI - page #1
 #
 @app.route('/m_intro_1')
