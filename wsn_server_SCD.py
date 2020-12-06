@@ -44,6 +44,9 @@ gSocketConn     = None
 gSocketAddr     = None
 #
 gIsMonStarted   = False
+gIsAnaStarted   = False
+#
+gBDTtextData    = None
 
 #############################################
 #############################################
@@ -172,6 +175,12 @@ env = Environment(
 )
 
 #############################################
+#############################################
+#         
+# menu bar button stuffs
+#
+
+#############################################
 # base UI
 #
 @app.route('/')
@@ -228,12 +237,18 @@ def Ooops():
     return template.render()
 
 #############################################
+#############################################
+#         
+# left block button stuffs
+#
+
+#############################################
 # monitoring UI - start
 #
 @app.route('/post_monStart', methods=['POST'])
 def post_monStart():
-    data = json.loads(request.data)
-    value = data['value']
+    #data = json.loads(request.data)
+    #value = data['value']
     #
     global gIsMonStarted
     
@@ -290,12 +305,12 @@ def post_monStart():
 #
 @app.route('/post_monStop', methods=['POST'])
 def post_monStop():
-    data = json.loads(request.data)
-    value = data['value']
+    #data = json.loads(request.data)
+    #value = data['value']
     #
     global gIsMonStarted
 
-    # send STE request & stop
+    # send STE stop
     accept_socket()
     if gIsMonStarted:
         time.sleep(0.2)
@@ -318,6 +333,76 @@ def post_monStop():
                }               
 
     return json.dumps(rows)
+
+#############################################
+# analysis UI - STEandBDT
+#
+@app.route('/post_STEandBDT', methods=['POST'])
+def post_STEandBDT():
+    #data = json.loads(request.data)
+    #value = data['value']
+    #
+    global gIsAnaStarted
+    global gBDTtextData
+
+    # send BDT run
+    ##accept_socket()
+    ##write_to_socket(TCP_BDT_RUN_MSG)
+    tm = time.time()
+    tm_stamp = ( "%s [%.3f]" % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
+    msgs = {'msg_00' : tm_stamp,
+            'msg_01' : ''
+           }
+    
+    return json.dumps(msgs)
+
+#############################################
+# analysis UI - BDTtoServer
+#
+@app.route('/post_BDTtoServer', methods=['POST'])
+def post_BDTtoServer():
+    #data = json.loads(request.data)
+    #value = data['value']
+    #
+    global gIsAnaStarted
+    global gBDTtextData
+
+    # send BDT run
+    ##accept_socket()
+    ##write_to_socket(TCP_BDT_REQ_MSG)
+    #
+    # coding here
+    #
+    tm = time.time()
+    tm_stamp = ( "%s [%.3f]" % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
+    msgs = {'msg_00' : tm_stamp,
+            'msg_01' : ''
+           }
+    
+    return json.dumps(msgs)
+
+#############################################
+# analysis UI - BDTtoFile
+#
+@app.route('/post_BDTtoFile', methods=['POST'])
+def post_BDTtoFile():
+    #data = json.loads(request.data)
+    #value = data['value']
+    #
+    global gIsAnaStarted
+    global gBDTtextData
+
+    # write to file
+    #
+    # coding here
+    #
+    tm = time.time()
+    tm_stamp = ( "%s [%.3f]" % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
+    msgs = {'msg_00' : tm_stamp,
+            'msg_01' : ''
+           }
+    
+    return json.dumps(msgs)    
 
 #############################################
 # graphics UI - drawing
