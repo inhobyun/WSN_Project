@@ -60,7 +60,11 @@ body {
 .right {
   grid-area: right;
   background-color: whitesmoke;
-  font-size: 12px;
+  font-size: 14px;
+  padding-top: 4px;
+  padding-left: 4px;
+  padding-bottom: 4px;
+  padding-right: 4px;
 }
 
 /* Style the footer */
@@ -124,12 +128,12 @@ td {
     <div class="top">
       <p style="position:static;">
         <button onclick="window.location.href='/m_Ooops'">Sensor Configuration</button>
-        <button onclick="window.location.href='/m_monitor'">Sensor Data - Real Time Satus</button>
-        <button onclick="window.location.href='/m_dashboard'">Sensor Data - Time Series Graph</button>
-        <button onclick="window.location.href='/m_Ooops'">Sensor Data - Frequency Graph</button>
+        <button onclick="window.location.href='/m_monitor'">Sensor Data Monitoring</button>
         <button onclick="window.location.href='/m_analysis'">Sensor Data Analysis</button>
+        <button onclick="window.location.href='/m_graph_time'">Graph - Time Series</button>
+        <button onclick="window.location.href='/m_graph_freq'">Graph - Frequency</button>
       </p>
-      <p style="position:absolute; top:25px; left:1124px;">
+      <p style="position:absolute; top:26px; left:1208px;">
         <button onclick="window.location.href='/m_intro_1'">About...</button>
       </p>    
     </div>

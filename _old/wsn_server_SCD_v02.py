@@ -190,9 +190,9 @@ def monitor():
 #############################################
 # graphics UI
 #
-@app.route('/m_dashboard')
-def dashboard():
-    template = env.get_template('m_dashboard.html')
+@app.route('/m_graph_time')
+def graph_time():
+    template = env.get_template('m_graph_time.html')
     return template.render()
 
 #############################################

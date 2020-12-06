@@ -2,7 +2,7 @@
 
 {% block left %}
     <p style="text-align:center;"><Strong>X & Y Axis Scaling</Strong><cr></p> 
-    <p style="text-align:right;"><button onclick="dispGraph()"> Apply & Display Graph </button></p>
+    <p style="text-align:right;"><button onclick="dispGraphTime()"> Apply & Display Graph </button></p>
     
     <p style="position:absolute; left:  8px; top:120px;"><label>Scaling Mode:</label></p>
     <p style="position:absolute; left:100px; top:120px;"><input type="radio" id="auto_scroll" name="scroll" value="auto_scroll" checked>
@@ -41,27 +41,27 @@
 
 {% block right %}
 
-<p style="text-align:left; padding-top:4px; padding-left:8px"><Strong>Accelerometer Sensor Data - Time Series Graph</Strong><cr></p>
+<div style="text-align:center"><Strong>Accelerometer Sensor Data - Time series Graph</Strong></div>
 
 <div class="form">
     <div id="chart-box"></div>
 </div>
 
 <script>
-    function dispGraph() {
+    function dispGraphTime() {
         const value = document.getElementById('y_max').value;
-        axios.post('/post_graph', {
+        axios.post('/post_graphTime', {
             value: Number(value),
         }).then(response => {
             const data = response.data;
-            drawGraph(data);
+            drawGraphTime(data);
             // console.log(data);
         }).catch(function (error) {
             alert('Error occurred on submit: ' + error);
         });
     }
 
-    function drawGraph(data) {
+    function drawGraphTime(data) {
         // Clear the chart box.
         document.getElementById('chart-box').innerHTML = '';
 

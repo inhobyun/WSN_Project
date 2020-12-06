@@ -3,43 +3,65 @@
 {% block left %}
     <p style="text-align:center;"><Strong>Sensor Data Analysis</Strong><cr></p> 
     <p style="text-align: right; padding-right:8px;"><button id="btn_start_1" onclick="startSTEandBDT()"> Start </button></p>
-    <p style="text-align: right; padding-right:8px;"><button id="btn_start_2" onclick="startBDTtoServer()" disabled> Start </button></p>
-    <p style="text-align: right; padding-right:8px;"><button id="btn_start_3" onclick="startBDTtoFile()"  disabled> Start </button></p>
-    <p style="position:absolute; left:  8px; top: 70px;"><label>Run accelometer sensor</label></p>
-    <p style="position:absolute; left:  8px; top:90px;"><label>Sensor CSV data transfer</label></p>
-    <p style="position:absolute; left:  8px; top:110px;"><label>Sensor data save to *.csv file</label></p>
+    <p style="text-align: right; padding-right:8px;"><button id="btn_start_2" onclick="startBDTtoSever()" disabled> Start </button></p>
+    <p style="text-align: right; padding-right:8px;"><button id="btn_start_3" onclick="startBDTtoFile()"   disabled> Start </button></p>
+    <p style="position:absolute; left:8px; top: 70px;"><label>Run accelometer sensor</label></p>
+    <p style="position:absolute; left:8px; top: 90px;"><label>Sensor CSV data transfer</label></p>
+    <p style="position:absolute; left:8px; top:110px;"><label>Sensor data save to *.csv file</label></p>
 {% endblock %}
 
 {% block foot %}
-    <p style="color:aqua;">Analysis Sensor Data...</p>
+    <p style="color:aqua;">Analyze Sensor Data...</p>
 {% endblock %}
 
 {% block right %}
 
-<p style="text-align:left;  padding-top:4px; padding-left:8px"><Strong>SCD Sensor Analysis - on-time running</Strong><cr></p>
+<div style="text-align:center"><Strong>SCD Sensor Analysis - on-time analysis</Strong></div>
+<div class="run_message" id="message"> </div>    
 
 <script>
 
 function startSTEandBDT() {
-        //const value = document.getElementById('tm_interval').value;
+        //get UI input value
+        //const value = document.getElementById('???').value;
+        //control UI before function run
         document.getElementById("btn_start_1").disabled = true;
+        document.getElementById("btn_start_2").disabled = true;
+        document.getElementById("btn_start_3").disabled = true;
+        //display pre-messages
+        document.getElementById("message").innerHTML  = "<br>"
+        document.getElementById("message").innerHTML += " => run STE(Short Time Experiment) in sensor and BDT(Block Data Transfer) from sensor to edge device<br>"
+        document.getElementById("message").innerHTML += " => it will take some minutes, wait until completed<br>"
+        //run flask function
         axios.post('/post_STEandBDT', {
             //value: Number(value),
         }).then(response => {
             const data = response.data;
             //
-            // coding here
+            // coding after function run
             //
+            document.getElementById("message").innerHTML += " => started: "
+            document.getElementById("message").innerHTML += data.msg_00
+            document.getElementById("message").innerHTML += "<br><br>"
             //console.log(data);
         }).catch(function (error) {
             alert('Error occurred on submit: ' + error);
         });
-        document.getElementById("btn_START_2" ).disabled = false;
+        //control UI after function run
+        document.getElementById("btn_start_2" ).disabled = false;
     }
 
 function startBDTtoSever() {
+        //get UI input value
+        //const value = document.getElementById('???').value;
         //const value = document.getElementById('tm_interval').value;
+        document.getElementById("btn_start_1").disabled = true;
         document.getElementById("btn_start_2").disabled = true;
+        document.getElementById("btn_start_3").disabled = true;
+        //display pre-messages
+        document.getElementById("message").innerHTML += " => transfer sensor memory data from edge device to server<br>"
+        document.getElementById("message").innerHTML += " => it will take some minutes, wait until completed<br>"
+        //run flask function
         axios.post('/post_BDTtoServer', {
             //value: Number(value),
         }).then(response => {
@@ -47,17 +69,29 @@ function startBDTtoSever() {
             //
             // coding here
             //
+            document.getElementById("message").innerHTML += " => started: "
+            document.getElementById("message").innerHTML += data.msg_00
+            document.getElementById("message").innerHTML += "<br><br>"
             //console.log(data);
         }).catch(function (error) {
             alert('Error occurred on submit: ' + error);
         });
-        document.getElementById("btn_START_1" ).disabled = false;
-        document.getElementById("btn_START_3" ).disabled = false;
+        //control UI after function run
+        document.getElementById("btn_start_1" ).disabled = false;
+        document.getElementById("btn_start_3" ).disabled = false;
     }
 
 function startBDTtoFile() {
+        //get UI input value
+        //const value = document.getElementById('???').value;
         //const value = document.getElementById('tm_interval').value;
-        document.getElementById("btn_START_3" ).disabled = True;
+        document.getElementById("btn_start_1").disabled = true;
+        document.getElementById("btn_start_2").disabled = true;
+        document.getElementById("btn_start_3").disabled = true;
+        //display pre-messages
+        document.getElementById("message").innerHTML += " => run STE(Short Time Experiment) and BDT(Block Data Transfer) with 3-axis accelometer<br>"
+        document.getElementById("message").innerHTML += " => it will take some minutes, wait until completed<br>"
+        //run flask function
         axios.post('/post_BDTtoFile', {
             //value: Number(value),
         }).then(response => {
@@ -65,10 +99,15 @@ function startBDTtoFile() {
             //
             // coding here
             //
+            document.getElementById("message").innerHTML += " => started: "
+            document.getElementById("message").innerHTML += data.msg_00
+            document.getElementById("message").innerHTML += "<br><br>"
             //console.log(data);
         }).catch(function (error) {
             alert('Error occurred on submit: ' + error);
         });
+        //control UI after function run
+        document.getElementById("btn_start_1").disabled = false;
     }    
 
 </script>

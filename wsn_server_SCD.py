@@ -189,6 +189,14 @@ def root():
     return template.render()
 
 #############################################
+# Ooops UI
+#
+@app.route('/m_Ooops')
+def Ooops():
+    template = env.get_template('m_Ooops.html')
+    return template.render()
+
+#############################################
 # sensor monitoring UI
 #
 @app.route('/m_monitor')
@@ -197,19 +205,27 @@ def monitor():
     return template.render()
 
 #############################################
-# graphics UI
-#
-@app.route('/m_dashboard')
-def dashboard():
-    template = env.get_template('m_dashboard.html')
-    return template.render()
-
-#############################################
 # analysis UI
 #
 @app.route('/m_analysis')
 def analysis():
     template = env.get_template('m_analysis.html')
+    return template.render()
+
+#############################################
+# graphics UI
+#
+@app.route('/m_graph_time')
+def graph_time():
+    template = env.get_template('m_graph_time.html')
+    return template.render()
+
+#############################################
+# graphics UI
+#
+@app.route('/m_graph_freq')
+def graph_freq():
+    template = env.get_template('m_graph_freq.html')
     return template.render()
 
 #############################################
@@ -226,14 +242,6 @@ def intro_1():
 @app.route('/m_intro_2')
 def intro_2():
     template = env.get_template('m_intro_2.html')
-    return template.render()
-
-#############################################
-# Ooops UI
-#
-@app.route('/m_Ooops')
-def Ooops():
-    template = env.get_template('m_Ooops.html')
     return template.render()
 
 #############################################
@@ -346,8 +354,9 @@ def post_STEandBDT():
     global gBDTtextData
 
     # send BDT run
-    ##accept_socket()
-    ##write_to_socket(TCP_BDT_RUN_MSG)
+    accept_socket()
+    write_to_socket(TCP_BDT_RUN_MSG)
+    
     tm = time.time()
     tm_stamp = ( "%s [%.3f]" % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
     msgs = {'msg_00' : tm_stamp,
@@ -405,19 +414,38 @@ def post_BDTtoFile():
     return json.dumps(msgs)    
 
 #############################################
-# graphics UI - drawing
+# graphics - time series UI - drawing
 #
-@app.route('/post_graph', methods=['POST'])
-def post_graph():
+@app.route('/post_graphTime', methods=['POST'])
+def post_graphTime():
     data = json.loads(request.data)
     value = data['value']
 
     # Prepare data to send in here.
     x = []
     y = []
-    for i in range(100):
+    for i in range(360):
         # Sine value for example.
-        curr_x = float(i / 100)
+        curr_x = float(i / 10)
+        x.append(curr_x)
+        y.append(math.sin(curr_x) * value)
+    
+    return json.dumps({ 'x': x, 'y': y })
+
+#############################################
+# graphics - frequency UI - drawing
+#
+@app.route('/post_graphFreq', methods=['POST'])
+def post_graphFreq():
+    data = json.loads(request.data)
+    value = data['value']
+
+    # Prepare data to send in here.
+    x = []
+    y = []
+    for i in range(60):
+        # Sine value for example.
+        curr_x = float(i / 10)
         x.append(curr_x)
         y.append(math.sin(curr_x) * value)
     
