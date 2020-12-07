@@ -463,11 +463,11 @@ def SCD_scan_and_connect( is_first = True ):
     #
     # scanning for a while
     #
-    scanner = Scanner().withDelegate(ScanDelegate())
     print ("SCD> BLE device scan %sstarted..." % ('re' if not is_first else '') )
 
     retry = 0
     while retry < 120:
+        scanner = Scanner().withDelegate(ScanDelegate())
         devices = scanner.scan(SCAN_TIME)
         print ("\nSCD> BLE device scan completed... [%d] devices are scanned" % gScannedCount)
         #
@@ -497,6 +497,7 @@ def SCD_scan_and_connect( is_first = True ):
             print("SCD> no matching device found... retry [%d] times after 1.5 min..." % retry)
             if retry == 120:
                 print("SCD> no matching device found... exiting...")
+                sys.exit(-1)
             time.sleep(90)
         else:
             break    
@@ -510,9 +511,9 @@ def SCD_scan_and_connect( is_first = True ):
         try:
             p = Peripheral(gTargetDevice.addr, gTargetDevice.addrType)
         except:
-            print("SCD> => BLE device connection error occured... retry after 10 sec...")
+            print("SCD> => BLE device connection error occured... retry [%d] times after 10 sec..." % retry)
             retry += 1
-            if retry > 10:
+            if retry > 30:
                 print("SCD> => BLE device connection error occured... exiting...")
                 sys.exit(-1)
             time.sleep(10)    
