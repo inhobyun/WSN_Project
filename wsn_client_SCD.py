@@ -467,7 +467,7 @@ def SCD_scan_and_connect( is_first = True ):
     print ("SCD> BLE device scan %sstarted..." % ('re' if not is_first else '') )
 
     retry = 0
-    while retry < 60:
+    while retry < 120:
         devices = scanner.scan(SCAN_TIME)
         print ("\nSCD> BLE device scan completed... [%d] devices are scanned" % gScannedCount)
         #
@@ -494,10 +494,10 @@ def SCD_scan_and_connect( is_first = True ):
         #
         if gTargetDevice == None:
             retry += 1
-            print("SCD> no matching device found... retry [%d] times after 3 min..." % retry)
-            if retry == 60:
+            print("SCD> no matching device found... retry [%d] times after 1.5 min..." % retry)
+            if retry == 120:
                 print("SCD> no matching device found... exiting...")
-            time.sleep(180)
+            time.sleep(90)
         else:
             break    
     #
