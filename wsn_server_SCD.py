@@ -360,8 +360,8 @@ def post_STEandBDT():
     time.sleep(1.0)
     write_to_socket(TCP_DEV_READY_MSG)
     from_client = ''
-    whilw from_client != ''
-        read_from_socket(blockingTimer = 1)
+    while from_client == '':
+        from_client = read_from_socket(blockingTimer = 3)
     #
     tm = time.time()
     tm_stamp = ( "%s [%.3f]" % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
@@ -389,8 +389,8 @@ def post_BDTtoServer():
     time.sleep(1.0)
     write_to_socket(TCP_DEV_READY_MSG)
     from_client = ''
-    whilw from_client != ''
-        read_from_socket(blockingTimer = 1)
+    while from_client == '':
+        from_client = read_from_socket(blockingTimer = 3)
     #
     tm = time.time()
     tm_stamp = ( "%s [%.3f]" % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
