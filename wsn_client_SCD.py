@@ -764,7 +764,11 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPnullRXcnt < 10:
         #
         # process server message
         #
-        if gTCPrxMsg == TCP_STE_START_MSG:
+        if gTCPrxMsg == TCP_DEV_READY_MSG:
+            # start STE rolling w/o memory writing
+            print ("WSN-C> response to [%s]..." % TCP_DEV_READY_MSG)
+            gTCPtxMsg = TCP_DEV_READY_MSG
+        elif gTCPrxMsg == TCP_STE_START_MSG:
             # start STE rolling w/o memory writing
             print ("WSN-C> start STE rolling...")
             p.setDelegate( NotifyDelegate(p) )

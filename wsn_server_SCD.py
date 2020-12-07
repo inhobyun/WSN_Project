@@ -356,7 +356,13 @@ def post_STEandBDT():
     # send BDT run
     accept_socket()
     write_to_socket(TCP_BDT_RUN_MSG)
-    
+    # wait till completed
+    time.sleep(1.0)
+    write_to_socket(TCP_DEV_READY_MSG)
+    from_client = ''
+    whilw from_client != ''
+        read_from_socket(blockingTimer = 1)
+    #
     tm = time.time()
     tm_stamp = ( "%s [%.3f]" % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
     msgs = {'msg_00' : tm_stamp,
@@ -377,10 +383,14 @@ def post_BDTtoServer():
     global gBDTtextData
 
     # send BDT run
-    ##accept_socket()
-    ##write_to_socket(TCP_BDT_REQ_MSG)
-    #
-    # coding here
+    accept_socket()
+    write_to_socket(TCP_BDT_REQ_MSG)
+    # wait till completed
+    time.sleep(1.0)
+    write_to_socket(TCP_DEV_READY_MSG)
+    from_client = ''
+    whilw from_client != ''
+        read_from_socket(blockingTimer = 1)
     #
     tm = time.time()
     tm_stamp = ( "%s [%.3f]" % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
