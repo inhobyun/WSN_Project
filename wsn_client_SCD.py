@@ -510,7 +510,7 @@ def SCD_scan_and_connect( is_first = True ):
         try:
             p = Peripheral(gTargetDevice.addr, gTargetDevice.addrType)
         except:
-            print("SCD> => BLE device connection error occured... retry after 3 min...")
+            print("SCD> => BLE device connection error occured... retry after 10 sec...")
             retry += 1
             if retry > 10:
                 print("SCD> => BLE device connection error occured... exiting...")
