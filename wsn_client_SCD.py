@@ -465,33 +465,39 @@ def SCD_scan_and_connect( is_first = True ):
     #
     scanner = Scanner().withDelegate(ScanDelegate())
     print ("SCD> BLE device scan %sstarted..." % ('re' if not is_first else '') )
-    devices = scanner.scan(SCAN_TIME)
-    print ("\nSCD> BLE device scan completed... [%d] devices are scanned" % gScannedCount)
-    #
-    # check to match BOSCH SCD device identifiers
-    #
-    for dev in devices:
-        matching_count = 0
-        for (adtype, desc, value) in dev.getScanData():
-            if adtype == 255 and TARGET_MANUFA_UUID in value:
-                matching_count += 1
-                print("SCD> => found target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value))            
-            if adtype == 9 and TARGET_DEVICE_NAME in value:
-                matching_count += 1
-                print("SCD> => found target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value))            
-            if matching_count >= 2:
-                print("SCD> => found BOSCH SCD device!")
-                print("SCD> device address [%s], type=[%s], RSSI=[%d]dB" % (dev.addr, dev.addrType, dev.rssi))
-                gTargetDevice = dev
+
+    retry = 0
+    while retry < 60:
+        devices = scanner.scan(SCAN_TIME)
+        print ("\nSCD> BLE device scan completed... [%d] devices are scanned" % gScannedCount)
+        #
+        # check to match BOSCH SCD device identifiers
+        #
+        for dev in devices:
+            matching_count = 0
+            for (adtype, desc, value) in dev.getScanData():
+                if adtype == 255 and TARGET_MANUFA_UUID in value:
+                    matching_count += 1
+                    print("SCD> => found target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value))            
+                if adtype == 9 and TARGET_DEVICE_NAME in value:
+                    matching_count += 1
+                    print("SCD> => found target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value))            
+                if matching_count >= 2:
+                    print("SCD> => found BOSCH SCD device!")
+                    print("SCD> device address [%s], type=[%s], RSSI=[%d]dB" % (dev.addr, dev.addrType, dev.rssi))
+                    gTargetDevice = dev
+                    break
+            if gTargetDevice != None:
                 break
-        if gTargetDevice != None:
-            break
-    #
-    # if none found then exiting    
-    #
-    if gTargetDevice == None:
-        print("SCD> no matching device found... Exiting...")
-        sys.exit(1)
+        #
+        # if none found then exiting    
+        #
+        if gTargetDevice == None:
+            print("SCD> no matching device found... Exiting...")
+            retry += 1
+            time.sleep(180)
+        else:
+            break    
     #
     # connect
     #
@@ -504,10 +510,10 @@ def SCD_scan_and_connect( is_first = True ):
         except:
             print("SCD> => BLE device connection error occured... retry after 3 min...")
             retry += 1
-            if retry > 60:
+            if retry > 10:
                 print("SCD> => BLE device connection error occured... exiting...")
                 sys.exit(-1)
-            time.sleep(180)    
+            time.sleep(10)    
     #
     # should increase MTU##
     #           
