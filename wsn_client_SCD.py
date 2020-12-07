@@ -493,8 +493,10 @@ def SCD_scan_and_connect( is_first = True ):
         # if none found then exiting    
         #
         if gTargetDevice == None:
-            print("SCD> no matching device found... Exiting...")
             retry += 1
+            print("SCD> no matching device found... retry [%d] times after 3 min..." % retry)
+            if retry == 60:
+                print("SCD> no matching device found... exiting...")
             time.sleep(180)
         else:
             break    
