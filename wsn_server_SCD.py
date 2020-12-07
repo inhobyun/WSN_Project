@@ -185,7 +185,6 @@ env = Environment(
 #
 @app.route('/')
 def root():
-    accept_socket(blockingTimer = 3600*3+180)
     template = env.get_template('main.html')
     return template.render()
 
@@ -471,6 +470,7 @@ def post_graphFreq():
 #
 if __name__ == '__main__':
     if open_socket():
+        accept_socket(blockingTimer = 3600*3+180)
         app.run(host='0.0.0.0')
     close_socket()
     print("WSN-S> all done !")
