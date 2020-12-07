@@ -97,8 +97,8 @@ gIDLEinterval = 60.   # time interval to make BLE traffic to keep connection
 # target TCP Server identifiers
 #
 ##TCP_HOST_NAME = "127.0.0.1"       # TEST Host Name
-TCP_HOST_NAME = "10.2.2.3"        # TEST Host Name
-##TCP_HOST_NAME = "192.168.0.3"     # TEST Host Name
+##TCP_HOST_NAME = "10.2.2.3"        # TEST Host Name
+TCP_HOST_NAME = "192.168.0.3"     # TEST Host Name
 ##TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
 TCP_PORT      = 8088              # Default TCP Port Name
 #
