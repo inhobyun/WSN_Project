@@ -98,8 +98,8 @@ gIDLEinterval = 60.   # time interval to make BLE traffic to keep connection
 #
 ##TCP_HOST_NAME = "127.0.0.1"       # TEST Host Name
 ##TCP_HOST_NAME = "10.2.2.3"        # TEST Host Name
-TCP_HOST_NAME = "192.168.0.3"     # TEST Host Name
-##TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
+##TCP_HOST_NAME = "192.168.0.3"     # TEST Host Name
+TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
 TCP_PORT      = 8088              # Default TCP Port Name
 #
 TCP_DEV_READY_MSG = 'DEV_READY'     # server message to check client ready
@@ -502,14 +502,14 @@ def SCD_scan_and_connect( is_first = True ):
         try:
             p = Peripheral(gTargetDevice.addr, gTargetDevice.addrType)
         except:
-            print("SCD> => BLE device connection error occured... retry after 3 sec...")
+            print("SCD> => BLE device connection error occured... retry after 3 min...")
             retry += 1
-            if retry > 3:
+            if retry > 60:
                 print("SCD> => BLE device connection error occured... exiting...")
                 sys.exit(-1)
-            time.sleep(3)    
+            time.sleep(180)    
     #
-    # should increase MTU
+    # should increase MTU##
     #           
     p.setMTU(SCD_MAX_MTU)
     #
