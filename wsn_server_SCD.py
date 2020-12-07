@@ -185,6 +185,7 @@ env = Environment(
 #
 @app.route('/')
 def root():
+    accept_socket(blockingTimer = 3600*3+180)
     template = env.get_template('main.html')
     return template.render()
 
