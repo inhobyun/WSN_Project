@@ -6,7 +6,7 @@
 
 {% block left %}
     <div style="text-align:center;"><label><Strong>Graph X & Y Axis Setting</Strong></label></div><br> 
-    <div style="text-align:right;"><button id="btn_draw" onclick="dispGraph()"><Strong> Draw Graph </Strong></button></div>
+    <div style="text-align:right;"><button id="btn_draw" onclick="dispGraph('blue')"><Strong> Draw Graph </Strong></button></div>
     
     <div style="position:absolute; left:  8px; top:128px;"><label>Scaling Mode:</label></div>
     <div style="position:absolute; left:100px; top:128px;"><input type="radio" id="auto_scroll" name="scroll" value="auto_scroll" checked>
@@ -50,14 +50,14 @@
 </div>
 
 <script>
-    function dispGraph() {
+    function dispGraph(color_val) {
         document.getElementById("btn_draw").disabled = true;
         // const value = document.getElementById('???').value;
         axios.post('/post_graphTime', {
             // value: Number(value),
         }).then(response => {
             const data = response.data;
-            drawGraph(data);
+            drawGraph(data, color_val);
             // console.log(data);
         }).catch(function (error) {
             alert('Error occurred on submit: ' + error);
@@ -65,7 +65,7 @@
         document.getElementById("btn_draw").disabled = false;
     }
 
-    function drawGraph(data) {
+    function drawGraph(data, color_val) {
         // Clear the chart box.
         document.getElementById('chart-box').innerHTML = '';
 
@@ -107,7 +107,7 @@
         svg.append("path")
             .datum(points)
             .attr("fill", "none")
-            .attr("stroke", "steelblue")
+            .attr("stroke", color_val)
             .attr("stroke-width", 1.5)
             .attr("d", d3.line()
                 .x(function(d) { return x(d.x) })
@@ -117,4 +117,3 @@
 </script>
 
 {% endblock %}
-

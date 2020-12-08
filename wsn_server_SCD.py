@@ -10,7 +10,9 @@ import datetime
 from flask import Flask, redirect, request
 from jinja2 import Environment, PackageLoader, Markup, select_autoescape
 import json
+import numpy as np
 import math
+##import matplotlib.pyplot as plotter
 import socket
 import sys
 import time
@@ -473,8 +475,7 @@ def post_graphTime():
                 y.append(y_val)
             except:
                 print("WSN-S> error line at [%d]" % n)
-            else:
-                n += 1        
+            n += 1        
     # fill zero    
     while n < 9600:
         n += 1
@@ -503,8 +504,7 @@ def post_graphFreq():
     for _ in range(4):
         row = f.readline()
         print("WSN-S> header: %s" % row)
-    # init    
-    x = []
+    # init       
     y = []
     n = 0
     # read x, y, z accelometer values
@@ -523,29 +523,46 @@ def post_graphFreq():
         else: 
             try:
                 col = row.split(',')
-                x_val = float(int(col[0])) / 3200.0
                 #
                 # here, put more option 
                 # - option: sum(abs(x), abx(y), abx(z))
                 y_val = abs(int(col[2])) + abs(int(col[3])) + abs(int(col[4]))
                 #
-                x.append(x_val)
                 y.append(y_val)
             except:
                 print("WSN-S> error line at [%d]" % n)
-            else:
-                n += 1        
-    # fill zero    
-    while n < 9600:
-        n += 1
-        x_val = float(n) / 3200.0
-        y_val = 0.
+            n += 1        
+    print("WSN-S> read [%d] lines of data" % n)    
+    f.close()          
+    # prepare fourier Transform
+    print("WSN-S> prepare FFT")
+    sampling_frequency = 3200
+    amplitude = np.ndarray( n )
+    # copy amplitude
+    idx = 0
+    while idx < n:
+        amplitude[idx] = y[idx]
+        idx += 1
+    # run fourier Transform
+    fourier_transform = np.fft.fft(amplitude)/len(amplitude)            # Normalize amplitude
+    fourier_transform = fourier_transform[range(int(len(amplitude)/2))] # Exclude sampling frequency
+    tp_count    = len(amplitude)
+    values      = np.arange(int(tp_count/2))
+    time_period = tp_count/sampling_frequency
+    frequencies = values/time_period
+    print("WSN-S> done FFT")
+    # convert to list
+    x = []
+    y = []
+    idx = 1
+    n = tp_count/2
+    while idx < n:   
+        x_val = float(frequencies[idx])
+        y_val = abs(float(fourier_transform[idx]))
         x.append(x_val)
         y.append(y_val)
-
-    print("WSN-S> read [%d] lines of data" % n)    
-    f.close()
-
+        idx += 1
+    
     return json.dumps({ 'x': x, 'y': y })
 
 #############################################
