@@ -37,6 +37,10 @@ TCP_BDT_RUN_MSG   = 'BDT_RUN'       # server message to run BDT advanced STE /w 
 TCP_BDT_REQ_MSG   = 'BDT_REQ'       # server message to request BDT data
 TCP_BDT_END_MSG   = 'BDT_END'       # client message to inform BDT data transfer completed
 #
+# Some constant parameters
+#
+ACCEPT_WAIT_TIME  = 11100.          # 3 hrs 5 min.; time period to wait client connection 
+#
 # global variables
 #
 gSocketServer   = None
@@ -470,7 +474,7 @@ def post_graphFreq():
 #
 if __name__ == '__main__':
     if open_socket():
-        accept_socket(blockingTimer = 3600*3+180)
+        accept_socket(ACCEPT_WAIT_TIME)
         app.run(host='0.0.0.0')
     close_socket()
     print("WSN-S> all done !")

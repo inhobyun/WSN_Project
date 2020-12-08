@@ -13,7 +13,7 @@ by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
                     started 2020-11-05
                     updated 2020-12-03; working revision
-                    updated 2020-12-05; comm protocol updated
+                    updated 2020-12-08; comm protocol, BLE scan updated
 """
 import asyncio
 from bluepy.btle import Scanner, DefaultDelegate, UUID, Peripheral
@@ -62,9 +62,12 @@ SCD_MAX_FLASH = 0x0b0000          # 11*16**4 = 720896 = 704K
 #
 # Some constant parameters
 #
-SCAN_TIME     = 8.    # scanning duration for BLE devices 
-STE_RUN_TIME  = 3.    # STE rolling time in secconds for SENSOR data recording
-STE_FREQUENCY = (400, 800, 1600, 3200, 6400)  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz
+SCAN_TIME       = 8.     # scanning duration for BLE devices 
+RESCAN_INTERVAL = 90.    # 1.5 min.; interval time to rescan BLE after scan failed
+RESCAN_PERIOD   = 11100. # 3 hrs 5 min.; time period to rescan BLE to connect 
+#
+STE_RUN_TIME    = 3.     # STE rolling time in secconds for SENSOR data recording
+STE_FREQUENCY   = (400, 800, 1600, 3200, 6400)  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz
 #
 # global variables
 #
@@ -465,8 +468,8 @@ def SCD_scan_and_connect( is_first = True ):
     #
     print ("SCD> BLE device scan %sstarted..." % ('re' if not is_first else '') )
 
-    retry = 0
-    while retry < 120:
+    tm = tm_s = time.time()
+    while tm_s - tm < RESCAN_PERIOD:
         scanner = Scanner().withDelegate(ScanDelegate())
         devices = scanner.scan(SCAN_TIME)
         print ("\nSCD> BLE device scan completed... [%d] devices are scanned" % gScannedCount)
@@ -493,14 +496,13 @@ def SCD_scan_and_connect( is_first = True ):
         # if none found then exiting    
         #
         if gTargetDevice == None:
-            retry += 1
-            print("SCD> no matching device found... retry [%d] times after 1.5 min..." % retry)
-            if retry == 120:
+            tm = time.time()
+            print("SCD> no matching device found at [%s]... retry after %d sec..." \
+                  % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), RESCAN_INTERVAL) )
+            if tm_s - tm => RESCAN_PERIOD:
                 print("SCD> no matching device found... exiting...")
                 sys.exit(-1)
-            time.sleep(90)
-        else:
-            break    
+            time.sleep(RESCAN_INTERVAL)    
     #
     # connect
     #
@@ -511,8 +513,8 @@ def SCD_scan_and_connect( is_first = True ):
         try:
             p = Peripheral(gTargetDevice.addr, gTargetDevice.addrType)
         except:
-            print("SCD> => BLE device connection error occured... retry [%d] times after 10 sec..." % retry)
             retry += 1
+            print("SCD> => BLE device connection error occured [%d] time(s)... retry after 10 sec..." % retry)
             if retry > 30:
                 print("SCD> => BLE device connection error occured... exiting...")
                 sys.exit(-1)
