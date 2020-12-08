@@ -100,9 +100,9 @@ gIDLEinterval = 60.   # time interval to make BLE traffic to keep connection
 # target TCP Server identifiers
 #
 ##TCP_HOST_NAME = "127.0.0.1"       # TEST Host Name
-##TCP_HOST_NAME = "10.2.2.3"        # TEST Host Name
+TCP_HOST_NAME = "10.2.2.3"        # TEST Host Name
 ##TCP_HOST_NAME = "192.168.0.3"     # TEST Host Name
-TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
+##TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
 TCP_PORT      = 8088              # Default TCP Port Name
 #
 TCP_DEV_READY_MSG = 'DEV_READY'     # server message to check client ready
@@ -502,7 +502,9 @@ def SCD_scan_and_connect( is_first = True ):
             if tm_s - tm >= RESCAN_PERIOD:
                 print("SCD> no matching device found... exiting...")
                 sys.exit(-1)
-            time.sleep(RESCAN_INTERVAL)    
+            time.sleep(RESCAN_INTERVAL)
+        else:
+            break        
     #
     # connect
     #
