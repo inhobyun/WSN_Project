@@ -1,22 +1,22 @@
 {% extends "m_base.html" %}
 
-{% block left %}
-    <div style="text-align:center;"><Strong>Sensor Data Monitoring</Strong></div><br> 
-    <div style="text-align: right; padding-right:8px;"><button id="btn_start" onclick="monBegin()"> Start </button></div>
-    <div style="text-align: right; padding-right:8px;"><button id="btn_stop"  onclick="monStop()" disabled> Stop </button></div>
-    <div style="position:absolute; left:  8px; top:72px;"><label>Option</label></div>
-    <div style="position:absolute; left: 60px; top:72px;"><label>Interval</label></div>
-    <div style="position:absolute; left:114px; top:70px; width:30px;"><input type="number" id="tm_interval" value="3" min="1" max="5"></div>
-    <div style="position:absolute; left:180px; top:72px;"><label>sec</label></div>    
-{% endblock %}
-
 {% block foot %}
     <div style="color:aqua;">Monitoring Sensor Data...</div>
 {% endblock %}
 
+{% block left %}
+    <div style="text-align:center;"><Strong>Sensor Data Monitoring</Strong></div><br> 
+    <div style="text-align: right; padding-right:8px;"><button id="btn_start" onclick="monBegin()"> Start </button></div>
+    <div style="text-align: right; padding-right:8px;"><button id="btn_stop"  onclick="monStop()" disabled> Stop </button></div>
+    <div style="position:absolute; left:  8px; top:90px;"><label>Option</label></div>
+    <div style="position:absolute; left: 60px; top:90px;"><label>Interval</label></div>
+    <div style="position:absolute; left:114px; top:88px; width:30px;"><input type="number" id="tm_interval" value="3" min="1" max="5"></div>
+    <div style="position:absolute; left:180px; top:90px;"><label>sec</label></div>    
+{% endblock %}
+
 {% block right %}
 
-<div style="text-align:center"><Strong>SCD Sensor Data - on-time display</Strong></div>
+<div style="text-align:center"><Strong>SCD Sensor Data - on-time display</Strong></div><br>
 <div>
     <label id="row_00_label">Sensor Measured Time : </label>
     <label id="row_00">YYYY-MM-DD hh:mm:ss [unix time]</label>

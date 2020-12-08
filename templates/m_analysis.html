@@ -1,17 +1,17 @@
 {% extends "m_base.html" %}
 
-{% block left %}
-    <p style="text-align:center;"><Strong>Sensor Data Analysis</Strong><cr></p> 
-    <p style="text-align: right; padding-right:8px;"><button id="btn_start_1" onclick="startSTEandBDT()"> Start </button></p>
-    <p style="text-align: right; padding-right:8px;"><button id="btn_start_2" onclick="startBDTtoSever()" disabled> Start </button></p>
-    <p style="text-align: right; padding-right:8px;"><button id="btn_start_3" onclick="startBDTtoFile()"   disabled> Start </button></p>
-    <p style="position:absolute; left:8px; top: 70px;"><label>Run accelometer sensor</label></p>
-    <p style="position:absolute; left:8px; top: 90px;"><label>Sensor CSV data transfer</label></p>
-    <p style="position:absolute; left:8px; top:110px;"><label>Sensor data save to *.csv file</label></p>
+{% block foot %}
+    <div style="color:aqua;">Analyze Sensor Data...</div>
 {% endblock %}
 
-{% block foot %}
-    <p style="color:aqua;">Analyze Sensor Data...</p>
+{% block left %}
+    <div style="text-align:center;"><Strong>Sensor Data Analysis</Strong></div><br> 
+    <div style="text-align: right; padding-right:8px;"><button id="btn_start_1" onclick="startSTEandBDT()"> Run... </button></div><br>
+    <div style="text-align: right; padding-right:8px;"><button id="btn_start_2" onclick="startBDTtoSever()" disabled> Run... </button></div><br>
+    <div style="text-align: right; padding-right:8px;"><button id="btn_start_3" onclick="startBDTtoFile()"   disabled> Run... </button></div>
+    <div style="position:absolute; left:8px; top: 92px;"><label>Run accelometer sensor</label></div>
+    <div style="position:absolute; left:8px; top:130px;"><label>Sensor CSV data transfer</label></div>
+    <div style="position:absolute; left:8px; top:168px;"><label>Sensor data save to *.csv file</label></div>
 {% endblock %}
 
 {% block right %}

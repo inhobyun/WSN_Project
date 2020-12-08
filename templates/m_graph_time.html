@@ -1,5 +1,9 @@
 {% extends "m_base.html" %}
 
+{% block foot %}
+    <div style="color:aqua;">Display Time Series Graph...</div>
+{% endblock %}
+
 {% block left %}
     <div style="text-align:center;"><label><Strong>Graph X & Y Axis Setting</Strong></label></div><br> 
     <div style="text-align:right;"><button id="btn_draw" onclick="dispGraph()"><Strong> Draw Graph </Strong></button></div>
@@ -35,10 +39,6 @@
                                                            <label>Y direction only</label></div>
     <div style="position:absolute; left:100px; top:424px;"><input type="radio" id="draw_z" name="draw" value="draw_z">
                                                            <label>Z direction only</label></div>
-{% endblock %}
-
-{% block foot %}
-    <div style="color:aqua;">Display Time Series Graph...</div>
 {% endblock %}
 
 {% block right %}

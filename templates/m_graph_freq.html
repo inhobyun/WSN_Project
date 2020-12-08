@@ -1,5 +1,9 @@
 {% extends "m_base.html" %}
 
+{% block foot %}
+    <div style="color:aqua;">Display Frequency Graph...</div>
+{% endblock %}
+
 {% block left %}
     <div style="text-align:center;"><label><Strong>Graph X & Y Axis Setting</Strong></label></div><br> 
     <div style="text-align:right;"><button id="btn_draw" onclick="dispGraph()"><Strong> Draw Graph </Strong></button></div>
@@ -29,10 +33,6 @@
     <div style="position:absolute; left:  8px; top:370px;"><label>Draw Mode:</label></div>
     <div style="position:absolute; left:100px; top:370px;"><input type="radio" id="draw_s" name="draw" value="draw_s" checked>
                                                            <label>Fourier Transform</label></div>
-{% endblock %}
-
-{% block foot %}
-    <div style="color:aqua;">Display Frequency Graph...</div>
 {% endblock %}
 
 {% block right %}

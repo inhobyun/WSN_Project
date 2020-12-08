@@ -18,9 +18,9 @@
 * {
   box-sizing: border-box;
   margin-top: 0px;
+  margin-left: 0px;
   margin-bottom: 0px;
   margin-right: 0px;
-  margin-left: 0px;
 }
 
 body {
@@ -35,13 +35,36 @@ body {
 
 .top {
   grid-area: top;
-  background-color: #888;
+  background-color: #999;
+  color: black;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 6px;
+  padding-right: 6px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.top-left {
+  grid-area: top-left;
+  background-color: #666;
   color: white;
   padding-top: 4px;
   padding-bottom: 4px;
-  padding-left: 10px;
+  padding-left: 6px;
+  padding-right: 6px;
   text-align: left;
-  font-size: 14px;
+}
+
+.top-right {
+  grid-area: top-right;
+  background-color: #666;
+  color: white;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 6px;
+  padding-right: 6px;
+  text-align: right;
 }
 
 .left,
@@ -75,7 +98,7 @@ body {
 .foot {
   grid-area: foot;
   background-color: #999;
-  color: white
+  color: white;
   padding-top: 4px;
   padding-bottom: 4px;
   text-align: center;
@@ -113,9 +136,10 @@ td {
 @media (min-width: 1280px) {
   .grid-container  {
     grid-template-areas: 
-    'top  top  ' 
-    'left right' 
-    'foot foot ';
+    'top      top      top      top'
+    'top-left top-left top-left top-right' 
+    'left     right    right    right' 
+    'foot     foot     foot     foot';
    }
 }
 </style>
@@ -123,25 +147,23 @@ td {
 
 <body>
 
-<div style="padding:3px; text-align:center; font-size:14px; color: Black; background-color:#999;">
-  <strong>[Sensor Data Monitoring & Analysis]</strong>
-</div>
-
 <div class="grid-container">
 
     <div class="top">
-      <div style="position:static; text-align:left">
-        <button onclick="window.location.href='/m_Ooops'">Sensor Configuration</button>
-        <button onclick="window.location.href='/m_monitor'">Sensor Data Monitoring</button>
-        <button onclick="window.location.href='/m_analysis'">Sensor Data Analysis</button>
-        <button onclick="window.location.href='/m_graph_time'">Graph - Time Series</button>
-        <button onclick="window.location.href='/m_graph_freq'">Graph - Frequency</button>
-      </div> 
-      <div style="position:static; text-align:right">
-        <button onclick="window.location.href='/m_intro_1'">About...</button>
-      </div>
+        <strong>[Sensor Data Monitoring & Analysis]</strong>
     </div>
-    
+      
+    <div class="top-left">
+        <button onclick="window.location.href='/m_Ooops'"     ><strong>Sensor Configuration  </strong></button>
+        <button onclick="window.location.href='/m_monitor'"   ><strong>Sensor Data Monitoring</strong></button>
+        <button onclick="window.location.href='/m_analysis'"  ><strong>Sensor Data Analysis  </strong></button>
+        <button onclick="window.location.href='/m_graph_time'"><strong>Graph - Time Series   </strong></button>
+        <button onclick="window.location.href='/m_graph_freq'"><strong>Graph - Frequency     </strong></button>
+    </div>
+    <div class="top-right">
+        <button onclick="window.location.href='/m_intro_1'">About...</button>
+    </div>
+   
     <div class="left">
         {% block left %}
         {% endblock %}
