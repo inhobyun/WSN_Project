@@ -110,8 +110,8 @@ body {
 
 /* Style the table */
 table {
-  width: 80%;
-  margin: 20px auto;
+  width: 60%;
+  text-align: left;
   table-layout: auto;
 }
 
@@ -123,12 +123,13 @@ th {
 
 th,
 td {
-  padding: 10px;
+  padding: 6px;
   border: solid 1px;
 }
 
 th {
   text-align: center;
+  background-color: #688;
 }
 
 td {
@@ -158,10 +159,10 @@ td {
       
     <div class="top-left">
         <button onclick="window.location.href='/m_Ooops'"     ><strong>Sensor Configuration  </strong></button>
-        <button onclick="window.location.href='/m_monitor'"   ><strong>Sensor Data Monitoring</strong></button>
-        <button onclick="window.location.href='/m_analysis'"  ><strong>Sensor Data Analysis  </strong></button>
-        <button onclick="window.location.href='/m_graph_time'"><strong>Graph - Time Series   </strong></button>
-        <button onclick="window.location.href='/m_graph_freq'"><strong>Graph - Frequency     </strong></button>
+        <button onclick="window.location.href='/m_monitor'"   ><strong>Sensor Monitoring     </strong></button>
+        <button onclick="window.location.href='/m_analysis'"  ><strong>Data Acqusition       </strong></button>
+        <button onclick="window.location.href='/m_graph_time'"><strong>Analysis - Time Series</strong></button>
+        <button onclick="window.location.href='/m_graph_freq'"><strong>Analysis - Frequency  </strong></button>
     </div>
     <div class="top-right">
         <button onclick="window.location.href='/m_intro_1'">About...</button>
