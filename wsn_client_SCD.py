@@ -499,7 +499,7 @@ def SCD_scan_and_connect( is_first = True ):
             tm = time.time()
             print("SCD> no matching device found at [%s]... retry after %d sec..." \
                   % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), RESCAN_INTERVAL) )
-            if tm_s - tm => RESCAN_PERIOD:
+            if tm_s - tm >= RESCAN_PERIOD:
                 print("SCD> no matching device found... exiting...")
                 sys.exit(-1)
             time.sleep(RESCAN_INTERVAL)    
