@@ -433,8 +433,8 @@ def post_BDTtoFile():
 #
 @app.route('/post_graphTime', methods=['POST'])
 def post_graphTime():
-    data = json.loads(request.data)
-    value = data['value']
+    #data = json.loads(request.data)
+    #value = data['value']
 
     # read sensor data from file    
     f = open(WSN_LOG_FILE_NAME, "r")
@@ -493,20 +493,59 @@ def post_graphTime():
 #
 @app.route('/post_graphFreq', methods=['POST'])
 def post_graphFreq():
-    data = json.loads(request.data)
-    value = data['value']
+    #data = json.loads(request.data)
+    #value = data['value']
 
-    # read
-    
-    # Prepare data to send in here.
+    # read sensor data from file    
+    f = open(WSN_LOG_FILE_NAME, "r")
+    print("WSN-S> open sensor data log file: %s" % WSN_LOG_FILE_NAME)
+    # skip 4 header line 
+    for _ in range(4):
+        row = f.readline()
+        print("WSN-S> header: %s" % row)
+    # init    
     x = []
     y = []
-    for i in range(60):
-        # Sine value for example.
-        curr_x = float(i / 10)
-        x.append(curr_x)
-        y.append(math.sin(curr_x) * value)
-    
+    n = 0
+    # read x, y, z accelometer values
+    while n < 9600:
+        try:
+            row = f.readline()
+        except:
+            break
+        if not row:
+            break
+        if row.find('End') != -1:
+            print("WSN-S> end-of-data at [%d]" % n)
+            break        
+        if len(row) < 7:
+            print("WSN-S> incomplete line at [%d]" % n)
+        else: 
+            try:
+                col = row.split(',')
+                x_val = float(int(col[0])) / 3200.0
+                #
+                # here, put more option 
+                # - option: sum(abs(x), abx(y), abx(z))
+                y_val = abs(int(col[2])) + abs(int(col[3])) + abs(int(col[4]))
+                #
+                x.append(x_val)
+                y.append(y_val)
+            except:
+                print("WSN-S> error line at [%d]" % n)
+            else:
+                n += 1        
+    # fill zero    
+    while n < 9600:
+        n += 1
+        x_val = float(n) / 3200.0
+        y_val = 0.
+        x.append(x_val)
+        y.append(y_val)
+
+    print("WSN-S> read [%d] lines of data" % n)    
+    f.close()
+
     return json.dumps({ 'x': x, 'y': y })
 
 #############################################

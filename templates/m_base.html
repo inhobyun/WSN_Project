@@ -54,6 +54,10 @@ body {
   grid-area: left;
   background-color: #aaa;
   font-size: 14px;
+  padding-top: 4px;
+  padding-left: 2px;
+  padding-bottom: 4px;
+  padding-right: 2px;
 }
 
 /* Style the right column */
@@ -119,23 +123,23 @@ td {
 
 <body>
 
-<p style="padding:3px; text-align:center; font-size:14px; color: Black; background-color:#999;">
+<div style="padding:3px; text-align:center; font-size:14px; color: Black; background-color:#999;">
   <strong>[Sensor Data Monitoring & Analysis]</strong>
-</p>
+</div>
 
 <div class="grid-container">
 
     <div class="top">
-      <p style="position:static;">
+      <div style="position:static; text-align:left">
         <button onclick="window.location.href='/m_Ooops'">Sensor Configuration</button>
         <button onclick="window.location.href='/m_monitor'">Sensor Data Monitoring</button>
         <button onclick="window.location.href='/m_analysis'">Sensor Data Analysis</button>
         <button onclick="window.location.href='/m_graph_time'">Graph - Time Series</button>
         <button onclick="window.location.href='/m_graph_freq'">Graph - Frequency</button>
-      </p>
-      <p style="position:absolute; top:26px; left:1208px;">
+      </div> 
+      <div style="position:static; text-align:right">
         <button onclick="window.location.href='/m_intro_1'">About...</button>
-      </p>    
+      </div>
     </div>
     
     <div class="left">

@@ -1,73 +1,77 @@
 {% extends "m_base.html" %}
 
 {% block left %}
-    <p style="text-align:center;"><Strong>X & Y Axis Scaling</Strong><cr></p> 
-    <p style="text-align:right;"><button onclick="dispGraphTime()"> Apply & Display Graph </button></p>
+    <div style="text-align:center;"><label><Strong>Graph X & Y Axis Setting</Strong></label></div><br> 
+    <div style="text-align:right;"><button id="btn_draw" onclick="dispGraph()"><Strong> Draw Graph </Strong></button></div>
     
-    <p style="position:absolute; left:  8px; top:120px;"><label>Scaling Mode:</label></p>
-    <p style="position:absolute; left:100px; top:120px;"><input type="radio" id="auto_scroll" name="scroll" value="auto_scroll" checked>
-                                                         <label>Automatic</label></p>
-    <p style="position:absolute; left:100px; top:138px;"><input type="radio" id="man_scroll" name="scroll" value="man_scroll">
-                                                         <label>Manual</label></p>
+    <div style="position:absolute; left:  8px; top:128px;"><label>Scaling Mode:</label></div>
+    <div style="position:absolute; left:100px; top:128px;"><input type="radio" id="auto_scroll" name="scroll" value="auto_scroll" checked>
+                                                           <label>Automatic</label></div>
+    <div style="position:absolute; left:100px; top:146px;"><input type="radio" id="man_scroll" name="scroll" value="man_scroll">
+                                                           <label>Manual</label></div>
     
-    <p style="position:absolute; left:  8px; top:172px;"><label>Y Axis</label></p>
-    <p style="position:absolute; left: 50px; top:172px;"><label>Min</label></p>
-    <p style="position:absolute; left:100px; top:170px;"><input type="text" id="y_min" value="-200"></p>
-    <p style="position:absolute; left: 50px; top:202px;"><label>Max</label></p>
-    <p style="position:absolute; left:100px; top:200px;"><input type="text" id="y_max" value="200"></p>   
-    <p style="position:absolute; left: 50px; top:232px;"><label>Gridline</label></p>
-    <p style="position:absolute; left:100px; top:230Px;"><input type="text" id="y_gridline" value="40"></p>
-
-    <p style="position:absolute; left:  8px; top:272px;"><label>X Axis</label></p>
-    <p style="position:absolute; left: 50px; top:272px;"><label>Min</label></p>
-    <p style="position:absolute; left:100px; top:270px;"><input type="text" id="x_min" value="0"></p>  
-    <p style="position:absolute; left: 50px; top:302px;"><label>Max</label></p>
-    <p style="position:absolute; left:100px; top:300px;"><input type="text" id="x_max" value="3200"></p>
-    <p style="position:absolute; left: 50px; top:332px;"><label>Gridline</label></p>
-    <p style="position:absolute; left:100px; top:330px;"><input type="text" id="x_gridline" value="100"></p>
-
-    <p style="position:absolute; left:  8px; top:370px;"><label>Sensor Axis:</label></p>
-    <p style="position:absolute; left:100px; top:370px;"><input type="checkbox" id="x_axis" name="sensor_x" value="x_axis" checked>
-                                                         <label>X-Axis Accleration</label></p>
-    <p style="position:absolute; left:100px; top:388px;"><input type="checkbox" id="y_axis" name="sensor_y" value="y_axis" checked>
-                                                         <label>Y-Axis Accleration</label></p>
-    <p style="position:absolute; left:100px; top:406px;"><input type="checkbox" id="z_axis" name="sensor_z" value="z_axis" checked>
-                                                         <label>Z-Axis Accleration</label></p>
+    <div style="position:absolute; left:  8px; top:172px;"><label>Y (g)</label></div>
+    <div style="position:absolute; left: 70px; top:172px;"><label for="y_min">Min</label></div>
+    <div style="position:absolute; left:102px; top:170px;"><input type="number" id="y_min" value="0"></div>
+    <div style="position:absolute; left: 70px; top:202px;"><label for="y_max">Max</label></div>
+    <div style="position:absolute; left:102px; top:200px;"><input type="number" id="y_max" value="40"></div>   
+    <div style="position:absolute; left: 70px; top:232px;"><label for="y_grid">Grid</label></div>
+    <div style="position:absolute; left:102px; top:230Px;"><input type="number" id="y_grid" value="5"></div>
+    
+    <div style="position:absolute; left:  8px; top:272px;"><label>X (sec)</label></div>
+    <div style="position:absolute; left: 70px; top:272px;"><label>Min</label></div>
+    <div style="position:absolute; left:102px; top:270px;"><input type="number" id="x_min" value="0.0"></div>  
+    <div style="position:absolute; left: 70px; top:302px;"><label>Max</label></div>
+    <div style="position:absolute; left:102px; top:300px;"><input type="number" id="x_max" value="3.0"></div>
+    <div style="position:absolute; left: 70px; top:332px;"><label>Grid</label></div>
+    <div style="position:absolute; left:102px; top:330px;"><input type="number" id="x_grid" value="0.5"></div>
+  
+    <div style="position:absolute; left:  8px; top:370px;"><label>Draw Mode:</label></div>
+    <div style="position:absolute; left:100px; top:370px;"><input type="radio" id="draw_s" name="draw" value="draw_s" checked>
+                                                           <label>Sum of all direction</label></div>
+    <div style="position:absolute; left:100px; top:388px;"><input type="radio" id="draw_x" name="draw" value="draw_x">
+                                                           <label>X direction only</label></div>
+    <div style="position:absolute; left:100px; top:406px;"><input type="radio" id="draw_y" name="draw" value="draw_y">
+                                                           <label>Y direction only</label></div>
+    <div style="position:absolute; left:100px; top:424px;"><input type="radio" id="draw_z" name="draw" value="draw_z">
+                                                           <label>Z direction only</label></div>
 {% endblock %}
 
 {% block foot %}
-    <p style="color:aqua;">Display Time Series Graph...</p>
+    <div style="color:aqua;">Display Time Series Graph...</div>
 {% endblock %}
 
 {% block right %}
 
-<div style="text-align:center"><Strong>Accelerometer Sensor Data - Time series Graph</Strong></div>
+<div style="text-align:left"><Strong>Accelerometer Sensor Data - Time Series Graph</Strong></div>
 
 <div class="form">
     <div id="chart-box"></div>
 </div>
 
 <script>
-    function dispGraphTime() {
-        const value = document.getElementById('y_max').value;
+    function dispGraph() {
+        document.getElementById("btn_draw").disabled = true;
+        // const value = document.getElementById('???').value;
         axios.post('/post_graphTime', {
-            value: Number(value),
+            // value: Number(value),
         }).then(response => {
             const data = response.data;
-            drawGraphTime(data);
+            drawGraph(data);
             // console.log(data);
         }).catch(function (error) {
             alert('Error occurred on submit: ' + error);
         });
+        document.getElementById("btn_draw").disabled = false;
     }
 
-    function drawGraphTime(data) {
+    function drawGraph(data) {
         // Clear the chart box.
         document.getElementById('chart-box').innerHTML = '';
 
         // set the dimensions and margins of the graph
         var margin = {top: 20, left: 30, bottom: 20, right: 20},
-            width = 1640 - margin.left - margin.right, /* left 280px*/
+            width = 1640 - margin.left - margin.right, /* left 280px */
             height = 820 - margin.top - margin.bottom;
 
         // append the svg object to the body of the page
