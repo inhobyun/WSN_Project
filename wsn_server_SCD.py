@@ -39,7 +39,7 @@ TCP_BDT_END_MSG   = 'BDT_END'       # client message to inform BDT data transfer
 #
 # Some constant parameters
 #
-ACCEPT_WAIT_TIME  = 11100.          # 3 hrs 5 min.; time period to wait client connection 
+ACCEPT_WAIT_TIME  = 11100           # 3 hrs 5 min.; time period to wait client connection 
 #
 # global variables
 #

@@ -134,8 +134,9 @@ async def tcp_RX(loop):
     #
     if gTCPwriter == None:
         print('\n>--->')
+        print('AIO-C> connecting server to read ... ', end ='')
         gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
-        print('AIO-C> connect the socket')
+        print('connected')
         print('<---<')
     #
     rx_data = None
@@ -170,8 +171,9 @@ async def tcp_TX(tx_msg, loop):
     #
     if gTCPwriter == None:
         print('\n>--->')
+        print('AIO-C> connecting server to write ... ', end ='')
         gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
-        print('AIO-C> connect the socket')
+        print('connected')
         print('<---<')
     #
     if tx_msg != None and tx_msg != '':
