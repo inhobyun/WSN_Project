@@ -279,12 +279,24 @@ def post_monStart():
         write_to_socket(TCP_STE_REQ_MSG)
         time.sleep(0.2)
         from_client = read_from_socket()
-
     # get the data to post
     if from_client != None:
         from_client = from_client.replace(')','')
         from_client = from_client.replace('(','')
-        vals = from_client.split(',')  
+        vals = from_client.split(',')     
+        # get the status
+        val_x = float(val[2])
+        val_y = float(val[4])
+        val_z = float(val[6])
+        if max (val_x, val_y, val_z) >= 0.5:        
+            status_01 = '[동작]'
+            status_02 = '[이상]'
+        elif max (val_x, val_y, val_z) >= 0.2:
+            status_01 = '[동작]'
+            status_02 = '[정상]'
+        else:    
+            status_01 = '[정지]'
+            status_02 = '[-?-]'
         rows = {'row_00' : vals[ 0],
                 'row_01' : vals[ 1],
                 'row_02' : vals[ 2],
@@ -296,7 +308,9 @@ def post_monStart():
                 'row_08' : vals[ 8],
                 'row_09' : vals[ 9],
                 'row_10' : vals[10],
-                'row_11' : vals[11]
+                'row_11' : vals[11],
+                'status_01' : status_01,
+                'status_02' : status_02
                }
     else:                          
         rows = {'row_00' : '?',
@@ -310,7 +324,9 @@ def post_monStart():
                 'row_08' : '?',
                 'row_09' : '?',
                 'row_10' : '?',
-                'row_11' : '?'
+                'row_11' : '?',
+                'status_01' : '[-?-]',
+                'status_02' : '[-?-]'
                }               
 
     return json.dumps(rows)

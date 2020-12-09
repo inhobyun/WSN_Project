@@ -23,12 +23,12 @@
 </div> 
 <br>   
 <div style="padding-left:35px">
-    <label id="status_1_label">Movement Status : </label>
-    <label id="status_1" style="color:blue; font-size:20px"><Strong>[정지]</Strong></label>
+    <label id="status_01_label">Movement Status : </label>
+    <label id="status_01" style="color:blue; font-size:20px"><Strong>[정지]</Strong></label>
 </div>
 <div style="padding-left:69px">   
-    <label id="status_2_label">Fault Status : </label>
-    <label id="status_2" style="color:blue; font-size:20px"><Strong>[정상]</Strong></label>
+    <label id="status_02_label">Fault Status : </label>
+    <label id="status_02" style="color:blue; font-size:20px"><Strong>[정상]</Strong></label>
 </div>
 <br> 
 
@@ -123,6 +123,8 @@
         document.getElementById("row_09").innerHTML = data.row_09;
         document.getElementById("row_10").innerHTML = data.row_10;
         document.getElementById("row_11").innerHTML = data.row_11;
+        document.getElementById("status_00").innerHTML = data.status_00;
+        document.getElementById("status_01").innerHTML = data.status_01;
         const nval_01 = parseFloat(document.getElementById('row_01').value);
         const nval_02 = parseFloat(document.getElementById('row_02').value);
         const nval_03 = parseFloat(document.getElementById('row_03').value);
