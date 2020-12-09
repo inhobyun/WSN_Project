@@ -67,7 +67,7 @@ RESCAN_INTERVAL = 90.    # 1.5 min.; interval time to rescan BLE after scan fail
 RESCAN_PERIOD   = 11100. # 3 hrs 5 min.; time period to rescan BLE to connect 
 #
 STE_RUN_TIME    = 3.     # STE rolling time in secconds for SENSOR data recording
-STE_FREQUENCY   = (400, 800, 1600, 3200, 6400)  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz
+STE_FREQUENCY   = (400, 800, 1600, 3200, 6400)  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz 
 #
 # global variables
 #
@@ -86,6 +86,8 @@ gBDTstartTime = 0.
 gBDTlastTime  = 0.
 gBDTdata      = bytearray(SCD_MAX_FLASH)
 gBDTtextBlock = ''
+gBDTtextLen   = 0
+gBDTtextLen   = 0
 gBDTcrc32     = bytearray(4)
 gBDTisRolled = False
 # IDLE
@@ -187,8 +189,12 @@ async def tcp_TX(tx_msg, loop):
         except:
             print('error !')
             gTCPwriter = gTCPreader = None
-        else:        
-            print('"%r" sent' % tx_msg)
+        else:
+            n = len(tx_msg)
+            if n < 80        
+                print('"%r" sent' % tx_msg)
+            else
+                print('%d bytes sent' % n)    
     else:
         print('AIO-C> [TX] nothing to send !')    
 
@@ -658,6 +664,9 @@ def SCD_BDT_text_block():
     global gBDTnotiCnt
     global gBDTdata
     global gBDTtextBlock
+    global gBDTtextLen
+    global gBDTtextPos
+
     
     print ("SCD> text block creation from BDT ...")
     if gBDTtextBlock != '':
@@ -720,9 +729,36 @@ def SCD_BDT_text_block():
             gBDTtextBlock += ( ", %6d" % (int.from_bytes(gBDTdata[idx:idx+2], byteorder='little', signed=True)) )
             idx += 2
         gBDTtextBlock += ( "\n" )     
-    gBDTtextBlock += ("End of Data")    
+    gBDTtextBlock += ("End of Data\n")
+    gBDTtextLen = len(gBDTtextBlock))
+    gBDTtextPos = 0
     #    
-    print ("SCD> text block [%d] bytes recorded !" % len(gBDTtextBlock))
+    print ("SCD> text block [%d] bytes recorded !" % gBDTtextLen
+
+#############################################
+# create text memory block from BDT w/o non-data
+#
+def SCD_BDT_get_text1024():
+    global gBDTtextBlock
+    global gBDTtextLen
+    global gBDTtextPos
+
+    if gBDTtextPos >= gBDTtextLen:
+        rtn = 'End of Data\n'
+        gBDTtextPos = idx = 0
+    else:
+        idx = gBDTtextPos + 1024    
+        if idx > gBDTtextLen:
+            idx = gBDTtextLen
+        while ( gBDTtextBlock[idx-1, idx] != '\n' ) and ( idx > gBDTtextPos ):
+            idx -= 1
+        if idx > gBDTtextPos:
+            rtn = gBDTtextBlock[gBDTtextPos,idx+1]
+            gBDTtextPos = idx + 1
+        else:
+            rtn = ''
+            gBDTtextPos += 1
+    return rtn    
 #
 #############################################
 
@@ -808,6 +844,8 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPnullRXcnt < 10:
                 SCD_run_STE_and_BDT(p)
                 if SCD_clear_memory(p) == None:
                     p = SCD_scan_and_connect(False)
+                SCD_BDT_text_block()
+                gBDTisRolled = True    
                 gIDLElastTime = time.time()
             else:
                 print ("WSN-C> invalid message, BDT is not allowed during rolling !")     
@@ -815,13 +853,10 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPnullRXcnt < 10:
             # request BDT data
             if gBDTisRolled:
                 print ("WSN-C> request BDT data ...")
-                # 
-                # BDT coding here !!! 
-                #
-                SCD_BDT_text_block()
-                #
-                gBDTisRolled = False
-            else:
+                gTCPtxMsg = SCD_BDT_get_text1024()
+                if gTCPtxMsg.find("End") != -1:
+                    gBDTisRolled = False
+             else:
                 print ("WSN-C> invalid message, BDT has not been done !")    
         elif gTCPrxMsg == TCP_STE_STOP_MSG or gTCPrxMsg == TCP_DEV_CLOSE_MSG:
             # stop STE or disconnect

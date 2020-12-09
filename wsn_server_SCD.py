@@ -385,8 +385,8 @@ def post_STEandBDT():
     # send BDT run
     accept_socket()
     write_to_socket(TCP_BDT_RUN_MSG)
-    # wait till completed
     time.sleep(1.0)
+    # wait till completed
     write_to_socket(TCP_DEV_READY_MSG)
     from_client = ''
     while from_client == '':
@@ -411,15 +411,22 @@ def post_BDTtoServer():
     global gIsAnaStarted
     global gBDTtextData
 
-    # send BDT run
-    accept_socket()
-    write_to_socket(TCP_BDT_REQ_MSG)
-    # wait till completed
-    time.sleep(1.0)
-    write_to_socket(TCP_DEV_READY_MSG)
-    from_client = ''
-    while from_client == '':
-        from_client = read_from_socket(blockingTimer = 3)
+    # init data buffer
+    gBDTtextData = []
+    while True:
+        # send BDT request
+        accept_socket()
+        write_to_socket(TCP_BDT_REQ_MSG)
+        time.sleep(0.2)
+        # get data from client
+        from_client = ''
+        while from_client == '':
+            from_client = read_from_socket(blockingTimer = 3)
+        if from_client.find('End') != -1:
+            gBDTtextData.append(from_client)
+        else:
+            gBDTtextData.append(from_client)
+            break
     #
     tm = time.time()
     tm_stamp = ( "%s [%.3f]" % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
@@ -441,8 +448,11 @@ def post_BDTtoFile():
     global gBDTtextData
 
     # write to file
-    #
-    # coding here
+    f = open(WSN_LOG_FILE_NAME, "x")
+    for element in gBDTtextData
+        f.write(element)
+        ##f.write('\n') # is not necessary
+    f.close()
     #
     tm = time.time()
     tm_stamp = ( "%s [%.3f]" % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
@@ -529,7 +539,7 @@ def post_graphFreq():
     # init       
     y = []
     n = 0
-    # read x, y, z accelometer values
+    # read x, y, z accelerometer values
     while n < 9600:
         try:
             row = f.readline()
