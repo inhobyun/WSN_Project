@@ -4,7 +4,7 @@ Sensor data monitoring and analysis application based on flask WEB application f
 by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
                     started 2020-10-01
-                    last updated 2020-12-03
+                    updated 2020-12-09; monitoring, graph drawing working
 """
 import datetime
 from flask import Flask, redirect, request
@@ -279,24 +279,28 @@ def post_monStart():
         write_to_socket(TCP_STE_REQ_MSG)
         time.sleep(0.2)
         from_client = read_from_socket()
+        time.sleep(0.2)
     # get the data to post
     if from_client != None:
         from_client = from_client.replace(')','')
         from_client = from_client.replace('(','')
         vals = from_client.split(',')     
         # get the status
-        val_x = float(val[2])
-        val_y = float(val[4])
-        val_z = float(val[6])
-        if max (val_x, val_y, val_z) >= 0.5:        
-            status_01 = '[동작]'
-            status_02 = '[이상]'
+        val_x = float(vals[2])
+        val_y = float(vals[4])
+        val_z = float(vals[6])
+        # 
+        # do more afterward....
+        #
+        if max (val_x, val_y, val_z) >= 0.7:        
+            status_01 = 'VIBRATION'
+            status_02 = 'ABNORMAL'
         elif max (val_x, val_y, val_z) >= 0.2:
-            status_01 = '[동작]'
-            status_02 = '[정상]'
+            status_01 = 'VIBRATION'
+            status_02 = 'NORMAL'
         else:    
-            status_01 = '[정지]'
-            status_02 = '[-?-]'
+            status_01 = 'STOP(NOISE)'
+            status_02 = 'UNKNOWN'
         rows = {'row_00' : vals[ 0],
                 'row_01' : vals[ 1],
                 'row_02' : vals[ 2],
@@ -360,7 +364,9 @@ def post_monStop():
                 'row_08' : '-',
                 'row_09' : '-',
                 'row_10' : '-',
-                'row_11' : '-'
+                'row_11' : '-',
+                'status_01' : '[---]',
+                'status_02' : '[---]'
                }               
 
     return json.dumps(rows)

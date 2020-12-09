@@ -24,11 +24,11 @@
 <br>   
 <div style="padding-left:35px">
     <label id="status_01_label">Movement Status : </label>
-    <label id="status_01" style="color:blue; font-size:20px"><Strong>[정지]</Strong></label>
+    <label id="status_01" style="color:grey; font-size:20px">[---]</label>
 </div>
 <div style="padding-left:69px">   
     <label id="status_02_label">Fault Status : </label>
-    <label id="status_02" style="color:blue; font-size:20px"><Strong>[정상]</Strong></label>
+    <label id="status_02" style="color:grey; font-size:20px">[---]</label>
 </div>
 <br> 
 
@@ -100,17 +100,17 @@
     var tid = null
 
     function dispData(data) {
-        const oval_01 = parseFloat(document.getElementById('row_01').value);
-        const oval_02 = parseFloat(document.getElementById('row_02').value);
-        const oval_03 = parseFloat(document.getElementById('row_03').value);
-        const oval_04 = parseFloat(document.getElementById('row_04').value);
-        const oval_05 = parseFloat(document.getElementById('row_05').value);
-        const oval_06 = parseFloat(document.getElementById('row_06').value);
-        const oval_07 = parseFloat(document.getElementById('row_07').value);
-        const oval_08 = parseFloat(document.getElementById('row_08').value);
-        const oval_09 = parseFloat(document.getElementById('row_09').value);
-        const oval_10 = parseFloat(document.getElementById('row_10').value);
-        const oval_11 = parseFloat(document.getElementById('row_11').value);
+        //const oval_01 = parseFloat(document.getElementById('row_01').value);
+        //const oval_02 = parseFloat(document.getElementById('row_02').value);
+        //const oval_03 = parseFloat(document.getElementById('row_03').value);
+        //const oval_04 = parseFloat(document.getElementById('row_04').value);
+        //const oval_05 = parseFloat(document.getElementById('row_05').value);
+        //const oval_06 = parseFloat(document.getElementById('row_06').value);
+        //const oval_07 = parseFloat(document.getElementById('row_07').value);
+        //const oval_08 = parseFloat(document.getElementById('row_08').value);
+        //const oval_09 = parseFloat(document.getElementById('row_09').value);
+        //const oval_10 = parseFloat(document.getElementById('row_10').value);
+        //const oval_11 = parseFloat(document.getElementById('row_11').value);
         document.getElementById("row_00").innerHTML = data.row_00;
         document.getElementById("row_01").innerHTML = data.row_01;
         document.getElementById("row_02").innerHTML = data.row_02;
@@ -123,28 +123,18 @@
         document.getElementById("row_09").innerHTML = data.row_09;
         document.getElementById("row_10").innerHTML = data.row_10;
         document.getElementById("row_11").innerHTML = data.row_11;
-        document.getElementById("status_00").innerHTML = data.status_00;
         document.getElementById("status_01").innerHTML = data.status_01;
-        const nval_01 = parseFloat(document.getElementById('row_01').value);
-        const nval_02 = parseFloat(document.getElementById('row_02').value);
-        const nval_03 = parseFloat(document.getElementById('row_03').value);
-        const nval_04 = parseFloat(document.getElementById('row_04').value);
-        const nval_05 = parseFloat(document.getElementById('row_05').value);
-        const nval_06 = parseFloat(document.getElementById('row_06').value);
-        const nval_07 = parseFloat(document.getElementById('row_07').value);
-        const nval_08 = parseFloat(document.getElementById('row_08').value);
-        const nval_09 = parseFloat(document.getElementById('row_09').value);
-        const nval_10 = parseFloat(document.getElementById('row_10').value);
-        const nval_11 = parseFloat(document.getElementById('row_11').value);
-
-        //if (oval_07 == nval_07) { document.getElementById("row_07").style.color = 'black'; }
-        if (oval_07 > nval_07) { document.getElementById("row_07").style.color = 'blue'; }
-        if (oval_07 < nval_07) { document.getElementById("row_07").style.color = 'red'; }
-
-        //if (oval_08 == nval_08) { document.getElementById("row_08").style.color = 'black'; }
-        if (oval_08 > nval_08) { document.getElementById("row_08").style.color = 'biue'; }
-        if (oval_08 < nval_08) { document.getElementById("row_08").style.color = 'red'; }
-
+        document.getElementById("status_02").innerHTML = data.status_02;
+        if (data.status_01 == 'VIBRATION') {
+            document.getElementById("status_01").style.color = 'blue';
+        } else {
+            document.getElementById("status_01").style.color = 'gray';
+        }
+        if (data.status_02 == 'ABNORMAL') {
+            document.getElementById("status_02").style.color = 'red';
+        } else {
+            document.getElementById("status_02").style.color = 'gray';
+        }
     }
 
     function monBegin() {
@@ -160,8 +150,8 @@
             //value: Number(value),
         }).then(response => {
             const data = response.data;
+            console.log(data);
             dispData(data);
-            //console.log(data);
         }).catch(function (error) {
             alert('Error occurred on submit: ' + error);
         });
@@ -177,8 +167,8 @@
             //value: Number(value),
         }).then(response => {
             const data = response.data;
-            dispData(data);
             //console.log(data);
+            dispData(data);
         }).catch(function (error) {
             alert('Error occurred on submit: ' + error);
         });
