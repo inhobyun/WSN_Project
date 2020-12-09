@@ -7,20 +7,23 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <link rel="icon" href="/static/images/logo.png">
 <!--
+<script type="text/javascript" src="/static/scripts/"></script>
 <link rel="stylesheet" href="/assets/styles/index.css">
 <link rel="stylesheet" href="/assets/styles/header.css">
 <link rel="stylesheet" href="/assets/styles/screen.css">
 <link rel="stylesheet" href="/assets/styles/footer.css">
 -->
+{% block head %}
+{% endblock %}
 <title>Sensor Data Monitoring & Aanalysis</title>
 
 <style>
 * {
   box-sizing: border-box;
   margin-top: 0px;
+  margin-left: 0px;
   margin-bottom: 0px;
   margin-right: 0px;
-  margin-left: 0px;
 }
 
 body {
@@ -35,13 +38,36 @@ body {
 
 .top {
   grid-area: top;
-  background-color: #888;
+  background-color: #999;
+  color: black;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 6px;
+  padding-right: 6px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.top-left {
+  grid-area: top-left;
+  background-color: #666;
   color: white;
   padding-top: 4px;
   padding-bottom: 4px;
-  padding-left: 10px;
+  padding-left: 6px;
+  padding-right: 6px;
   text-align: left;
-  font-size: 14px;
+}
+
+.top-right {
+  grid-area: top-right;
+  background-color: #666;
+  color: white;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 6px;
+  padding-right: 6px;
+  text-align: right;
 }
 
 .left,
@@ -54,6 +80,10 @@ body {
   grid-area: left;
   background-color: #aaa;
   font-size: 14px;
+  padding-top: 4px;
+  padding-left: 2px;
+  padding-bottom: 4px;
+  padding-right: 2px;
 }
 
 /* Style the right column */
@@ -71,7 +101,7 @@ body {
 .foot {
   grid-area: foot;
   background-color: #999;
-  color: white
+  color: white;
   padding-top: 4px;
   padding-bottom: 4px;
   text-align: center;
@@ -80,8 +110,8 @@ body {
 
 /* Style the table */
 table {
-  width: 80%;
-  margin: 20px auto;
+  width: 60%;
+  text-align: left;
   table-layout: auto;
 }
 
@@ -93,12 +123,13 @@ th {
 
 th,
 td {
-  padding: 10px;
+  padding: 6px;
   border: solid 1px;
 }
 
 th {
   text-align: center;
+  background-color: #99b;
 }
 
 td {
@@ -109,9 +140,10 @@ td {
 @media (min-width: 1280px) {
   .grid-container  {
     grid-template-areas: 
-    'top  top  ' 
-    'left right' 
-    'foot foot ';
+    'top      top      top      top'
+    'top-left top-left top-left top-right' 
+    'left     right    right    right' 
+    'foot     foot     foot     foot';
    }
 }
 </style>
@@ -119,25 +151,23 @@ td {
 
 <body>
 
-<p style="padding:3px; text-align:center; font-size:14px; color: Black; background-color:#999;">
-  <strong>[Sensor Data Monitoring & Analysis]</strong>
-</p>
-
 <div class="grid-container">
 
     <div class="top">
-      <p style="position:static;">
-        <button onclick="window.location.href='/m_Ooops'">Sensor Configuration</button>
-        <button onclick="window.location.href='/m_monitor'">Sensor Data Monitoring</button>
-        <button onclick="window.location.href='/m_analysis'">Sensor Data Analysis</button>
-        <button onclick="window.location.href='/m_graph_time'">Graph - Time Series</button>
-        <button onclick="window.location.href='/m_graph_freq'">Graph - Frequency</button>
-      </p>
-      <p style="position:absolute; top:26px; left:1208px;">
-        <button onclick="window.location.href='/m_intro_1'">About...</button>
-      </p>    
+        <strong>【Sensor Data Monitoring & Analysis】</strong>
     </div>
-    
+      
+    <div class="top-left">
+        <button onclick="window.location.href='/m_Ooops'"     ><strong>Sensor Configuration  </strong></button>
+        <button onclick="window.location.href='/m_monitor'"   ><strong>Sensor Monitoring     </strong></button>
+        <button onclick="window.location.href='/m_analysis'"  ><strong>Data Acqusition       </strong></button>
+        <button onclick="window.location.href='/m_graph_time'"><strong>Analysis - Time Series</strong></button>
+        <button onclick="window.location.href='/m_graph_freq'"><strong>Analysis - Frequency  </strong></button>
+    </div>
+    <div class="top-right">
+        <button onclick="window.location.href='/m_intro_1'">About...</button>
+    </div>
+   
     <div class="left">
         {% block left %}
         {% endblock %}

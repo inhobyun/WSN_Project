@@ -1,20 +1,20 @@
 {% extends "m_base.html" %}
 
 {% block left %}
-    <p style="text-align:center;">Sub-Menu</p>
+    <div style="text-align:center;">Sub-Menu</div>
 {% endblock %}
 
 {% block right %}
-    <p style="position:absolute; top:56px; left:1174px;">
-    <button onclick="window.location.href='/m_intro_1'">Back...</button>
-    </p>
-    <p style="text-align:center; padding-top:30px;">
+    <div style="text-align:center; padding-top:16px;">
+    <button onclick="window.location.href='/m_intro_1'"> 《 Back 《 </button>
+    </div>
+    <div style="text-align:center; padding-top:16px;">
     <img src="/static/images/intro-2.jpg" align="middle" width="900" height="600" />
-    </p>
+    </div>
 {% endblock %}
 
 {% block foot %}
-    <p style="font-size:14px; color:white;">
-    <strong>Introduction</strong> <a href="/">Click</a> to return...
-    </p>
+    <div style="font-size:14px; color:white;">
+    <strong>Introduction</strong> <a href="/">Click</a> to return home...
+    </div>
 {% endblock %}

@@ -1,2 +1,2 @@
-cd GitHub/WSN_Project
-../../env/bin\activate
+cd ~/GitHub/WSN_project
+source ../../env/bin/activate

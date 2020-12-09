@@ -1,26 +1,36 @@
 {% extends "m_base.html" %}
 
-{% block left %}
-    <p style="text-align:center;"><Strong>Sensor Data Monitoring</Strong><cr></p> 
-    <p style="text-align: right; padding-right:8px;"><button id="btn_start" onclick="monBegin()"> Start </button></p>
-    <p style="text-align: right; padding-right:8px;"><button id="btn_stop"  onclick="monStop()" disabled> Stop </button></p>
-    <p style="position:absolute; left:  8px; top:72px;"><label>Option</label></p>
-    <p style="position:absolute; left: 60px; top:72px;"><label>Interval</label></p>
-    <p style="position:absolute; left:114px; top:70px; width:30px;"><input type="number" id="tm_interval" value="3" min="1" max="5"></p>
-    <p style="position:absolute; left:180px; top:72px;"><label>sec</label></p>    
+{% block foot %}
+    <div style="color:aqua;">Monitoring Sensor Data...</div>
 {% endblock %}
 
-{% block foot %}
-    <p style="color:aqua;">Monitoring Sensor Data...</p>
+{% block left %}
+    <div style="text-align:center;"><Strong>Sensor Data Monitoring</Strong></div><br> 
+    <div style="text-align: right; padding-right:8px;"><button id="btn_start" onclick="monBegin()"> Start </button></div>
+    <div style="text-align: right; padding-right:8px;"><button id="btn_stop"  onclick="monStop()" disabled> Stop </button></div>
+    <div style="position:absolute; left:  8px; top:90px;"><label>Option</label></div>
+    <div style="position:absolute; left: 60px; top:90px;"><label>Interval</label></div>
+    <div style="position:absolute; left:114px; top:88px; width:30px;"><input type="number" id="tm_interval" value="3" min="1" max="5"></div>
+    <div style="position:absolute; left:180px; top:90px;"><label>sec</label></div>    
 {% endblock %}
 
 {% block right %}
 
-<div style="text-align:center"><Strong>SCD Sensor Data - on-time display</Strong></div>
+<div style="text-align:center"><Strong>SCD Sensor Data - on-time display</Strong></div><br>
 <div>
     <label id="row_00_label">Sensor Measured Time : </label>
-    <label id="row_00">YYYY-MM-DD hh:mm:ss [unix time]</label>
-</div>    
+    <label id="row_00" style="color:blueviolet;"><Strong>YYYY-MM-DD hh:mm:ss [unix time]</Strong></label>
+</div> 
+<br>   
+<div style="padding-left:35px">
+    <label id="status_01_label">Movement Status : </label>
+    <label id="status_01" style="color:grey; font-size:20px">[---]</label>
+</div>
+<div style="padding-left:69px">   
+    <label id="status_02_label">Fault Status : </label>
+    <label id="status_02" style="color:grey; font-size:20px">[---]</label>
+</div>
+<br> 
 
 <table id="monitor">
         <tr>
@@ -31,57 +41,57 @@
         <tr>
             <td class="col_00">accelerometer mean X-axis</td>
             <td class="col_01" id="row_01">-</td>
-            <td class="col_02" style="text-align:left;">g</td>
+            <td class="col_02" style="text-align:left;">G-forces (g)</td>
         </tr>
         <tr>
             <td class="col_00">accelerometer variance X-axis</td>
             <td class="col_01" id="row_02">-</td>
-            <td class="col_02" style="text-align:left;">g**2</td>
+            <td class="col_02" style="text-align:left;">g<sup>2</sup></td>
         </tr>
         <tr>
             <td class="col_00">accelerometer mean. Y-axis</td>
             <td class="col_01" id="row_03">-</td>
-            <td class="col_02" style="text-align:left;">g</td>
+            <td class="col_02" style="text-align:left;">G-forces (g)</td>
         </tr>
         <tr>
             <td class="col_00">accelerometer variance Y-axis</td>
             <td class="col_01" id="row_04">-</td>
-            <td class="col_02" style="text-align:left;">g**2</td>
+            <td class="col_02" style="text-align:left;">g<sup>2</sup></td>
         </tr>
         <tr>
             <td class="col_00">accelerometer mean. Z-axis</td>
             <td class="col_01" id="row_05">-</td>
-            <td class="col_02" style="text-align:left;">g</td>
+            <td class="col_02" style="text-align:left;">G-forces (g)</td>
         </tr>
         <tr>
             <td class="col_00">accelerometer variance Z-axis</td>
             <td class="col_01" id="row_06">-</td>
-            <td class="col_02" style="text-align:left;">g**2</td>
+            <td class="col_02" style="text-align:left;">g<sup>2</sup></td>
         </tr>
         <tr>
             <td class="col_00">temperature</td>
             <td class="col_01" id="row_07">-</td>
-            <td class="col_02" style="text-align:left;">celcius</td>
+            <td class="col_02" style="text-align:left;">celcius (℃)</td>
         </tr>
         <tr>
             <td class="col_00">light</td>
             <td class="col_01" id="row_08">-</td>
-            <td class="col_02" style="text-align:left;">Lux</td>
+            <td class="col_02" style="text-align:left;">Lux (lx)</td>
         </tr>
         <tr>
             <td class="col_00">magnetometer X-axis</td>
             <td class="col_01" id="row_09">-</td>
-            <td class="col_02" style="text-align:left;">uT</td>
+            <td class="col_02" style="text-align:left;">micro-tesla (&#181;T)</td>
         </tr>
         <tr>
             <td class="col_00">magnetometer Y-axis</td>
             <td class="col_01" id="row_10">-</td>
-            <td class="col_02" style="text-align:left;">uT</td>
+            <td class="col_02" style="text-align:left;">micro-tesla (&#181;T)</td>
         </tr>
         <tr>
             <td class="col_00">magnetometer Z-axis</td>
             <td class="col_01" id="row_11">-</td>
-            <td class="col_02" style="text-align:left;">uT</td>
+            <td class="col_02" style="text-align:left;">micro-tesla (&#181;T)</td>
         </tr>
 </table>
 
@@ -90,17 +100,17 @@
     var tid = null
 
     function dispData(data) {
-        const oval_01 = parseFloat(document.getElementById('row_01').value);
-        const oval_02 = parseFloat(document.getElementById('row_02').value);
-        const oval_03 = parseFloat(document.getElementById('row_03').value);
-        const oval_04 = parseFloat(document.getElementById('row_04').value);
-        const oval_05 = parseFloat(document.getElementById('row_05').value);
-        const oval_06 = parseFloat(document.getElementById('row_06').value);
-        const oval_07 = parseFloat(document.getElementById('row_07').value);
-        const oval_08 = parseFloat(document.getElementById('row_08').value);
-        const oval_09 = parseFloat(document.getElementById('row_09').value);
-        const oval_10 = parseFloat(document.getElementById('row_10').value);
-        const oval_11 = parseFloat(document.getElementById('row_11').value);
+        //const oval_01 = parseFloat(document.getElementById('row_01').value);
+        //const oval_02 = parseFloat(document.getElementById('row_02').value);
+        //const oval_03 = parseFloat(document.getElementById('row_03').value);
+        //const oval_04 = parseFloat(document.getElementById('row_04').value);
+        //const oval_05 = parseFloat(document.getElementById('row_05').value);
+        //const oval_06 = parseFloat(document.getElementById('row_06').value);
+        //const oval_07 = parseFloat(document.getElementById('row_07').value);
+        //const oval_08 = parseFloat(document.getElementById('row_08').value);
+        //const oval_09 = parseFloat(document.getElementById('row_09').value);
+        //const oval_10 = parseFloat(document.getElementById('row_10').value);
+        //const oval_11 = parseFloat(document.getElementById('row_11').value);
         document.getElementById("row_00").innerHTML = data.row_00;
         document.getElementById("row_01").innerHTML = data.row_01;
         document.getElementById("row_02").innerHTML = data.row_02;
@@ -113,26 +123,18 @@
         document.getElementById("row_09").innerHTML = data.row_09;
         document.getElementById("row_10").innerHTML = data.row_10;
         document.getElementById("row_11").innerHTML = data.row_11;
-        const nval_01 = parseFloat(document.getElementById('row_01').value);
-        const nval_02 = parseFloat(document.getElementById('row_02').value);
-        const nval_03 = parseFloat(document.getElementById('row_03').value);
-        const nval_04 = parseFloat(document.getElementById('row_04').value);
-        const nval_05 = parseFloat(document.getElementById('row_05').value);
-        const nval_06 = parseFloat(document.getElementById('row_06').value);
-        const nval_07 = parseFloat(document.getElementById('row_07').value);
-        const nval_08 = parseFloat(document.getElementById('row_08').value);
-        const nval_09 = parseFloat(document.getElementById('row_09').value);
-        const nval_10 = parseFloat(document.getElementById('row_10').value);
-        const nval_11 = parseFloat(document.getElementById('row_11').value);
-
-        //if (oval_07 == nval_07) { document.getElementById("row_07").style.color = 'black'; }
-        if (oval_07 > nval_07) { document.getElementById("row_07").style.color = 'blue'; }
-        if (oval_07 < nval_07) { document.getElementById("row_07").style.color = 'red'; }
-
-        //if (oval_08 == nval_08) { document.getElementById("row_08").style.color = 'black'; }
-        if (oval_08 > nval_08) { document.getElementById("row_08").style.color = 'biue'; }
-        if (oval_08 < nval_08) { document.getElementById("row_08").style.color = 'red'; }
-
+        document.getElementById("status_01").innerHTML = data.status_01;
+        document.getElementById("status_02").innerHTML = data.status_02;
+        if (data.status_01 == 'VIBRATION') {
+            document.getElementById("status_01").style.color = 'blue';
+        } else {
+            document.getElementById("status_01").style.color = 'gray';
+        }
+        if (data.status_02 == 'ABNORMAL') {
+            document.getElementById("status_02").style.color = 'red';
+        } else {
+            document.getElementById("status_02").style.color = 'gray';
+        }
     }
 
     function monBegin() {
@@ -148,8 +150,8 @@
             //value: Number(value),
         }).then(response => {
             const data = response.data;
+            console.log(data);
             dispData(data);
-            //console.log(data);
         }).catch(function (error) {
             alert('Error occurred on submit: ' + error);
         });
@@ -165,8 +167,8 @@
             //value: Number(value),
         }).then(response => {
             const data = response.data;
-            dispData(data);
             //console.log(data);
+            dispData(data);
         }).catch(function (error) {
             alert('Error occurred on submit: ' + error);
         });

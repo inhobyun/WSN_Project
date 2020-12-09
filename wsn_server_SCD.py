@@ -4,13 +4,15 @@ Sensor data monitoring and analysis application based on flask WEB application f
 by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
                     started 2020-10-01
-                    last updated 2020-12-03
+                    updated 2020-12-09; monitoring, graph drawing working
 """
 import datetime
 from flask import Flask, redirect, request
 from jinja2 import Environment, PackageLoader, Markup, select_autoescape
 import json
+import numpy as np
 import math
+##import matplotlib.pyplot as plotter
 import socket
 import sys
 import time
@@ -39,7 +41,8 @@ TCP_BDT_END_MSG   = 'BDT_END'       # client message to inform BDT data transfer
 #
 # Some constant parameters
 #
-ACCEPT_WAIT_TIME  = 11100           # 3 hrs 5 min.; time period to wait client connection 
+ACCEPT_WAIT_TIME  = 11100           # 3 hrs 5 min.; time period to wait client connection
+WSN_LOG_FILE_NAME = "SCD_BDT_Data_log.csv" 
 #
 # global variables
 #
@@ -276,12 +279,28 @@ def post_monStart():
         write_to_socket(TCP_STE_REQ_MSG)
         time.sleep(0.2)
         from_client = read_from_socket()
-
+        time.sleep(0.2)
     # get the data to post
     if from_client != None:
         from_client = from_client.replace(')','')
         from_client = from_client.replace('(','')
-        vals = from_client.split(',')  
+        vals = from_client.split(',')     
+        # get the status
+        val_x = float(vals[2])
+        val_y = float(vals[4])
+        val_z = float(vals[6])
+        # 
+        # do more afterward....
+        #
+        if max (val_x, val_y, val_z) >= 0.7 or (val_x > 0.2 and val_y > 0.2  and val_z > 0.2):        
+            status_01 = 'VIBRATION'
+            status_02 = 'ABNORMAL'
+        elif max (val_x, val_y, val_z) >= 0.2:
+            status_01 = 'VIBRATION'
+            status_02 = 'NORMAL'
+        else:    
+            status_01 = 'STOP(NOISE)'
+            status_02 = 'UNKNOWN'
         rows = {'row_00' : vals[ 0],
                 'row_01' : vals[ 1],
                 'row_02' : vals[ 2],
@@ -293,7 +312,9 @@ def post_monStart():
                 'row_08' : vals[ 8],
                 'row_09' : vals[ 9],
                 'row_10' : vals[10],
-                'row_11' : vals[11]
+                'row_11' : vals[11],
+                'status_01' : status_01,
+                'status_02' : status_02
                }
     else:                          
         rows = {'row_00' : '?',
@@ -307,7 +328,9 @@ def post_monStart():
                 'row_08' : '?',
                 'row_09' : '?',
                 'row_10' : '?',
-                'row_11' : '?'
+                'row_11' : '?',
+                'status_01' : '[-?-]',
+                'status_02' : '[-?-]'
                }               
 
     return json.dumps(rows)
@@ -341,7 +364,9 @@ def post_monStop():
                 'row_08' : '-',
                 'row_09' : '-',
                 'row_10' : '-',
-                'row_11' : '-'
+                'row_11' : '-',
+                'status_01' : '[---]',
+                'status_02' : '[---]'
                }               
 
     return json.dumps(rows)
@@ -432,18 +457,58 @@ def post_BDTtoFile():
 #
 @app.route('/post_graphTime', methods=['POST'])
 def post_graphTime():
-    data = json.loads(request.data)
-    value = data['value']
+    #data = json.loads(request.data)
+    #value = data['value']
 
-    # Prepare data to send in here.
+    # read sensor data from file    
+    f = open(WSN_LOG_FILE_NAME, "r")
+    print("WSN-S> open sensor data log file: %s" % WSN_LOG_FILE_NAME)
+    # skip 4 header line 
+    for _ in range(4):
+        row = f.readline()
+        print("WSN-S> header: %s" % row)
+    # init    
     x = []
     y = []
-    for i in range(360):
-        # Sine value for example.
-        curr_x = float(i / 10)
-        x.append(curr_x)
-        y.append(math.sin(curr_x) * value)
-    
+    n = 0
+    # read x, y, z accelometer values
+    while n < 9600:
+        try:
+            row = f.readline()
+        except:
+            break
+        if not row:
+            break
+        if row.find('End') != -1:
+            print("WSN-S> end-of-data at [%d]" % n)
+            break        
+        if len(row) < 7:
+            print("WSN-S> incomplete line at [%d]" % n)
+        else: 
+            try:
+                col = row.split(',')
+                x_val = float(int(col[0])) / 3200.0
+                #
+                # here, put more option 
+                # - option: sum(abs(x), abx(y), abx(z))
+                y_val = abs(int(col[2])) + abs(int(col[3])) + abs(int(col[4]))
+                #
+                x.append(x_val)
+                y.append(y_val)
+            except:
+                print("WSN-S> error line at [%d]" % n)
+            n += 1        
+    # fill zero    
+    while n < 9600:
+        n += 1
+        x_val = float(n) / 3200.0
+        y_val = 0.
+        x.append(x_val)
+        y.append(y_val)
+
+    print("WSN-S> read [%d] lines of data" % n)    
+    f.close()
+
     return json.dumps({ 'x': x, 'y': y })
 
 #############################################
@@ -451,17 +516,74 @@ def post_graphTime():
 #
 @app.route('/post_graphFreq', methods=['POST'])
 def post_graphFreq():
-    data = json.loads(request.data)
-    value = data['value']
+    #data = json.loads(request.data)
+    #value = data['value']
 
-    # Prepare data to send in here.
+    # read sensor data from file    
+    f = open(WSN_LOG_FILE_NAME, "r")
+    print("WSN-S> open sensor data log file: %s" % WSN_LOG_FILE_NAME)
+    # skip 4 header line 
+    for _ in range(4):
+        row = f.readline()
+        print("WSN-S> header: %s" % row)
+    # init       
+    y = []
+    n = 0
+    # read x, y, z accelometer values
+    while n < 9600:
+        try:
+            row = f.readline()
+        except:
+            break
+        if not row:
+            break
+        if row.find('End') != -1:
+            print("WSN-S> end-of-data at [%d]" % n)
+            break        
+        if len(row) < 7:
+            print("WSN-S> incomplete line at [%d]" % n)
+        else: 
+            try:
+                col = row.split(',')
+                #
+                # here, put more option 
+                # - option: sum(abs(x), abx(y), abx(z))
+                y_val = abs(int(col[2])) + abs(int(col[3])) + abs(int(col[4]))
+                #
+                y.append(y_val)
+            except:
+                print("WSN-S> error line at [%d]" % n)
+            n += 1        
+    print("WSN-S> read [%d] lines of data" % n)    
+    f.close()          
+    # prepare fourier Transform
+    print("WSN-S> prepare FFT")
+    sampling_frequency = 3200
+    amplitude = np.ndarray( n )
+    # copy amplitude
+    idx = 0
+    while idx < n:
+        amplitude[idx] = y[idx]
+        idx += 1
+    # run fourier Transform
+    fourier_transform = np.fft.fft(amplitude)/len(amplitude)            # Normalize amplitude
+    fourier_transform = fourier_transform[range(int(len(amplitude)/2))] # Exclude sampling frequency
+    tp_count    = len(amplitude)
+    values      = np.arange(int(tp_count/2))
+    time_period = tp_count/sampling_frequency
+    frequencies = values/time_period
+    print("WSN-S> done FFT")
+    # convert to list
     x = []
     y = []
-    for i in range(60):
-        # Sine value for example.
-        curr_x = float(i / 10)
-        x.append(curr_x)
-        y.append(math.sin(curr_x) * value)
+    idx = 1
+    n = tp_count/2
+    while idx < n:   
+        x_val = float(frequencies[idx])
+        y_val = abs(float(fourier_transform[idx]))
+        x.append(x_val)
+        y.append(y_val)
+        idx += 1
     
     return json.dumps({ 'x': x, 'y': y })
 
@@ -474,7 +596,7 @@ def post_graphFreq():
 #
 if __name__ == '__main__':
     if open_socket():
-        accept_socket(ACCEPT_WAIT_TIME)
+        ## accept_socket(ACCEPT_WAIT_TIME)
         app.run(host='0.0.0.0')
     close_socket()
     print("WSN-S> all done !")
