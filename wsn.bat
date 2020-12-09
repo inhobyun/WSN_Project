@@ -1,2 +1,1 @@
-cd GitHub\WSN_Project
-..\..\env\Scripts\activate.bat
+env\Scripts\activate.bat
