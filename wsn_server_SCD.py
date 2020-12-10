@@ -169,7 +169,7 @@ def write_to_socket(tx_msg):
     except:
         print ("error !", flush=True)
     else:
-        print (''"%r" sent' % tx_msg, flush=True)
+        print ('"%r" sent' % tx_msg, flush=True)
     #    
     return
 #
