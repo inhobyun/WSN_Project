@@ -190,7 +190,9 @@ async def tcp_TX(tx_msg, loop):
             if n < 40:        
                 print('"%r" sent' % tx_msg, flush=True)
             else:
-                print('"%r"...; %d bytes sent' % (tx_msg[0:40], n), flush=True)    
+                txt = tx_msg[0:40]
+                txt.replace('\n','\\n')
+                print('"%r"...; %d bytes sent' % (txt, n), flush=True)    
     else:
         print('AIO-C> [TX] nothing to send !', flush=True)    
 

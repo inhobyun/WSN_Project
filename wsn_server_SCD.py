@@ -148,9 +148,11 @@ def read_from_socket(blockingTimer = 8):
         rx_msg = data.decode()
         n = len(rx_msg)
         if n < 40:
-            print ("received [%s]" % rx_msg, flush=True)
+            print ('received "%r"' % rx_msg, flush=True)
         else:
-            print ("received [%s...]; %d bytes" % (rx_msg[0:40] ,n), flush=True)    
+            txt = rx_msg[0:40]
+            txt.replace('\n','\\n')
+            print ('received "%r"...; %d bytes' % (txt ,n), flush=True)    
     #    
     return rx_msg   
 
@@ -167,7 +169,7 @@ def write_to_socket(tx_msg):
     except:
         print ("error !", flush=True)
     else:
-        print ("[%s] sent" % tx_msg, flush=True)
+        print (''"%r" sent' % tx_msg, flush=True)
     #    
     return
 #
