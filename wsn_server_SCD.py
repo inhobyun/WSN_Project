@@ -29,7 +29,8 @@ import time
 ##TCP_HOST_NAME = "192.168.0.3"     # TEST Host Name
 ##TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
 TCP_HOST_NAME = socket.gethostname()
-TCP_PORT      = 8088              # Default TCP Port Name
+TCP_PORT      = 8088                # Default TCP Port Name
+TCP_PACKET_MAX= 1024                # max TCP packet size 
 #
 TCP_DEV_READY_MSG = 'DEV_READY'     # server message to check client ready
 TCP_DEV_CLOSE_MSG = 'DEV_CLOSE'     # server message to disconnect client
@@ -126,7 +127,7 @@ def accept_socket(blockingTimer = 60):
             print ("error !", flush=True)
             gSocketConn = gSocketAddr = None
             return False         
-        print ("accepted port# [", gSocketAddr, "]\n>--->\n", flush=True)
+        print ("accepted port# [", gSocketAddr, "]\n<---<\n", flush=True)
     return True    
 
 ##############################################
@@ -140,7 +141,7 @@ def read_from_socket(blockingTimer = 8):
     rx_msg = ''
     try:
         gSocketServer.setblocking(blockingTimer)
-        data = gSocketConn.recv(1024)
+        data = gSocketConn.recv(TCP_PACKET_MAX)
     except TimeoutError:
         print ("timeout !", flush=True)
     except:

@@ -107,6 +107,7 @@ TCP_HOST_NAME = "10.2.2.3"        # TEST Host Name
 ##TCP_HOST_NAME = "192.168.0.3"     # TEST Host Name
 ##TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
 TCP_PORT      = 8088              # Default TCP Port Name
+TCP_PACKET_MAX= 1024                # max TCP packet size 
 #
 TCP_DEV_READY_MSG = 'DEV_READY'     # server message to check client ready
 TCP_DEV_CLOSE_MSG = 'DEV_CLOSE'     # server message to disconnect client
@@ -123,7 +124,7 @@ gTCPreader = None
 gTCPwriter = None
 gTCPrxMsg  = None
 gTCPtxMsg  = None
-gTCPrxErr = 0
+gTCPrxErr  = 0
 
 #############################################
 # handle to receive command message
@@ -143,7 +144,7 @@ async def tcp_RX(loop):
     rx_data = None
     print('AIO-C> [RX] wait => ', end = '', flush=True)
     try:
-        rx_data = await asyncio.wait_for ( gTCPreader.read(512), timeout=10.0 )
+        rx_data = await asyncio.wait_for ( gTCPreader.read(TCP_PACKET_MAX), timeout=10.0 )
     except asyncio.TimeoutError:
         print('timeout', flush=True)
         pass
@@ -665,7 +666,6 @@ def SCD_BDT_text_block():
     global gBDTtextBlock
     global gBDTtextLen
     global gBDTtextPos
-
     
     print ("SCD> text block creation from BDT ...", flush=True)
     if gBDTtextBlock != '':
@@ -740,7 +740,7 @@ def SCD_BDT_text_block():
 #############################################
 # create text memory block from BDT w/o non-data
 #
-def SCD_BDT_get_text1024():
+def SCD_BDT_get_text1024(returnMax = TCP_PACKET_MAX):
     global gBDTtextBlock
     global gBDTtextLen
     global gBDTtextPos
@@ -749,7 +749,7 @@ def SCD_BDT_get_text1024():
         rtn = 'End of Data\n'
         gBDTtextPos = idx = 0
     else:
-        idx = gBDTtextPos + 1024    
+        idx = gBDTtextPos + returnMax    
         if idx > gBDTtextLen:
             idx = gBDTtextLen
         while ( gBDTtextBlock[idx-1:idx] != '\n' ) and ( idx > gBDTtextPos ):
