@@ -746,7 +746,7 @@ def SCD_BDT_get_text1024():
         rtn = 'End of Data\n'
         gBDTtextPos = idx = 0
     else:
-        idx = gBDTtextPos + 4096    
+        idx = gBDTtextPos + 1024    
         if idx > gBDTtextLen:
             idx = gBDTtextLen
         while ( gBDTtextBlock[idx-1:idx] != '\n' ) and ( idx > gBDTtextPos ):
