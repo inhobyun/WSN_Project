@@ -14,6 +14,7 @@ by Inho Byun, Researcher/KAIST
                     started 2020-11-05
                     updated 2020-12-03; working revision
                     updated 2020-12-08; comm protocol, BLE scan updated
+                    updated 2020-12-10; acquisition
 """
 import asyncio
 from bluepy.btle import Scanner, DefaultDelegate, UUID, Peripheral
@@ -56,8 +57,8 @@ SCD_BDT_DATA_FLOW_HND = 45    # RN, uuid: 02a65821-3003-1000-2000-b05cb05cb05c
 #
 # MAX constants of BOSCH SCD
 #
-SCD_MAX_MTU   = 65                # MAX SCD Comm. Packet size
-SCD_MAX_FLASH = 0x0b0000          # 11*16**4 = 720896 = 704K
+SCD_MAX_MTU   = 65       # MAX SCD Comm. Packet size
+SCD_MAX_FLASH = 0x0b0000 # 11*16**4 = 720896 = 704K
 
 #
 # Some constant parameters
@@ -78,7 +79,7 @@ gSTEcfgMode   = bytes(35)  # Sensor Mode
 gSTEnotiCnt   = 0     # count of notifications from connected device
 gSTEstartTime = 0.    # notification start timestamp
 gSTElastTime  = 0.    # last notification timestamp
-gSTElastData  = None    # last notification data
+gSTElastData  = None  # last notification data
 gSTEisRolling = False # flag wether STE is on rolling
 # BDT - Block Data Transfer
 gBDTnotiCnt   = 0
@@ -87,7 +88,7 @@ gBDTlastTime  = 0.
 gBDTdata      = bytearray(SCD_MAX_FLASH)
 gBDTtextBlock = ''
 gBDTtextLen   = 0
-gBDTtextLen   = 0
+gBDTtextPos   = 0
 gBDTcrc32     = bytearray(4)
 gBDTisRolled = False
 # IDLE
@@ -122,7 +123,7 @@ gTCPreader = None
 gTCPwriter = None
 gTCPrxMsg  = None
 gTCPtxMsg  = None
-gTCPnullRXcnt = 0
+gTCPrxErr = 0
 
 #############################################
 # handle to receive command message
@@ -132,7 +133,7 @@ async def tcp_RX(loop):
     global gTCPrxMsg
     global gTCPreader
     global gTCPwriter
-    global gTCPnullRXcnt
+    global gTCPrxErr
     #
     if gTCPwriter == None:
         print('\n>--->\nAIO-C> connecting server to read ... ', end ='', flush=True)
@@ -154,10 +155,10 @@ async def tcp_RX(loop):
         if rx_data != None:
             gTCPrxMsg = rx_data.decode()
         if gTCPrxMsg == '':
-            gTCPnullRXcnt += 1
-            print('null received: %d times' % gTCPnullRXcnt, flush=True)
+            gTCPrxErr += 1
+            print('null received: %d times' % gTCPrxErr, flush=True)
         else:
-            gTCPnullRXcnt = 0
+            gTCPrxErr = 0
             print('"%r" received' % gTCPrxMsg, flush=True) 
     
 #############################################
@@ -800,7 +801,7 @@ if  SCD_clear_memory(p) == None:
 #
 gIDLElastTime = time.time()
 loop = asyncio.get_event_loop()
-while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPnullRXcnt < 10:
+while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxErr < 10:
     #
     # wait any message from server
     #
@@ -888,7 +889,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPnullRXcnt < 10:
             loop.run_until_complete( tcp_TX(gTCPtxMsg, loop) )
         except ConnectionResetError:
             print ("WSN-C> server connection is broken !", flush=True)
-            break;        
+            break
 #
 #############################################
 
