@@ -13,7 +13,7 @@ by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
                     started 2020-11-05
                     updated 2020-12-03; working revision
-                    updated 2020-12-05; comm protocol updated
+                    updated 2020-12-08; comm protocol, BLE scan updated
 """
 import asyncio
 from bluepy.btle import Scanner, DefaultDelegate, UUID, Peripheral
@@ -62,9 +62,12 @@ SCD_MAX_FLASH = 0x0b0000          # 11*16**4 = 720896 = 704K
 #
 # Some constant parameters
 #
-SCAN_TIME     = 8.    # scanning duration for BLE devices 
-STE_RUN_TIME  = 3.    # STE rolling time in secconds for SENSOR data recording
-STE_FREQUENCY = (400, 800, 1600, 3200, 6400)  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz
+SCAN_TIME       = 8.     # scanning duration for BLE devices 
+RESCAN_INTERVAL = 90.    # 1.5 min.; interval time to rescan BLE after scan failed
+RESCAN_PERIOD   = 11100. # 3 hrs 5 min.; time period to rescan BLE to connect 
+#
+STE_RUN_TIME    = 3.     # STE rolling time in secconds for SENSOR data recording
+STE_FREQUENCY   = (400, 800, 1600, 3200, 6400)  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz
 #
 # global variables
 #
@@ -97,8 +100,8 @@ gIDLEinterval = 60.   # time interval to make BLE traffic to keep connection
 # target TCP Server identifiers
 #
 ##TCP_HOST_NAME = "127.0.0.1"       # TEST Host Name
-##TCP_HOST_NAME = "10.2.2.3"        # TEST Host Name
-TCP_HOST_NAME = "192.168.0.3"     # TEST Host Name
+TCP_HOST_NAME = "10.2.2.3"        # TEST Host Name
+##TCP_HOST_NAME = "192.168.0.3"     # TEST Host Name
 ##TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
 TCP_PORT      = 8088              # Default TCP Port Name
 #
@@ -131,8 +134,9 @@ async def tcp_RX(loop):
     #
     if gTCPwriter == None:
         print('\n>--->')
+        print('AIO-C> connecting server to read ... ', end ='')
         gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
-        print('AIO-C> connect the socket')
+        print('connected')
         print('<---<')
     #
     rx_data = None
@@ -167,8 +171,9 @@ async def tcp_TX(tx_msg, loop):
     #
     if gTCPwriter == None:
         print('\n>--->')
+        print('AIO-C> connecting server to write ... ', end ='')
         gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
-        print('AIO-C> connect the socket')
+        print('connected')
         print('<---<')
     #
     if tx_msg != None and tx_msg != '':
@@ -463,35 +468,45 @@ def SCD_scan_and_connect( is_first = True ):
     #
     # scanning for a while
     #
-    scanner = Scanner().withDelegate(ScanDelegate())
     print ("SCD> BLE device scan %sstarted..." % ('re' if not is_first else '') )
-    devices = scanner.scan(SCAN_TIME)
-    print ("\nSCD> BLE device scan completed... [%d] devices are scanned" % gScannedCount)
-    #
-    # check to match BOSCH SCD device identifiers
-    #
-    for dev in devices:
-        matching_count = 0
-        for (adtype, desc, value) in dev.getScanData():
-            if adtype == 255 and TARGET_MANUFA_UUID in value:
-                matching_count += 1
-                print("SCD> => found target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value))            
-            if adtype == 9 and TARGET_DEVICE_NAME in value:
-                matching_count += 1
-                print("SCD> => found target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value))            
-            if matching_count >= 2:
-                print("SCD> => found BOSCH SCD device!")
-                print("SCD> device address [%s], type=[%s], RSSI=[%d]dB" % (dev.addr, dev.addrType, dev.rssi))
-                gTargetDevice = dev
+
+    tm = tm_s = time.time()
+    while tm_s - tm < RESCAN_PERIOD:
+        scanner = Scanner().withDelegate(ScanDelegate())
+        devices = scanner.scan(SCAN_TIME)
+        print ("\nSCD> BLE device scan completed... [%d] devices are scanned" % gScannedCount)
+        #
+        # check to match BOSCH SCD device identifiers
+        #
+        for dev in devices:
+            matching_count = 0
+            for (adtype, desc, value) in dev.getScanData():
+                if adtype == 255 and TARGET_MANUFA_UUID in value:
+                    matching_count += 1
+                    print("SCD> => found target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value))            
+                if adtype == 9 and TARGET_DEVICE_NAME in value:
+                    matching_count += 1
+                    print("SCD> => found target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value))            
+                if matching_count >= 2:
+                    print("SCD> => found BOSCH SCD device!")
+                    print("SCD> device address [%s], type=[%s], RSSI=[%d]dB" % (dev.addr, dev.addrType, dev.rssi))
+                    gTargetDevice = dev
+                    break
+            if gTargetDevice != None:
                 break
-        if gTargetDevice != None:
-            break
-    #
-    # if none found then exiting    
-    #
-    if gTargetDevice == None:
-        print("SCD> no matching device found... Exiting...")
-        sys.exit(1)
+        #
+        # if none found then exiting    
+        #
+        if gTargetDevice == None:
+            tm = time.time()
+            print("SCD> no matching device found at [%s]... retry after %d sec..." \
+                  % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), RESCAN_INTERVAL) )
+            if tm_s - tm >= RESCAN_PERIOD:
+                print("SCD> no matching device found... exiting...")
+                sys.exit(-1)
+            time.sleep(RESCAN_INTERVAL)
+        else:
+            break        
     #
     # connect
     #
@@ -502,14 +517,14 @@ def SCD_scan_and_connect( is_first = True ):
         try:
             p = Peripheral(gTargetDevice.addr, gTargetDevice.addrType)
         except:
-            print("SCD> => BLE device connection error occured... retry after 3 sec...")
             retry += 1
-            if retry > 3:
+            print("SCD> => BLE device connection error occured [%d] time(s)... retry after 10 sec..." % retry)
+            if retry > 30:
                 print("SCD> => BLE device connection error occured... exiting...")
                 sys.exit(-1)
-            time.sleep(3)    
+            time.sleep(10)    
     #
-    # should increase MTU
+    # should increase MTU##
     #           
     p.setMTU(SCD_MAX_MTU)
     #
@@ -764,7 +779,11 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPnullRXcnt < 10:
         #
         # process server message
         #
-        if gTCPrxMsg == TCP_STE_START_MSG:
+        if gTCPrxMsg == TCP_DEV_READY_MSG:
+            # start STE rolling w/o memory writing
+            print ("WSN-C> response to [%s]..." % TCP_DEV_READY_MSG)
+            gTCPtxMsg = TCP_DEV_READY_MSG
+        elif gTCPrxMsg == TCP_STE_START_MSG:
             # start STE rolling w/o memory writing
             print ("WSN-C> start STE rolling...")
             p.setDelegate( NotifyDelegate(p) )
