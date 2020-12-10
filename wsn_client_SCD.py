@@ -842,7 +842,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxErr < 10:
         elif gTCPrxMsg == TCP_BDT_RUN_MSG:
             # start BDT
             print ("WSN-C> start BDT running ...")
-            if not (gSTEisRolling or gBDTisRolled):                
+            if not gSTEisRolling:                
                 SCD_run_STE_and_BDT(p)
                 if SCD_clear_memory(p) == None:
                     p = SCD_scan_and_connect(False)

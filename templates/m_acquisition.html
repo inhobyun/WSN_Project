@@ -17,33 +17,55 @@
 {% block right %}
 
 <div style="text-align:center; font-weight:bold; font: size 16;"><Strong>SCD Sensor Data Acquisition</Strong></div>
-<div style="text-align:left;  font-weight:bold; font: size 16; color:blue" id="inf_message"> </div>
-<div style="text-align:left;  font-weight:bold; font: size 20; color:red"  id="err_message"> </div>     
+<div style="text-align:left;  font-weight:bold; font: size 16; color:blue"  id="inf_message"><br></div>
+<div style="text-align:left;  font-weight:bold; font: size 20; color:red"   id="err_message"></div>
+<div style="text-align:left;  font-weight:bold; font: size 20; color:black" id="fin_message"></div>     
 
 <script>
+
+function disableAllMenu() {
+    document.getElementById("btn_confi").disabled = true;
+    document.getElementById("btn_acqui").disabled = true;
+    document.getElementById("btn_monit").disabled = true;
+    document.getElementById("btn_gtime").disabled = true;
+    document.getElementById("btn_gfreq").disabled = true;
+    document.getElementById("btn_about").disabled = true;
+    }    
+
+function enableAllMenu() {
+    document.getElementById("btn_confi").disabled = false;
+    document.getElementById("btn_acqui").disabled = false;
+    document.getElementById("btn_monit").disabled = false;
+    document.getElementById("btn_gtime").disabled = false;
+    document.getElementById("btn_gfreq").disabled = false;
+    document.getElementById("btn_about").disabled = false;
+    }    
+
 
 function startSTEandBDT() {
         // get value from UI
         //const value = document.getElementById('???').value;
 
         //control UI before function run
+        disableAllMenu();
         document.getElementById("btn_start_1").disabled = true;
         // display pre-messages
-        document.getElementById("inf_message").innerHTML += " &rarr run STE(Short Time Experiment) in sensor and BDT(Block Data Transfer) from sensor to edge device<br>";
-        document.getElementById("err_message").innerHTML  = " &excl it will take some minutes, wait until completed";
+        document.getElementById("inf_message").innerHTML += "▶ run STE(Short Time Experiment) in sensor and BDT(Block Data Transfer) from sensor to edge device<br>";
+        document.getElementById("err_message").innerHTML  = "<br>✋ it will take some minutes, wait until completed";
         // run flask function
         axios.post('/post_STEandBDT', {
             //value: Number(value),
         }).then(response => {
             const data = response.data;
             // display post-message
-            document.getElementById("inf_message").innerHTML += "<br> &check completed: " + data.msg_00 + "<br><br>";
+            document.getElementById("err_message").innerHTML  = ''
+            document.getElementById("inf_message").innerHTML += "__✔ completed: " + data.msg_00;
             // control UI after function run
             document.getElementById("btn_start_2" ).disabled = false;
+            enableAllMenu();
         }).catch(function (error) {
             // display error-message
-            document.getElementById("err_message").innerHTML  = "<br> &excl Error occurred on submit: ";
-            document.getElementById("err_message").innerHTML += error
+            document.getElementById("err_message").innerHTML = "<br>❗ Error occurred on submit: " + error;
         });
     }
 
@@ -52,23 +74,25 @@ function startBDTtoSever() {
         //const value = document.getElementById('???').value;
 
         //control UI before function run
+        disableAllMenu();
         document.getElementById("btn_start_2").disabled = true;
         // display pre-messages
-        document.getElementById("inf_message").innerHTML += " &rarr transfer sensor memory data from edge device to server<br>";
-        document.getElementById("err_message").innerHTML  = " &excl it will take some minutes, wait until completed";
+        document.getElementById("inf_message").innerHTML += "▶ transfer sensor memory data from edge device to server<br>";
+        document.getElementById("err_message").innerHTML  = "<br>✋ it will take some minutes, wait until completed";
         // run flask function
         axios.post('/post_BDTtoServer', {
             //value: Number(value),
         }).then(response => {
             const data = response.data;
             // display post-message
-            document.getElementById("inf_message").innerHTML += "<br> &check completed: " + data.msg_00 + "<br><br>";
+            document.getElementById("err_message").innerHTML  = ''
+            document.getElementById("inf_message").innerHTML += "__✔ completed: " + data.msg_00;
             // control UI after function run
             document.getElementById("btn_start_3" ).disabled = false;    
+            enableAllMenu();
         }).catch(function (error) {
             // display error-message
-            document.getElementById("err_message").innerHTML  = " &excl Error occurred on submit: ";
-            document.getElementById("err_message").innerHTML += error;
+            document.getElementById("err_message").innerHTML = "<br>❗ Error occurred on submit: " + error;
         });
     }
 
@@ -77,21 +101,24 @@ function startBDTtoFile() {
         //const value = document.getElementById('???').value;
 
         //control UI before function run
+        disableAllMenu();
         document.getElementById("btn_start_3").disabled = true;
         // display pre-messages
-        document.getElementById("inf_message").innerHTML += " &rarr run STE(Short Time Experiment) and BDT(Block Data Transfer) with 3-axis accelometer<br>";
+        document.getElementById("inf_message").innerHTML += "▶ run STE(Short Time Experiment) and BDT(Block Data Transfer) with 3-axis accelometer<br>";
         // run flask function
         axios.post('/post_BDTtoFile', {
             //value: Number(value),
         }).then(response => {
             const data = response.data;
             // display post-message
-            document.getElementById("inf_message").innerHTML += "<br> &check completed: " + data.msg_00 + "<br><br>";
-            document.getElementById("err_message").innerHTML += "<br> &excl sensor data acquisition done";
+            document.getElementById("err_message").innerHTML  = ''
+            document.getElementById("inf_message").innerHTML += "__✔ completed: " + data.msg_00;
+            document.getElementById("fin_message").innerHTML += "🙂 all done, congratuation !";
+            // control UI after function run
+            enableAllMenu();
         }).catch(function (error) {
             // display error-message
-            document.getElementById("err_message").innerHTML  = "<br> &excl Error occurred on submit: ";
-            document.getElementById("err_message").innerHTML += error;
+            document.getElementById("err_message").innerHTML = "<br>❗ Error occurred on submit: " + error;
         });
     }    
 
