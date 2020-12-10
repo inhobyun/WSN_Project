@@ -417,13 +417,14 @@ def post_BDTtoServer():
     while True:
         # send BDT request
         accept_socket()
+        time.sleep(0.2)
         write_to_socket(TCP_BDT_REQ_MSG)
         time.sleep(0.2)
         # get data from client
         from_client = ''
         while from_client == '':
             from_client = read_from_socket(blockingTimer = 3)
-        if from_client.find('End') != -1:
+        if from_client.find('End of Data') == -1:
             gBDTtextList.append(from_client)
         else:
             gBDTtextList.append(from_client)
@@ -449,10 +450,10 @@ def post_BDTtoFile():
 
     # write to file
     idx = 0
-    n = len(gBDTTextList)
-    f = open(WSN_LOG_FILE_NAME, "r")
+    n = len(gBDTtextList)
+    f = open(WSN_LOG_FILE_NAME, "w")
     for idx in range(n):
-        f.write(gBDTTextList[idx])
+        f.write(gBDTtextList[idx])
     f.close()
     #
     tm = time.time()

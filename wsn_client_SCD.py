@@ -718,11 +718,14 @@ def SCD_BDT_text_block():
             if idx >= EOD_pos:
                 break
             if (n == 0):
-                gBDTtextBlock += ( "%6d, %10.3f" % (line,(float(time_stamp)/1000.)))                          
+                ##gBDTtextBlock += ( "%6d, %10.3f" % (line,(float(time_stamp)/1000.)))
+                gBDTtextBlock += ( "%d,%.3f" % (line,(float(time_stamp)/1000.)))                          
             elif (n % 3) == 0:
                 line += 1
-                gBDTtextBlock += ( "\n%6d,           " % line )
-            gBDTtextBlock += ( ", %6d" % (int.from_bytes(gBDTdata[idx:idx+2], byteorder='little', signed=True)) )
+                ##gBDTtextBlock += ( "\n%6d,           " % line )
+                gBDTtextBlock += ( "\n%d," % line )
+            ##gBDTtextBlock += ( ", %6d" % (int.from_bytes(gBDTdata[idx:idx+2], byteorder='little', signed=True)) )
+            gBDTtextBlock += ( ",%d" % (int.from_bytes(gBDTdata[idx:idx+2], byteorder='little', signed=True)) )
             idx += 2
         gBDTtextBlock += ( "\n" )     
     gBDTtextBlock += ("End of Data\n")
@@ -743,7 +746,7 @@ def SCD_BDT_get_text1024():
         rtn = 'End of Data\n'
         gBDTtextPos = idx = 0
     else:
-        idx = gBDTtextPos + 1024    
+        idx = gBDTtextPos + 4096    
         if idx > gBDTtextLen:
             idx = gBDTtextLen
         while ( gBDTtextBlock[idx-1:idx] != '\n' ) and ( idx > gBDTtextPos ):
