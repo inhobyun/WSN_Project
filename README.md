@@ -42,11 +42,18 @@ or in Windows:
 ./env/Scripts/activate.bat
 ```
 
-And then, run server.
+First, run server based flask on Linux or Windows.
 
 ```bash
 python wsn_server_???.py
 ```
+
+then, run client on Linux(usually, raspberrypi).
+
+```bash
+python wsn_client_???.py
+```
+
 
 ## Check out these documents
 
