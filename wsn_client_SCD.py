@@ -740,7 +740,7 @@ def SCD_BDT_text_block():
 #############################################
 # create text memory block from BDT w/o non-data
 #
-def SCD_BDT_get_text1024(returnMax = TCP_PACKET_MAX):
+def SCD_BDT_get_text(returnMax = TCP_PACKET_MAX):
     global gBDTtextBlock
     global gBDTtextLen
     global gBDTtextPos
@@ -855,7 +855,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxErr < 10:
             # request BDT data
             if gBDTisRolled:
                 print ("WSN-C> request BDT data ...", flush=True)
-                gTCPtxMsg = SCD_BDT_get_text1024()
+                gTCPtxMsg = SCD_BDT_get_text()
                 if gTCPtxMsg.find("End") != -1:
                     gBDTisRolled = False
             else:
