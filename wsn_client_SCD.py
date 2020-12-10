@@ -852,7 +852,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPnullRXcnt < 10:
                 gTCPtxMsg = SCD_BDT_get_text1024()
                 if gTCPtxMsg.find("End") != -1:
                     gBDTisRolled = False
-             else:
+            else:
                 print ("WSN-C> invalid message, BDT has not been done !", flush=True)    
         elif gTCPrxMsg == TCP_STE_STOP_MSG or gTCPrxMsg == TCP_DEV_CLOSE_MSG:
             # stop STE or disconnect
