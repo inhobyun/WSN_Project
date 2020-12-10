@@ -16,98 +16,83 @@
 
 {% block right %}
 
-<div style="text-align:center"><Strong>SCD Sensor Analysis - on-time analysis</Strong></div>
-<div class="run_message" id="message"> </div>    
+<div style="text-align:center; font-weight:bold; font: size 16;"><Strong>SCD Sensor Data Acquisition</Strong></div>
+<div style="text-align:left;  font-weight:bold; font: size 16; color:blue" id="inf_message"> </div>
+<div style="text-align:left;  font-weight:bold; font: size 20; color:red"  id="err_message"> </div>     
 
 <script>
 
 function startSTEandBDT() {
-        //get UI input value
+        // get value from UI
         //const value = document.getElementById('???').value;
+
         //control UI before function run
         document.getElementById("btn_start_1").disabled = true;
-        document.getElementById("btn_start_2").disabled = true;
-        document.getElementById("btn_start_3").disabled = true;
-        //display pre-messages
-        document.getElementById("message").innerHTML  = "<br>"
-        document.getElementById("message").innerHTML += " => run STE(Short Time Experiment) in sensor and BDT(Block Data Transfer) from sensor to edge device<br>"
-        document.getElementById("message").innerHTML += " => it will take some minutes, wait until completed<br>"
-        //run flask function
+        // display pre-messages
+        document.getElementById("inf_message").innerHTML += " &rarr run STE(Short Time Experiment) in sensor and BDT(Block Data Transfer) from sensor to edge device<br>";
+        document.getElementById("err_message").innerHTML  = " &excl it will take some minutes, wait until completed";
+        // run flask function
         axios.post('/post_STEandBDT', {
             //value: Number(value),
         }).then(response => {
             const data = response.data;
-            //
-            // coding after function run
-            //
-            document.getElementById("message").innerHTML += " => completed: "
-            document.getElementById("message").innerHTML += data.msg_00
-            document.getElementById("message").innerHTML += "<br><br>"
-            //console.log(data);
+            // display post-message
+            document.getElementById("inf_message").innerHTML += "<br> &check completed: " + data.msg_00 + "<br><br>";
+            // control UI after function run
+            document.getElementById("btn_start_2" ).disabled = false;
         }).catch(function (error) {
-            alert('Error occurred on submit: ' + error);
+            // display error-message
+            document.getElementById("err_message").innerHTML  = "<br> &excl Error occurred on submit: ";
+            document.getElementById("err_message").innerHTML += error
         });
-        //control UI after function run
-        document.getElementById("btn_start_2" ).disabled = false;
     }
 
 function startBDTtoSever() {
-        //get UI input value
+        // get value from UI
         //const value = document.getElementById('???').value;
-        //const value = document.getElementById('tm_interval').value;
-        document.getElementById("btn_start_1").disabled = true;
+
+        //control UI before function run
         document.getElementById("btn_start_2").disabled = true;
-        document.getElementById("btn_start_3").disabled = true;
-        //display pre-messages
-        document.getElementById("message").innerHTML += " => transfer sensor memory data from edge device to server<br>"
-        document.getElementById("message").innerHTML += " => it will take some minutes, wait until completed<br>"
-        //run flask function
+        // display pre-messages
+        document.getElementById("inf_message").innerHTML += " &rarr transfer sensor memory data from edge device to server<br>";
+        document.getElementById("err_message").innerHTML  = " &excl it will take some minutes, wait until completed";
+        // run flask function
         axios.post('/post_BDTtoServer', {
             //value: Number(value),
         }).then(response => {
             const data = response.data;
-            //
-            // coding here
-            //
-            document.getElementById("message").innerHTML += " => completed: "
-            document.getElementById("message").innerHTML += data.msg_00
-            document.getElementById("message").innerHTML += "<br><br>"
-            //console.log(data);
+            // display post-message
+            document.getElementById("inf_message").innerHTML += "<br> &check completed: " + data.msg_00 + "<br><br>";
+            // control UI after function run
+            document.getElementById("btn_start_3" ).disabled = false;    
         }).catch(function (error) {
-            alert('Error occurred on submit: ' + error);
+            // display error-message
+            document.getElementById("err_message").innerHTML  = " &excl Error occurred on submit: ";
+            document.getElementById("err_message").innerHTML += error;
         });
-        //control UI after function run
-        document.getElementById("btn_start_1" ).disabled = false;
-        document.getElementById("btn_start_3" ).disabled = false;
     }
 
 function startBDTtoFile() {
-        //get UI input value
+        // get value from UI
         //const value = document.getElementById('???').value;
-        //const value = document.getElementById('tm_interval').value;
-        document.getElementById("btn_start_1").disabled = true;
-        document.getElementById("btn_start_2").disabled = true;
+
+        //control UI before function run
         document.getElementById("btn_start_3").disabled = true;
-        //display pre-messages
-        document.getElementById("message").innerHTML += " => run STE(Short Time Experiment) and BDT(Block Data Transfer) with 3-axis accelometer<br>"
-        document.getElementById("message").innerHTML += " => it will take some minutes, wait until completed<br>"
-        //run flask function
+        // display pre-messages
+        document.getElementById("inf_message").innerHTML += " &rarr run STE(Short Time Experiment) and BDT(Block Data Transfer) with 3-axis accelometer<br>";
+        // run flask function
         axios.post('/post_BDTtoFile', {
             //value: Number(value),
         }).then(response => {
             const data = response.data;
-            //
-            // coding here
-            //
-            document.getElementById("message").innerHTML += " => completed: "
-            document.getElementById("message").innerHTML += data.msg_00
-            document.getElementById("message").innerHTML += "<br><br>"
-            //console.log(data);
+            // display post-message
+            document.getElementById("inf_message").innerHTML += "<br> &check completed: " + data.msg_00 + "<br><br>";
+            document.getElementById("err_message").innerHTML += "<br> &excl sensor data acquisition done";
         }).catch(function (error) {
-            alert('Error occurred on submit: ' + error);
+            // display error-message
+            document.getElementById("err_message").innerHTML  = "<br> &excl Error occurred on submit: ";
+            document.getElementById("err_message").innerHTML += error;
         });
-        //control UI after function run
-        document.getElementById("btn_start_1").disabled = false;
     }    
 
 </script>
