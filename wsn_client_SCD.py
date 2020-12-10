@@ -187,9 +187,9 @@ async def tcp_TX(tx_msg, loop):
             gTCPwriter = gTCPreader = None
         else:
             n = len(tx_msg)
-            if n < 40        
+            if n < 40:        
                 print('"%r" sent' % tx_msg, flush=True)
-            else
+            else:
                 print('"%r"...; %d bytes sent' % (tx_msg[0:40], n), flush=True)    
     else:
         print('AIO-C> [TX] nothing to send !', flush=True)    
