@@ -726,7 +726,7 @@ def SCD_BDT_text_block():
             idx += 2
         gBDTtextBlock += ( "\n" )     
     gBDTtextBlock += ("End of Data\n")
-    gBDTtextLen = len(gBDTtextBlock))
+    gBDTtextLen = len(gBDTtextBlock)
     gBDTtextPos = 0
     #    
     print ("SCD> text block [%d] bytes recorded !" % gBDTtextLen, flush=True)
