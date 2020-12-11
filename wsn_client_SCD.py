@@ -834,7 +834,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxErr < 10:
                 print ("WSN-C> getting STE data ...", flush=True)
                 # if not enable STE notification
                 gSTElastData = p.readCharacteristic(SCD_STE_RESULT_HND)
-                gSTElastTime = time.time()
+                ##gSTElastTime = time.time()
                 gTCPtxMsg = SCD_string_STE_data(gSTElastTime, gSTElastData)
                 gIDLElastTime = gSTElastTime   
             else:
@@ -866,7 +866,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxErr < 10:
             SCD_set_STE_config (p, False)
             SCD_toggle_STE_rolling (p, False, False)
             SCD_print_STE_status()
-            gIDLElastTime = time.time()
+            ## gIDLElastTime = time.time()
         else:
             # invalid message
             print ("WSN-C> invalid [RX] message !", flush=True)    

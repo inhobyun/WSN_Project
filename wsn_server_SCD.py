@@ -52,9 +52,11 @@ gSocketServer   = None
 gSocketConn     = None
 gSocketAddr     = None
 #
-gIsMonStarted   = False
-#
 gBDTtextList    = []
+#
+gIsMonStarted   = False
+gSTElockFlag    = False
+gBDTlockFlag    = False
 
 #############################################
 #############################################
@@ -281,7 +283,30 @@ def post_monStart():
     #value = data['value']
     #
     global gIsMonStarted
-    
+    global gSTElockFlag
+    global gBDTlockFlag
+
+    # check BDT lock flag
+    if gSTElockFlag:
+        rows = {'row_00' : '*',
+                'row_01' : '*',
+                'row_02' : '*',
+                'row_03' : '*',
+                'row_04' : '*',
+                'row_05' : '*',
+                'row_06' : '*',
+                'row_07' : '*',
+                'row_08' : '*',
+                'row_09' : '*',
+                'row_10' : '*',
+                'row_11' : '*',
+                'status_01' : '[Somebody is running STE]',
+                'status_02' : '[only one can run STE]'
+               }               
+        return json.dumps(rows)
+    else:    
+        gSTElockFlag = True    
+
     # send STE start & request
     accept_socket()
     if not gIsMonStarted: 
@@ -363,6 +388,8 @@ def post_monStop():
     #value = data['value']
     #
     global gIsMonStarted
+    global gSTElockFlag
+    global gBDTlockFlag
 
     # send STE stop
     accept_socket()
@@ -384,7 +411,10 @@ def post_monStop():
                 'row_11' : '-',
                 'status_01' : '[---]',
                 'status_02' : '[---]'
-               }               
+               }
+
+    # release STE lock flag
+    gSTElockFlag = False    
 
     return json.dumps(rows)
 
@@ -396,7 +426,18 @@ def post_STEandBDT():
     #data = json.loads(request.data)
     #value = data['value']
     #
+    global gIsMonStarted
+    global gSTElockFlag
+    global gBDTlockFlag
     global gBDTtextList
+
+    # check BDT lock flag
+    if gBDTlockFlag:
+        msgs = {'msg_00' : "somebody is running BDT, only one can run BDT"
+           }
+        return json.dumps(msgs)
+    else:    
+        gBDTlockFlag = True    
 
     # send BDT run
     accept_socket()
@@ -421,7 +462,18 @@ def post_BDTtoServer():
     #data = json.loads(request.data)
     #value = data['value']
     #
+    global gIsMonStarted
+    global gSTElockFlag
+    global gBDTlockFlag
     global gBDTtextList
+
+    # check BDT lock flag
+    if gBDTlockFlag:
+        msgs = {'msg_00' : "somebody is running BDT, only one can run BDT"
+           }
+        return json.dumps(msgs)
+    else:    
+        gBDTlockFlag = True    
 
     # init data buffer
     gBDTtextList = []
@@ -454,7 +506,18 @@ def post_BDTtoFile():
     #data = json.loads(request.data)
     #value = data['value']
     #
+    global gIsMonStarted
+    global gSTElockFlag
+    global gBDTlockFlag
     global gBDTtextList
+
+    # check BDT lock flag
+    if gBDTlockFlag:
+        msgs = {'msg_00' : "somebody is running BDT, only one can run BDT"
+           }
+        return json.dumps(msgs)
+    else:    
+        gBDTlockFlag = True    
 
     # write to file
     idx = 0
@@ -466,7 +529,10 @@ def post_BDTtoFile():
     #
     msgs = {'msg_00' : time_stamp()
            }
-    
+
+    # release BDT lock flag
+    gBDTlockFlag = False    
+
     return json.dumps(msgs)    
 
 #############################################
