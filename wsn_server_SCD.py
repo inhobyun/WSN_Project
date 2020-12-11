@@ -55,7 +55,7 @@ gSocketAddr     = None
 gBDTtextList    = []
 #
 gIsMonStarted   = False
-gSTElockFlag    = False
+gSTElockFlag    = False # not used; always False
 gBDTlockFlag    = False
 
 #############################################
@@ -304,9 +304,6 @@ def post_monStart():
                 'status_02' : '[only one can run STE or BDT]'
                }               
         return json.dumps(rows)
-    else:    
-        ##gSTElockFlag = True
-        gSTElockFlag = False        
 
     # send STE start & request
     accept_socket()
