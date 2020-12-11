@@ -2,187 +2,193 @@
 <html>
 
 <head>
-<meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-<link rel="icon" href="/static/images/logo.png">
-<!--
-<script type="text/javascript" src="/static/scripts/"></script>
-<link rel="stylesheet" href="/assets/styles/index.css">
-<link rel="stylesheet" href="/assets/styles/header.css">
-<link rel="stylesheet" href="/assets/styles/screen.css">
-<link rel="stylesheet" href="/assets/styles/footer.css">
--->
-{% block head %}
-{% endblock %}
-<title>Sensor Data Monitoring & Aanalysis</title>
 
-<style>
-* {
-  box-sizing: border-box;
-  margin-top: 0px;
-  margin-left: 0px;
-  margin-bottom: 0px;
-  margin-right: 0px;
-}
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="icon" href="/static/images/logo.png">
+  <!--
+  <script type="text/javascript" src="/static/js/???"></script>
+  <link rel="stylesheet" href="/assets/styles/index.css">
+  <link rel="stylesheet" href="/assets/styles/header.css">
+  <link rel="stylesheet" href="/assets/styles/screen.css">
+  <link rel="stylesheet" href="/assets/styles/footer.css">
+  -->
+  {% block head %}
+  {% endblock %}
+  <title>Sensor Data Monitoring & Aanalysis</title>
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
-}
+  <style>
 
-/* The grid container */
-.grid-container {
-  display: grid;
-  grid-template-columns: 280px auto;
-} 
+    * {
+      box-sizing: border-box;
+      margin-top: 0px;
+      margin-left: 0px;
+      margin-bottom: 0px;
+      margin-right: 0px;
+    }
 
-.top {
-  grid-area: top;
-  background-color: #999;
-  color: black;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 6px;
-  padding-right: 6px;
-  text-align: center;
-  font-size: 14px;
-}
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+    }
 
-.top-left {
-  grid-area: top-left;
-  background-color: #666;
-  color: white;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 6px;
-  padding-right: 6px;
-  text-align: left;
-}
+    /* The grid container */
+    .grid-container {
+      display: grid;
+      grid-template-columns: 280px auto;
+    } 
 
-.top-right {
-  grid-area: top-right;
-  background-color: #666;
-  color: white;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 6px;
-  padding-right: 6px;
-  text-align: right;
-}
+    .top {
+      grid-area: top;
+      background-color: #999;
+      color: black;
+      padding-top: 4px;
+      padding-bottom: 4px;
+      padding-left: 6px;
+      padding-right: 6px;
+      text-align: center;
+      font-size: 14px;
+    }
 
-.left,
-.right {
-  height: 840px; /* Should be removed. Only for demonstration */
-}
+    .top-left {
+      grid-area: top-left;
+      background-color: #666;
+      color: white;
+      padding-top: 4px;
+      padding-bottom: 4px;
+      padding-left: 6px;
+      padding-right: 6px;
+      text-align: left;
+    }
 
-/* Style the left column */
-.left {
-  grid-area: left;
-  background-color: #aaa;
-  font-size: 14px;
-  padding-top: 4px;
-  padding-left: 2px;
-  padding-bottom: 4px;
-  padding-right: 2px;
-}
+    .top-right {
+      grid-area: top-right;
+      background-color: #666;
+      color: white;
+      padding-top: 4px;
+      padding-bottom: 4px;
+      padding-left: 6px;
+      padding-right: 6px;
+      text-align: right;
+    }
 
-/* Style the right column */
-.right {
-  grid-area: right;
-  background-color: whitesmoke;
-  font-size: 14px;
-  padding-top: 4px;
-  padding-left: 4px;
-  padding-bottom: 4px;
-  padding-right: 4px;
-}
+    .left,
+    .right {
+      height: 840px; /* Should be removed. Only for demonstration */
+    }
 
-/* Style the footer */
-.foot {
-  grid-area: foot;
-  background-color: #999;
-  color: white;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  text-align: center;
-  font-size: 14px;
-}
+    /* Style the left column */
+    .left {
+      grid-area: left;
+      background-color: #aaa;
+      font-size: 14px;
+      padding-top: 4px;
+      padding-left: 2px;
+      padding-bottom: 4px;
+      padding-right: 2px;
+    }
 
-/* Style the table */
-table {
-  width: 60%;
-  text-align: left;
-  table-layout: auto;
-}
+    /* Style the right column */
+    .right {
+      grid-area: right;
+      background-color: whitesmoke;
+      font-size: 14px;
+      padding-top: 4px;
+      padding-left: 4px;
+      padding-bottom: 4px;
+      padding-right: 4px;
+    }
 
-table,
-td,
-th {
-  border-collapse: collapse;
-}
+    /* Style the footer */
+    .foot {
+      grid-area: foot;
+      background-color: #999;
+      color: white;
+      padding-top: 4px;
+      padding-bottom: 4px;
+      text-align: center;
+      font-size: 14px;
+    }
 
-th,
-td {
-  padding: 6px;
-  border: solid 1px;
-}
+    /* Style the table */
+    table {
+      width: 60%;
+      text-align: left;
+      table-layout: auto;
+    }
 
-th {
-  text-align: center;
-  background-color: #99b;
-}
+    table,
+    td,
+    th {
+      border-collapse: collapse;
+    }
 
-td {
-  text-align: right;
-}
+    th,
+    td {
+      padding: 6px;
+      border: solid 1px;
+    }
 
-/* Responsive layout - makes the three columns stack on top of each other instead of next to each other */
-@media (min-width: 1280px) {
-  .grid-container  {
-    grid-template-areas: 
-    'top      top      top      top'
-    'top-left top-left top-left top-right' 
-    'left     right    right    right' 
-    'foot     foot     foot     foot';
-   }
-}
-</style>
+    th {
+      text-align: center;
+      background-color: #99b;
+    }
+
+    td {
+      text-align: right;
+    }
+
+    /* Responsive layout - makes the three columns stack on top of each other instead of next to each other */
+    @media (min-width: 1280px) {
+      .grid-container  {
+        grid-template-areas: 
+        'top      top      top      top'
+        'top-left top-left top-left top-right' 
+        'left     right    right    right' 
+        'foot     foot     foot     foot';
+      }
+    }
+
+  </style>
+
 </head>
 
 <body>
 
-<div class="grid-container">
+ {% block body %}
+ {% endblock %}
+
+ <div class="grid-container">
 
     <div class="top">
-        <strong>【Sensor Data Monitoring & Analysis】</strong> version: β-prototype 
-    </div>
-      
+      <strong>【Sensor Data Monitoring & Analysis】</strong> version: β-prototype 
+    </div>      
     <div class="top-left">
-        <button id="btn_ihome" onclick="window.location.href='/'"             ><i class="fa fa-home"></i> Home </button>
-        <button id="btn_confi" onclick="window.location.href='/m_Ooops'"      ><strong>Sensor Configuration  </strong></button>
-        <button id="btn_monit" onclick="window.location.href='/m_monitor'"    ><strong>Sensor Monitoring     </strong></button>
-        <button id="btn_acqui" onclick="window.location.href='/m_acquisition'"><strong>Data Acqusition       </strong></button>
-        <button id="btn_gtime" onclick="window.location.href='/m_graph_time'" ><strong>Analysis - Time Series</strong></button>
-        <button id="btn_gfreq" onclick="window.location.href='/m_graph_freq'" ><strong>Analysis - Frequency  </strong></button>
+      <button id="btn_ihome" onclick="window.location.href='/'"             ><i class="fa fa-home"></i> Home </button>
+      <button id="btn_confi" onclick="window.location.href='/m_Ooops'"      ><strong>Sensor Configuration  </strong></button>
+      <button id="btn_monit" onclick="window.location.href='/m_monitor'"    ><strong>Sensor Monitoring     </strong></button>
+      <button id="btn_acqui" onclick="window.location.href='/m_acquisition'"><strong>Data Acqusition       </strong></button>
+      <button id="btn_gtime" onclick="window.location.href='/m_graph_time'" ><strong>Analysis - Time Series</strong></button>
+      <button id="btn_gfreq" onclick="window.location.href='/m_graph_freq'" ><strong>Analysis - Frequency  </strong></button>
     </div>
     <div class="top-right">
-        <button id="btn_about" onclick="window.location.href='/m_intro_1'">About...</button>
+      <button id="btn_about" onclick="window.location.href='/m_intro_1'">About...</button>
     </div>
    
     <div class="left">
-        {% block left %}
-        {% endblock %}
+      {% block left %}
+      {% endblock %}
     </div>
     
     <div class="right">
-        {% block right %}
-        {% endblock %}
+      {% block right %}
+      {% endblock %}
     </div>
     
     <div class="foot">
-        {% block foot %}
-        {% endblock %}
+      {% block foot %}
+      {% endblock %}
     </div>
 
     <script>
@@ -261,7 +267,7 @@ td {
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="https://d3js.org/d3.v4.js"></script>
 
-</div>
+ </div>
 
 </body>
 </html>

@@ -1,15 +1,76 @@
 {% extends "m_base.html" %}
 
 {% block left %}
-    <p style="text-align:center;">No Sub-Menu</p>
+    <div style="text-align:center;">Sensor Config. Setting</div>
+
+    <div style="position:absolute; left:  8px; top:100px;">
+        <input type="checkbox" id="accl_on" name="sensor" value="accl">                                                   
+        <label>Acclerlometer</label>
+    </div>
+    <div style="position:absolute; left: 26px; top:128px;">
+        <label>Frequency :</label>
+    </div>                                                        
+    <div style="position:absolute; left:116px; top:128px;">
+        <input type="radio" id="freq_400" name="accl_freq" value="400" disabled=True>                                                    
+        <label>400 Hz</label>
+    </div>
+    <div style="position:absolute; left:116px; top:146px;">
+        <input type="radio" id="freq_800" name="accl_freq" value="800" disabled=True>
+        <label>800 Hz</label>
+    </div>
+    <div style="position:absolute; left:116px; top:164px;">
+        <input type="radio" id="freq_1600" name="accl_freq" value="400" disabled=True>
+        <label>1600 Hz</label>
+    </div>
+    <div style="position:absolute; left:116px; top:182px;">
+        <input type="radio" id="freq_3200" name="accl_freq" value="800" checked>
+        <label>3200 Hz (default)</label>
+    </div>
+    <div style="position:absolute; left:116px; top:200px;">
+        <input type="radio" id="freq_6400" name="accl_freq" value="400" disabled=True>
+        <label>6400 Hz</label>
+    </div>
+    <div style="position:absolute; left:  8px; top:230px;">
+        <input type="checkbox" id="temp_on" name="sensor" value="temp" checked>
+        <label>Temperature</label>
+    </div>
+    <div style="position:absolute; left:  8px; top:260px;">
+        <input type="checkbox" id="ligh_on" name="sensor" value="ligh" checked>
+        <label>Light</label>
+    </div>
+    <div style="position:absolute; left: 26px; top:288px;">
+        <label>Frequency :</label>
+    </div>                                                        
+    <div style="position:absolute; left:116px; top:288px;">
+        <input type="radio" id="freq_10" name="ligh_freq" value="400" checked>                                                    
+        <label>10 Hz (default)</label>
+    </div>
+    <div style="position:absolute; left:116px; top:306px;">
+        <input type="radio" id="freq_1250" name="ligh_freq" value="800" disabled=True>
+        <label>1250 Hz</label>
+    </div>
+    <div style="position:absolute; left:  8px; top:336px;">
+        <input type="checkbox" id="magn_on" name="sensor" value="magn" checked>
+        <label>Magnetometer</label></div>
+    <script>
+        document.getElementById("accl_on").checked = true;
+        document.getElementById("temp_on").checked = true;
+        document.getElementById("ligh_on").checked = true;
+        document.getElementById("magn_on").checked = true;
+    </script>    
+
 {% endblock %}
 
 {% block right %}
-    <p style="text-align:center;">No Graphic Output</p>
+    <div style="text-align:center;">Snesor Description</div>
+    <br>
+    <div style="text-align:center; padding-top:16px;">
+        <img src="/static/images/sensor_SCD.png" align="middle">
+    </div>    
 {% endblock %}
 
 {% block foot %}
-    <p style="font-size:14px; color:white;">
-        <strong>Sorry!</strong> It has not been implemeted. <a href="/">Click</a> to return...
-    </p>
+    <div style="font-size:14px; color:red;">
+        <strong>Sorry!</strong> This page is not working. <a href="/">Click</a> to return...
+    </div>
 {% endblock %}
