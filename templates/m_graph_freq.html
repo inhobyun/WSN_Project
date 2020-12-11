@@ -38,7 +38,11 @@
 {% block right %}
 
     <div style="text-align:left"><Strong>Accelerometer Sensor Data - Frequency Graph</Strong></div>
-
+    <div style="text-align:left">
+        <label id="time_stamp_label"></label>Sensor Measured Time : </label>
+        <label id="time_stamp" style="font-weight:bold; color:blueviolet;"></label>
+    </div> 
+    
     <div class="form">
         <div id="chart-box"></div>
     </div>
@@ -52,6 +56,7 @@
             }).then(response => {
                 const data = response.data;
                 drawGraph(data, color_val);
+                document.getElementById("time_stamp").innerHTML = data.t
                 // console.log(data);
             }).catch(function (error) {
                 alert('Error occurred on submit: ' + error);

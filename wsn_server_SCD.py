@@ -550,8 +550,14 @@ def post_graphTime():
     # read sensor data from file    
     f = open(WSN_LOG_FILE_NAME, "r")
     print("WSN-S> open sensor data log file: %s" % WSN_LOG_FILE_NAME, flush=True)
-    # skip 4 header line 
-    for _ in range(4):
+    # check 4 header lines
+    row = f.readline()
+    time_stamp = 'unknown'
+    if row[0:11] == "server time":
+        idx = row.find(':')
+        if idx > 10:
+            time_stamp = row[idx:] 
+    for _ in range(3):
         row = f.readline()
         print("WSN-S> header: %s" % row, flush=True)
     # init    
@@ -598,7 +604,7 @@ def post_graphTime():
     print("WSN-S> read [%d] lines of data" % n, flush=True)    
     f.close()
 
-    return json.dumps({ 'x': x, 'y': y })
+    return json.dumps({ 'x': x, 'y': y, 't': time_stamp })
 
 #############################################
 # graphics - frequency UI - drawing
@@ -611,8 +617,14 @@ def post_graphFreq():
     # read sensor data from file    
     f = open(WSN_LOG_FILE_NAME, "r")
     print("WSN-S> open sensor data log file: %s" % WSN_LOG_FILE_NAME, flush=True)
-    # skip 4 header line 
-    for _ in range(4):
+    # check 4 header lines
+    row = f.readline()
+    time_stamp = 'unknown'
+    if row[0:11] == "server time":
+        idx = row.find(':')
+        if idx > 10:
+            time_stamp = row[idx:] 
+    for _ in range(3):
         row = f.readline()
         print("WSN-S> header: %s" % row, flush=True)
     # init       
@@ -676,7 +688,7 @@ def post_graphFreq():
         y.append(y_val)
         idx += 1
     
-    return json.dumps({ 'x': x, 'y': y })
+    return json.dumps({ 'x': x, 'y': y, 't': time_stamp })
 
 #############################################
 #############################################
