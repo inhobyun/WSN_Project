@@ -17,9 +17,9 @@
 {% block right %}
 
 <div style="text-align:center; font-weight:bold; font: size 16;"><Strong>SCD Sensor Data Acquisition</Strong></div>
-<div style="text-align:left;  font-weight:bold; font: size 16; color:blue"  id="inf_message"><br></div>
-<div style="text-align:left;  font-weight:bold; font: size 20; color:red"   id="err_message"></div>
-<div style="text-align:left;  font-weight:bold; font: size 20; color:black" id="fin_message"></div>     
+<div style="text-align:left;   font-weight:bold; font: size 16; color:blue"  id="inf_message"><br></div>
+<div style="text-align:left;   font-weight:bold; font: size 20; color:red"   id="err_message"></div>
+<div style="text-align:left;   font-weight:bold; font: size 20; color:black" id="fin_message"></div>     
 
 <script>
 
@@ -31,8 +31,8 @@ function startSTEandBDT() {
         disableAllMenus();
         document.getElementById("btn_start_1").disabled = true;
         // display pre-messages
-        document.getElementById("inf_message").innerHTML += "▶ run STE(Short Time Experiment) in sensor and BDT(Block Data Transfer) from sensor to edge device<br>";
-        document.getElementById("err_message").innerHTML  = "<br>✋ it will take some minutes, wait until completed";
+        document.getElementById("inf_message").innerHTML += "▶ run STE(Short Time Experiment), then BDT(Block Data Transfer): SENSOR ➜ EDGE-DEVICE<br>";
+        document.getElementById("err_message").innerHTML  = "<br>✋ it will take some minutes(⏱), wait until completed";
         // run flask function
         axios.post('/post_STEandBDT', {
             //value: Number(value),
@@ -40,7 +40,7 @@ function startSTEandBDT() {
             const data = response.data;
             // display post-message
             document.getElementById("err_message").innerHTML  = ''
-            document.getElementById("inf_message").innerHTML += "__✔ completed: " + data.msg_00;
+            document.getElementById("inf_message").innerHTML += "__✔ completed: " + data.msg_00 + "<br>";
             // control UI after function run
             document.getElementById("btn_start_2" ).disabled = false;
             enableAllMenus();
@@ -58,8 +58,8 @@ function startSTEandBDT() {
         disableAllMenus();
         document.getElementById("btn_start_2").disabled = true;
         // display pre-messages
-        document.getElementById("inf_message").innerHTML += "▶ transfer sensor memory data from edge device to server<br>";
-        document.getElementById("err_message").innerHTML  = "<br>✋ it will take some minutes, wait until completed";
+        document.getElementById("inf_message").innerHTML += "▶ run BDT(Block Data Transfer): EDGE-DEVICE ➜ SERVER<br>";
+        document.getElementById("err_message").innerHTML  = "<br>✋ it will take some minutes(⏱), wait until completed";
         // run flask function
         axios.post('/post_BDTtoServer', {
             //value: Number(value),
@@ -67,7 +67,7 @@ function startSTEandBDT() {
             const data = response.data;
             // display post-message
             document.getElementById("err_message").innerHTML  = ''
-            document.getElementById("inf_message").innerHTML += "__✔ completed: " + data.msg_00;
+            document.getElementById("inf_message").innerHTML += "__✔ completed: " + data.msg_00 + "<br>";
             // control UI after function run
             document.getElementById("btn_start_3" ).disabled = false;    
             enableAllMenus();
@@ -85,7 +85,7 @@ function startSTEandBDT() {
         disableAllMenus();
         document.getElementById("btn_start_3").disabled = true;
         // display pre-messages
-        document.getElementById("inf_message").innerHTML += "▶ run STE(Short Time Experiment) and BDT(Block Data Transfer) with 3-axis accelometer<br>";
+        document.getElementById("inf_message").innerHTML += "▶ save data to \".CSV\" formated file<br>";
         // run flask function
         axios.post('/post_BDTtoFile', {
             //value: Number(value),
