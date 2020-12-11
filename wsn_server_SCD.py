@@ -287,7 +287,7 @@ def post_monStart():
     global gBDTlockFlag
 
     # check BDT lock flag
-    if gSTElockFlag:
+    if gBDTlockFlag or gSTElockFlag:
         rows = {'row_00' : '*',
                 'row_01' : '*',
                 'row_02' : '*',
@@ -300,8 +300,8 @@ def post_monStart():
                 'row_09' : '*',
                 'row_10' : '*',
                 'row_11' : '*',
-                'status_01' : '[Somebody is running STE]',
-                'status_02' : '[only one can run STE]'
+                'status_01' : '[Somebody is running STE or BDT]',
+                'status_02' : '[only one can run STE or BDT]'
                }               
         return json.dumps(rows)
     else:    
@@ -433,8 +433,8 @@ def post_STEandBDT():
     global gBDTtextList
 
     # check BDT lock flag
-    if gBDTlockFlag:
-        msgs = {'msg_00' : "somebody is running BDT, only one can run BDT"
+    if gBDTlockFlag or gSTElockFlag:
+        msgs = {'msg_00' : "somebody is running BDT or STE"
            }
         return json.dumps(msgs)
     else:    
@@ -452,6 +452,9 @@ def post_STEandBDT():
     #
     msgs = {'msg_00' : time_stamp()
            }
+
+    # release BDT lock flag
+    gBDTlockFlag = False    
     
     return json.dumps(msgs)
 
@@ -469,8 +472,8 @@ def post_BDTtoServer():
     global gBDTtextList
 
     # check BDT lock flag
-    if gBDTlockFlag:
-        msgs = {'msg_00' : "somebody is running BDT, only one can run BDT"
+    if gBDTlockFlag or gSTElockFlag:
+        msgs = {'msg_00' : "somebody is running BDT or STE"
            }
         return json.dumps(msgs)
     else:    
@@ -496,6 +499,9 @@ def post_BDTtoServer():
     #
     msgs = {'msg_00' : time_stamp()
            }
+
+    # release BDT lock flag
+    gBDTlockFlag = False    
     
     return json.dumps(msgs)
 
@@ -513,8 +519,8 @@ def post_BDTtoFile():
     global gBDTtextList
 
     # check BDT lock flag
-    if gBDTlockFlag:
-        msgs = {'msg_00' : "somebody is running BDT, only one can run BDT"
+    if gBDTlockFlag or gSTElockFlag:
+        msgs = {'msg_00' : "somebody is running BDT or STE"
            }
         return json.dumps(msgs)
     else:    
