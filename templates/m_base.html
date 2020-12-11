@@ -184,6 +184,25 @@ td {
     </div>
 
     <script>
+      function disableAllMenus() {
+          document.getElementById("btn_confi").disabled = true;
+          document.getElementById("btn_acqui").disabled = true;
+          document.getElementById("btn_monit").disabled = true;
+          document.getElementById("btn_gtime").disabled = true;
+          document.getElementById("btn_gfreq").disabled = true;
+          document.getElementById("btn_about").disabled = true;
+      }    
+      function enableAllMenus() {
+          document.getElementById("btn_confi").disabled = false;
+          document.getElementById("btn_acqui").disabled = false;
+          document.getElementById("btn_monit").disabled = false;
+          document.getElementById("btn_gtime").disabled = false;
+          document.getElementById("btn_gfreq").disabled = false;
+          document.getElementById("btn_about").disabled = false;
+      }    
+    </script>
+
+    <script>
       function drawGraph(data, color_val) {
           // Clear the chart box.
           document.getElementById('chart-box').innerHTML = '';
@@ -233,7 +252,7 @@ td {
                   .y(function(d) { return y(d.y) })
               );
       }
-  </script>
+    </script>
 
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="https://d3js.org/d3.v4.js"></script>

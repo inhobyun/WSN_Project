@@ -138,6 +138,8 @@
     }
 
     function monBegin() {
+        // control UI before function run
+        disableAllMenus();           
         document.getElementById("btn_start").disabled = true;
         document.getElementById("btn_stop" ).disabled = false;
         monStart();
@@ -159,6 +161,8 @@
     }
     
     function monStop() {
+        // control UI before function run
+        disableAllMenus();           
         document.getElementById("btn_start").disabled = false;
         document.getElementById("btn_stop" ).disabled = true;
         const value = document.getElementById('tm_interval').value;
@@ -169,6 +173,8 @@
             const data = response.data;
             //console.log(data);
             dispData(data);
+            // control UI after function run
+            enableAllMenus();           
         }).catch(function (error) {
             alert('Error occurred on submit: ' + error);
         });
