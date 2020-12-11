@@ -63,8 +63,8 @@ SCD_MAX_FLASH = 0x0b0000 # 11*16**4 = 720896 = 704K
 #
 # Some constant parameters
 #
-SCAN_TIME       = 170.   # scanning duration for BLE devices 
-RESCAN_INTERVAL = 10.    # 1 min.; interval time to rescan BLE after scan failed
+SCAN_TIME       = 10.   # scanning duration for BLE devices 
+RESCAN_INTERVAL = 50.   # 1 min.; looping to rescan BLE after scan failed
 ##RESCAN_PERIOD   = 11100. # 3 hrs 5 min.; time period to rescan BLE to connect
 RESCAN_PERIOD   = 43200. # 12 hrs; time period to rescan BLE to connect  
 #
