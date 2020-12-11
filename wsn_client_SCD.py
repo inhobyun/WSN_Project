@@ -570,7 +570,9 @@ def SCD_run_STE_for_idling( p ):
     # take rolling time ( added more overhead time)
     tm = time.time()
     while time.time() - tm <= 0.3:
-        p.waitForNotifications(0.1)
+        wait_flag = p.waitForNotifications(0.1)
+        if wait_flag :
+            continue
     # stop STE
     SCD_toggle_STE_rolling(p, rolling_status_backup, False) 
     SCD_print_STE_status()
@@ -596,7 +598,9 @@ def SCD_run_STE_and_BDT( p ):
     tm = time.time()
     while time.time() - tm <= STE_RUN_TIME:
         wait_flag = p.waitForNotifications(1.)
-    # stop STE
+        if wait_flag :
+            continue
+     # stop STE
     SCD_toggle_STE_rolling(p, False, False) 
     SCD_print_STE_status()
     #
