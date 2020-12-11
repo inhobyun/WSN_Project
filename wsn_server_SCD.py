@@ -305,7 +305,8 @@ def post_monStart():
                }               
         return json.dumps(rows)
     else:    
-        gSTElockFlag = True    
+        ##gSTElockFlag = True
+        gSTElockFlag = False        
 
     # send STE start & request
     accept_socket()
