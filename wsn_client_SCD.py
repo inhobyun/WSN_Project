@@ -63,9 +63,10 @@ SCD_MAX_FLASH = 0x0b0000 # 11*16**4 = 720896 = 704K
 #
 # Some constant parameters
 #
-SCAN_TIME       = 90.     # scanning duration for BLE devices 
-RESCAN_INTERVAL = 30.    # 1 min.; interval time to rescan BLE after scan failed
-RESCAN_PERIOD   = 11100. # 3 hrs 5 min.; time period to rescan BLE to connect 
+SCAN_TIME       = 170.   # scanning duration for BLE devices 
+RESCAN_INTERVAL = 10.    # 1 min.; interval time to rescan BLE after scan failed
+##RESCAN_PERIOD   = 11100. # 3 hrs 5 min.; time period to rescan BLE to connect
+RESCAN_PERIOD   = 43200. # 12 hrs; time period to rescan BLE to connect  
 #
 STE_RUN_TIME    = 3.5    # STE rolling time in secconds for SENSOR data recording
 STE_FREQUENCY   = (400, 800, 1600, 3200, 6400)  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz 
