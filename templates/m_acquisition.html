@@ -23,31 +23,12 @@
 
 <script>
 
-function disableAllMenu() {
-    document.getElementById("btn_confi").disabled = true;
-    document.getElementById("btn_acqui").disabled = true;
-    document.getElementById("btn_monit").disabled = true;
-    document.getElementById("btn_gtime").disabled = true;
-    document.getElementById("btn_gfreq").disabled = true;
-    document.getElementById("btn_about").disabled = true;
-    }    
-
-function enableAllMenu() {
-    document.getElementById("btn_confi").disabled = false;
-    document.getElementById("btn_acqui").disabled = false;
-    document.getElementById("btn_monit").disabled = false;
-    document.getElementById("btn_gtime").disabled = false;
-    document.getElementById("btn_gfreq").disabled = false;
-    document.getElementById("btn_about").disabled = false;
-    }    
-
-
 function startSTEandBDT() {
         // get value from UI
         //const value = document.getElementById('???').value;
 
         //control UI before function run
-        disableAllMenu();
+        disableAllMenus();
         document.getElementById("btn_start_1").disabled = true;
         // display pre-messages
         document.getElementById("inf_message").innerHTML += "▶ run STE(Short Time Experiment) in sensor and BDT(Block Data Transfer) from sensor to edge device<br>";
@@ -62,19 +43,19 @@ function startSTEandBDT() {
             document.getElementById("inf_message").innerHTML += "__✔ completed: " + data.msg_00;
             // control UI after function run
             document.getElementById("btn_start_2" ).disabled = false;
-            enableAllMenu();
+            enableAllMenus();
         }).catch(function (error) {
             // display error-message
             document.getElementById("err_message").innerHTML = "<br>❗ Error occurred on submit: " + error;
         });
     }
 
-function startBDTtoSever() {
+    function startBDTtoSever() {
         // get value from UI
         //const value = document.getElementById('???').value;
 
         //control UI before function run
-        disableAllMenu();
+        disableAllMenus();
         document.getElementById("btn_start_2").disabled = true;
         // display pre-messages
         document.getElementById("inf_message").innerHTML += "▶ transfer sensor memory data from edge device to server<br>";
@@ -89,19 +70,19 @@ function startBDTtoSever() {
             document.getElementById("inf_message").innerHTML += "__✔ completed: " + data.msg_00;
             // control UI after function run
             document.getElementById("btn_start_3" ).disabled = false;    
-            enableAllMenu();
+            enableAllMenus();
         }).catch(function (error) {
             // display error-message
             document.getElementById("err_message").innerHTML = "<br>❗ Error occurred on submit: " + error;
         });
     }
 
-function startBDTtoFile() {
+    function startBDTtoFile() {
         // get value from UI
         //const value = document.getElementById('???').value;
 
         //control UI before function run
-        disableAllMenu();
+        disableAllMenus();
         document.getElementById("btn_start_3").disabled = true;
         // display pre-messages
         document.getElementById("inf_message").innerHTML += "▶ run STE(Short Time Experiment) and BDT(Block Data Transfer) with 3-axis accelometer<br>";
@@ -115,7 +96,7 @@ function startBDTtoFile() {
             document.getElementById("inf_message").innerHTML += "__✔ completed: " + data.msg_00;
             document.getElementById("fin_message").innerHTML += "🙂 all done, congratuation !";
             // control UI after function run
-            enableAllMenu();
+            enableAllMenus();
         }).catch(function (error) {
             // display error-message
             document.getElementById("err_message").innerHTML = "<br>❗ Error occurred on submit: " + error;
