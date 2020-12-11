@@ -5,6 +5,7 @@ by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
                     started 2020-10-01
                     updated 2020-12-09; monitoring, graph drawing working
+                    updated 2020-12-10; acquisition
 """
 import datetime
 from flask import Flask, redirect, request
@@ -28,7 +29,8 @@ import time
 ##TCP_HOST_NAME = "192.168.0.3"     # TEST Host Name
 ##TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
 TCP_HOST_NAME = socket.gethostname()
-TCP_PORT      = 8088              # Default TCP Port Name
+TCP_PORT      = 8088                # Default TCP Port Name
+TCP_PACKET_MAX= 1024                # max TCP packet size 
 #
 TCP_DEV_READY_MSG = 'DEV_READY'     # server message to check client ready
 TCP_DEV_CLOSE_MSG = 'DEV_CLOSE'     # server message to disconnect client
@@ -51,9 +53,8 @@ gSocketConn     = None
 gSocketAddr     = None
 #
 gIsMonStarted   = False
-gIsAnaStarted   = False
 #
-gBDTtextData    = None
+gBDTtextList    = []
 
 #############################################
 #############################################
@@ -69,23 +70,23 @@ def open_socket(clientNum = 1):
     global gSocketServer
     #
     if len(sys.argv) > 1:
-        print ("TCP-S> take argument as port# (default: %d)" % TCP_PORT)
+        print ("TCP-S> take argument as port# (default: %d)" % TCP_PORT, flush=True)
         TCP_PORT = int(sys.argv[1])
     gSocketServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     if gSocketServer != None:
-        print ("TCP-S> socket created")
-        print ("TCP-S> trying to bind %s:%d" % (TCP_HOST_NAME, TCP_PORT) )
+        print ("TCP-S> socket created", flush=True)
+        print ("TCP-S> trying to bind %s:%d" % (TCP_HOST_NAME, TCP_PORT), flush=True )
         try:
             gSocketServer.bind((TCP_HOST_NAME, TCP_PORT))
         except:
-            print ("TCP-S> binding fail... Exiting...")
+            print ("TCP-S> binding fail... Exiting...", flush=True)
             return False
     else:
-        print ("TCP-S> socket creation fail... Exiting...")
+        print ("TCP-S> socket creation fail... Exiting...", flush=True)
         return False
-    print ("TCP-S> binded...")    
+    print ("TCP-S> binded...", flush=True)    
     gSocketServer.listen(clientNum)
-    print ("TCP-S> listening...") 
+    print ("TCP-S> listening...", flush=True) 
     #
     return True 
 
@@ -98,12 +99,12 @@ def close_socket():
     global gSocketAddr
     #
     if gSocketConn != None:
-        print ("TCP-S> close accepted connection")
+        print ("TCP-S> close accepted connection", flush=True)
         gSocketConn.close()
         gSocketConn = gSocketAddr = None
     #
     if gSocketServer != None:
-        print ("TCP-S> close socket")
+        print ("TCP-S> close socket", flush=True)
         gSocketServer.close()
         gSocketServer = None
     #
@@ -118,15 +119,15 @@ def accept_socket(blockingTimer = 60):
     global gSocketAddr
     #
     if gSocketConn == None:
-        print ("\nTCP-S> accepting => ", end = '')
+        print ("\n>--->\nTCP-S> wait client; accepting => ", end = '', flush=True)
         try:
             gSocketServer.setblocking(blockingTimer)
             gSocketConn, gSocketAddr = gSocketServer.accept()
         except:
-            print ("error !")
+            print ("error !", flush=True)
             gSocketConn = gSocketAddr = None
             return False         
-        print ("accepted port# [", gSocketAddr, "]")
+        print ("accepted port# [", gSocketAddr, "]\n<---<\n", flush=True)
     return True    
 
 ##############################################
@@ -136,18 +137,24 @@ def read_from_socket(blockingTimer = 8):
     global gSocketServer
     global gSocketConn
     #
-    print ("\nTCP-S> reading => ", end = '')
+    print ("\nTCP-S> [RX] wait => ", end = '', flush=True)
     rx_msg = ''
     try:
         gSocketServer.setblocking(blockingTimer)
-        data = gSocketConn.recv(1024)
+        data = gSocketConn.recv(TCP_PACKET_MAX)
     except TimeoutError:
-        print ("timeout !")
+        print ("timeout !", flush=True)
     except:
-        print ("error !")
+        print ("error !", flush=True)
     else:
         rx_msg = data.decode()
-        print ("received [%s]" % rx_msg)
+        n = len(rx_msg)
+        if n < 40:
+            print ('received "%r"' % rx_msg, flush=True)
+        else:
+            txt = rx_msg[0:40]
+            txt.replace('\n','\\n')
+            print ('received "%r"...; %d bytes' % (txt ,n), flush=True)    
     #    
     return rx_msg   
 
@@ -158,20 +165,34 @@ def write_to_socket(tx_msg):
     global gSocketServer
     global gSocketConn
     #
-    print ("\nTCP-S> writing => ", end = '')
+    print ("\nTCP-S> [TX] try => ", end = '', flush=True)
     try:
         gSocketConn.send(tx_msg.encode())
     except:
-        print ("error !" )
+        print ("error !", flush=True)
     else:
-        print ("[%s] sent" % tx_msg)
+        print ('"%r" sent' % tx_msg, flush=True)
     #    
     return
 #
 #############################################
+
+#############################################
+#         
+# misc. stuffs
+#
+#############################################
+# time stamp retuen
+#
+def time_stamp():
+    tm = time.time()
+    return ( "%s (%.3f)" % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
+
+#############################################
 #############################################
 #         
 # flask stuffs
+# - main menu
 #
 #############################################
 #
@@ -180,12 +201,6 @@ env = Environment(
     loader=PackageLoader(__name__, 'templates'),
     autoescape=select_autoescape(['html', 'xml'])
 )
-
-#############################################
-#############################################
-#         
-# menu bar button stuffs
-#
 
 #############################################
 # base UI
@@ -212,11 +227,11 @@ def monitor():
     return template.render()
 
 #############################################
-# analysis UI
+# acquisition UI
 #
-@app.route('/m_analysis')
-def analysis():
-    template = env.get_template('m_analysis.html')
+@app.route('/m_acquisition')
+def acquisition():
+    template = env.get_template('m_acquisition.html')
     return template.render()
 
 #############################################
@@ -254,7 +269,7 @@ def intro_2():
 #############################################
 #############################################
 #         
-# left block button stuffs
+# sub-menu button stuffs
 #
 
 #############################################
@@ -289,18 +304,22 @@ def post_monStart():
         val_x = float(vals[2])
         val_y = float(vals[4])
         val_z = float(vals[6])
-        # 
-        # do more afterward....
-        #
-        if max (val_x, val_y, val_z) >= 0.7:        
+        # ===========================================
+        # analyz more to display status afterward....
+        # ===========================================
+        if max(val_x, val_y, val_z) >= 0.7 or (val_x > 0.2 and val_y > 0.2  and val_z > 0.2):        
             status_01 = 'VIBRATION'
             status_02 = 'ABNORMAL'
-        elif max (val_x, val_y, val_z) >= 0.2:
+        elif max(val_x, val_y, val_z) >= 0.2:
             status_01 = 'VIBRATION'
+            status_02 = 'NORMAL'
+        elif val_x == 0.0 and val_y == 0.0  and val_z == 0.0: 
+            status_01 = 'STOP'
             status_02 = 'NORMAL'
         else:    
             status_01 = 'STOP(NOISE)'
             status_02 = 'UNKNOWN'
+        # ===========================================
         rows = {'row_00' : vals[ 0],
                 'row_01' : vals[ 1],
                 'row_02' : vals[ 2],
@@ -351,9 +370,7 @@ def post_monStop():
         time.sleep(0.2)
         write_to_socket(TCP_STE_STOP_MSG)
         gIsMonStarted = False
-        tm = time.time()
-        tm_stamp = ( "%s [%.3f]" % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
-        rows = {'row_00' : tm_stamp,
+        rows = {'row_00' : time_stamp(),
                 'row_01' : '-',
                 'row_02' : '-',
                 'row_03' : '-',
@@ -379,23 +396,19 @@ def post_STEandBDT():
     #data = json.loads(request.data)
     #value = data['value']
     #
-    global gIsAnaStarted
-    global gBDTtextData
+    global gBDTtextList
 
     # send BDT run
     accept_socket()
     write_to_socket(TCP_BDT_RUN_MSG)
-    # wait till completed
     time.sleep(1.0)
+    # wait till completed
     write_to_socket(TCP_DEV_READY_MSG)
     from_client = ''
     while from_client == '':
         from_client = read_from_socket(blockingTimer = 3)
     #
-    tm = time.time()
-    tm_stamp = ( "%s [%.3f]" % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
-    msgs = {'msg_00' : tm_stamp,
-            'msg_01' : ''
+    msgs = {'msg_00' : time_stamp()
            }
     
     return json.dumps(msgs)
@@ -408,23 +421,27 @@ def post_BDTtoServer():
     #data = json.loads(request.data)
     #value = data['value']
     #
-    global gIsAnaStarted
-    global gBDTtextData
+    global gBDTtextList
 
-    # send BDT run
-    accept_socket()
-    write_to_socket(TCP_BDT_REQ_MSG)
-    # wait till completed
-    time.sleep(1.0)
-    write_to_socket(TCP_DEV_READY_MSG)
-    from_client = ''
-    while from_client == '':
-        from_client = read_from_socket(blockingTimer = 3)
+    # init data buffer
+    gBDTtextList = []
+    while True:
+        # send BDT request
+        accept_socket()
+        time.sleep(0.2)
+        write_to_socket(TCP_BDT_REQ_MSG)
+        time.sleep(0.2)
+        # get data from client
+        from_client = ''
+        while from_client == '':
+            from_client = read_from_socket(blockingTimer = 3)
+        if from_client.find('End of Data') == -1:
+            gBDTtextList.append(from_client)
+        else:
+            gBDTtextList.append(from_client)
+            break
     #
-    tm = time.time()
-    tm_stamp = ( "%s [%.3f]" % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
-    msgs = {'msg_00' : tm_stamp,
-            'msg_01' : ''
+    msgs = {'msg_00' : time_stamp()
            }
     
     return json.dumps(msgs)
@@ -437,17 +454,17 @@ def post_BDTtoFile():
     #data = json.loads(request.data)
     #value = data['value']
     #
-    global gIsAnaStarted
-    global gBDTtextData
+    global gBDTtextList
 
     # write to file
+    idx = 0
+    n = len(gBDTtextList)
+    f = open(WSN_LOG_FILE_NAME, "w")
+    for idx in range(n):
+        f.write(gBDTtextList[idx])
+    f.close()
     #
-    # coding here
-    #
-    tm = time.time()
-    tm_stamp = ( "%s [%.3f]" % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
-    msgs = {'msg_00' : tm_stamp,
-            'msg_01' : ''
+    msgs = {'msg_00' : time_stamp()
            }
     
     return json.dumps(msgs)    
@@ -462,11 +479,11 @@ def post_graphTime():
 
     # read sensor data from file    
     f = open(WSN_LOG_FILE_NAME, "r")
-    print("WSN-S> open sensor data log file: %s" % WSN_LOG_FILE_NAME)
+    print("WSN-S> open sensor data log file: %s" % WSN_LOG_FILE_NAME, flush=True)
     # skip 4 header line 
     for _ in range(4):
         row = f.readline()
-        print("WSN-S> header: %s" % row)
+        print("WSN-S> header: %s" % row, flush=True)
     # init    
     x = []
     y = []
@@ -480,23 +497,25 @@ def post_graphTime():
         if not row:
             break
         if row.find('End') != -1:
-            print("WSN-S> end-of-data at [%d]" % n)
+            print("WSN-S> end-of-data at [%d]" % n, flush=True)
             break        
         if len(row) < 7:
-            print("WSN-S> incomplete line at [%d]" % n)
+            print("WSN-S> incomplete line at [%d]" % n, flush=True)
         else: 
             try:
                 col = row.split(',')
                 x_val = float(int(col[0])) / 3200.0
-                #
-                # here, put more option 
+                # ===========================================
+                # here, handle more options afterward 
                 # - option: sum(abs(x), abx(y), abx(z))
+                # - ...
+                # ===========================================
                 y_val = abs(int(col[2])) + abs(int(col[3])) + abs(int(col[4]))
-                #
+                # ===========================================
                 x.append(x_val)
                 y.append(y_val)
             except:
-                print("WSN-S> error line at [%d]" % n)
+                print("WSN-S> error line at [%d]" % n, flush=True)
             n += 1        
     # fill zero    
     while n < 9600:
@@ -505,8 +524,8 @@ def post_graphTime():
         y_val = 0.
         x.append(x_val)
         y.append(y_val)
-
-    print("WSN-S> read [%d] lines of data" % n)    
+    #
+    print("WSN-S> read [%d] lines of data" % n, flush=True)    
     f.close()
 
     return json.dumps({ 'x': x, 'y': y })
@@ -521,15 +540,15 @@ def post_graphFreq():
 
     # read sensor data from file    
     f = open(WSN_LOG_FILE_NAME, "r")
-    print("WSN-S> open sensor data log file: %s" % WSN_LOG_FILE_NAME)
+    print("WSN-S> open sensor data log file: %s" % WSN_LOG_FILE_NAME, flush=True)
     # skip 4 header line 
     for _ in range(4):
         row = f.readline()
-        print("WSN-S> header: %s" % row)
+        print("WSN-S> header: %s" % row, flush=True)
     # init       
     y = []
     n = 0
-    # read x, y, z accelometer values
+    # read x, y, z accelerometer values
     while n < 9600:
         try:
             row = f.readline()
@@ -538,26 +557,28 @@ def post_graphFreq():
         if not row:
             break
         if row.find('End') != -1:
-            print("WSN-S> end-of-data at [%d]" % n)
+            print("WSN-S> end-of-data at [%d]" % n, flush=True)
             break        
         if len(row) < 7:
-            print("WSN-S> incomplete line at [%d]" % n)
+            print("WSN-S> incomplete line at [%d]" % n, flush=True)
         else: 
             try:
                 col = row.split(',')
-                #
-                # here, put more option 
+                # ===========================================
+                # here, handle more options afterward 
                 # - option: sum(abs(x), abx(y), abx(z))
+                # - ...
+                # ===========================================
                 y_val = abs(int(col[2])) + abs(int(col[3])) + abs(int(col[4]))
-                #
+                # ===========================================
                 y.append(y_val)
             except:
-                print("WSN-S> error line at [%d]" % n)
+                print("WSN-S> error line at [%d]" % n, flush=True)
             n += 1        
-    print("WSN-S> read [%d] lines of data" % n)    
+    print("WSN-S> read [%d] lines of data" % n, flush=True)    
     f.close()          
     # prepare fourier Transform
-    print("WSN-S> prepare FFT")
+    print("WSN-S> prepare FFT", flush=True)
     sampling_frequency = 3200
     amplitude = np.ndarray( n )
     # copy amplitude
@@ -572,7 +593,7 @@ def post_graphFreq():
     values      = np.arange(int(tp_count/2))
     time_period = tp_count/sampling_frequency
     frequencies = values/time_period
-    print("WSN-S> done FFT")
+    print("WSN-S> done FFT", flush=True)
     # convert to list
     x = []
     y = []
@@ -595,10 +616,18 @@ def post_graphFreq():
 #############################################
 #
 if __name__ == '__main__':
+    print("WSN-S> starting !", flush=True)
     if open_socket():
-        ## accept_socket(ACCEPT_WAIT_TIME)
+        #
+        # wait client connection
+        #
+        accept_socket(ACCEPT_WAIT_TIME)
+        #
+        # flask web server running
+        #
         app.run(host='0.0.0.0')
-    close_socket()
-    print("WSN-S> all done !")
+        #
+        close_socket()
+    print("WSN-S> all done !", flush=True)
 #
 #############################################        

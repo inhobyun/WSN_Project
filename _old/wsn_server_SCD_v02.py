@@ -4,13 +4,15 @@ Sensor data monitoring and analysis application based on flask WEB application f
 by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
                     started 2020-10-01
-                    last updated 2020-12-03
+                    updated 2020-12-09; monitoring, graph drawing working
 """
 import datetime
 from flask import Flask, redirect, request
 from jinja2 import Environment, PackageLoader, Markup, select_autoescape
 import json
+import numpy as np
 import math
+##import matplotlib.pyplot as plotter
 import socket
 import sys
 import time
@@ -37,6 +39,11 @@ TCP_BDT_RUN_MSG   = 'BDT_RUN'       # server message to run BDT advanced STE /w 
 TCP_BDT_REQ_MSG   = 'BDT_REQ'       # server message to request BDT data
 TCP_BDT_END_MSG   = 'BDT_END'       # client message to inform BDT data transfer completed
 #
+# Some constant parameters
+#
+ACCEPT_WAIT_TIME  = 11100           # 3 hrs 5 min.; time period to wait client connection
+WSN_LOG_FILE_NAME = "SCD_BDT_Data_log.csv" 
+#
 # global variables
 #
 gSocketServer   = None
@@ -44,9 +51,8 @@ gSocketConn     = None
 gSocketAddr     = None
 #
 gIsMonStarted   = False
-gIsAnaStarted   = False
 #
-gBDTtextData    = None
+gBDTtextList    = []
 
 #############################################
 #############################################
@@ -62,23 +68,23 @@ def open_socket(clientNum = 1):
     global gSocketServer
     #
     if len(sys.argv) > 1:
-        print ("TCP-S> take argument as port# (default: %d)" % TCP_PORT)
+        print ("TCP-S> take argument as port# (default: %d)" % TCP_PORT, flush=True)
         TCP_PORT = int(sys.argv[1])
     gSocketServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     if gSocketServer != None:
-        print ("TCP-S> socket created")
-        print ("TCP-S> trying to bind %s:%d" % (TCP_HOST_NAME, TCP_PORT) )
+        print ("TCP-S> socket created", flush=True)
+        print ("TCP-S> trying to bind %s:%d" % (TCP_HOST_NAME, TCP_PORT), flush=True )
         try:
             gSocketServer.bind((TCP_HOST_NAME, TCP_PORT))
         except:
-            print ("TCP-S> binding fail... Exiting...")
+            print ("TCP-S> binding fail... Exiting...", flush=True)
             return False
     else:
-        print ("TCP-S> socket creation fail... Exiting...")
+        print ("TCP-S> socket creation fail... Exiting...", flush=True)
         return False
-    print ("TCP-S> binded...")    
+    print ("TCP-S> binded...", flush=True)    
     gSocketServer.listen(clientNum)
-    print ("TCP-S> listening...") 
+    print ("TCP-S> listening...", flush=True) 
     #
     return True 
 
@@ -91,12 +97,12 @@ def close_socket():
     global gSocketAddr
     #
     if gSocketConn != None:
-        print ("TCP-S> close accepted connection")
+        print ("TCP-S> close accepted connection", flush=True)
         gSocketConn.close()
         gSocketConn = gSocketAddr = None
     #
     if gSocketServer != None:
-        print ("TCP-S> close socket")
+        print ("TCP-S> close socket", flush=True)
         gSocketServer.close()
         gSocketServer = None
     #
@@ -111,15 +117,15 @@ def accept_socket(blockingTimer = 60):
     global gSocketAddr
     #
     if gSocketConn == None:
-        print ("\nTCP-S> accepting => ", end = '')
+        print ("\nTCP-S> accepting => ", end = '', flush=True)
         try:
             gSocketServer.setblocking(blockingTimer)
             gSocketConn, gSocketAddr = gSocketServer.accept()
         except:
-            print ("error !")
+            print ("error !", flush=True)
             gSocketConn = gSocketAddr = None
             return False         
-        print ("accepted port# [", gSocketAddr, "]")
+        print ("accepted port# [", gSocketAddr, "]", flush=True)
     return True    
 
 ##############################################
@@ -129,18 +135,24 @@ def read_from_socket(blockingTimer = 8):
     global gSocketServer
     global gSocketConn
     #
-    print ("\nTCP-S> reading => ", end = '')
+    print ("\nTCP-S> reading => ", end = '', flush=True)
     rx_msg = ''
     try:
         gSocketServer.setblocking(blockingTimer)
         data = gSocketConn.recv(1024)
     except TimeoutError:
-        print ("timeout !")
+        print ("timeout !", flush=True)
     except:
-        print ("error !")
+        print ("error !", flush=True)
     else:
         rx_msg = data.decode()
-        print ("received [%s]" % rx_msg)
+        n = len(rx_msg)
+        if n < 40:
+            print ('received "%r"' % rx_msg, flush=True)
+        else:
+            txt = rx_msg[0:40]
+            txt.replace('\n','\\n')
+            print ('received "%r"...; %d bytes' % (txt ,n), flush=True)    
     #    
     return rx_msg   
 
@@ -151,13 +163,13 @@ def write_to_socket(tx_msg):
     global gSocketServer
     global gSocketConn
     #
-    print ("\nTCP-S> writing => ", end = '')
+    print ("\nTCP-S> writing => ", end = '', flush=True)
     try:
         gSocketConn.send(tx_msg.encode())
     except:
-        print ("error !" )
+        print ("error !", flush=True)
     else:
-        print ("[%s] sent" % tx_msg)
+        print ('"%r" sent' % tx_msg, flush=True)
     #    
     return
 #
@@ -207,8 +219,8 @@ def monitor():
 #############################################
 # analysis UI
 #
-@app.route('/m_analysis')
-def analysis():
+@app.route('/m_acquisition')
+def acquisition():
     template = env.get_template('m_analysis.html')
     return template.render()
 
@@ -272,12 +284,28 @@ def post_monStart():
         write_to_socket(TCP_STE_REQ_MSG)
         time.sleep(0.2)
         from_client = read_from_socket()
-
+        time.sleep(0.2)
     # get the data to post
     if from_client != None:
         from_client = from_client.replace(')','')
         from_client = from_client.replace('(','')
-        vals = from_client.split(',')  
+        vals = from_client.split(',')     
+        # get the status
+        val_x = float(vals[2])
+        val_y = float(vals[4])
+        val_z = float(vals[6])
+        # 
+        # do more afterward....
+        #
+        if max (val_x, val_y, val_z) >= 0.7 or (val_x > 0.2 and val_y > 0.2  and val_z > 0.2):        
+            status_01 = 'VIBRATION'
+            status_02 = 'ABNORMAL'
+        elif max (val_x, val_y, val_z) >= 0.2:
+            status_01 = 'VIBRATION'
+            status_02 = 'NORMAL'
+        else:    
+            status_01 = 'STOP(NOISE)'
+            status_02 = 'UNKNOWN'
         rows = {'row_00' : vals[ 0],
                 'row_01' : vals[ 1],
                 'row_02' : vals[ 2],
@@ -289,7 +317,9 @@ def post_monStart():
                 'row_08' : vals[ 8],
                 'row_09' : vals[ 9],
                 'row_10' : vals[10],
-                'row_11' : vals[11]
+                'row_11' : vals[11],
+                'status_01' : status_01,
+                'status_02' : status_02
                }
     else:                          
         rows = {'row_00' : '?',
@@ -303,7 +333,9 @@ def post_monStart():
                 'row_08' : '?',
                 'row_09' : '?',
                 'row_10' : '?',
-                'row_11' : '?'
+                'row_11' : '?',
+                'status_01' : '[-?-]',
+                'status_02' : '[-?-]'
                }               
 
     return json.dumps(rows)
@@ -337,7 +369,9 @@ def post_monStop():
                 'row_08' : '-',
                 'row_09' : '-',
                 'row_10' : '-',
-                'row_11' : '-'
+                'row_11' : '-',
+                'status_01' : '[---]',
+                'status_02' : '[---]'
                }               
 
     return json.dumps(rows)
@@ -350,13 +384,18 @@ def post_STEandBDT():
     #data = json.loads(request.data)
     #value = data['value']
     #
-    global gIsAnaStarted
-    global gBDTtextData
+    global gBDTtextList
 
     # send BDT run
     accept_socket()
     write_to_socket(TCP_BDT_RUN_MSG)
-    
+    time.sleep(1.0)
+    # wait till completed
+    write_to_socket(TCP_DEV_READY_MSG)
+    from_client = ''
+    while from_client == '':
+        from_client = read_from_socket(blockingTimer = 3)
+    #
     tm = time.time()
     tm_stamp = ( "%s [%.3f]" % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
     msgs = {'msg_00' : tm_stamp,
@@ -373,14 +412,25 @@ def post_BDTtoServer():
     #data = json.loads(request.data)
     #value = data['value']
     #
-    global gIsAnaStarted
-    global gBDTtextData
+    global gBDTtextList
 
-    # send BDT run
-    ##accept_socket()
-    ##write_to_socket(TCP_BDT_REQ_MSG)
-    #
-    # coding here
+    # init data buffer
+    gBDTtextList = []
+    while True:
+        # send BDT request
+        accept_socket()
+        time.sleep(0.2)
+        write_to_socket(TCP_BDT_REQ_MSG)
+        time.sleep(0.2)
+        # get data from client
+        from_client = ''
+        while from_client == '':
+            from_client = read_from_socket(blockingTimer = 3)
+        if from_client.find('End of Data') == -1:
+            gBDTtextList.append(from_client)
+        else:
+            gBDTtextList.append(from_client)
+            break
     #
     tm = time.time()
     tm_stamp = ( "%s [%.3f]" % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
@@ -398,12 +448,15 @@ def post_BDTtoFile():
     #data = json.loads(request.data)
     #value = data['value']
     #
-    global gIsAnaStarted
-    global gBDTtextData
+    global gBDTtextList
 
     # write to file
-    #
-    # coding here
+    idx = 0
+    n = len(gBDTtextList)
+    f = open(WSN_LOG_FILE_NAME, "w")
+    for idx in range(n):
+        f.write(gBDTtextList[idx])
+    f.close()
     #
     tm = time.time()
     tm_stamp = ( "%s [%.3f]" % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
@@ -418,18 +471,58 @@ def post_BDTtoFile():
 #
 @app.route('/post_graphTime', methods=['POST'])
 def post_graphTime():
-    data = json.loads(request.data)
-    value = data['value']
+    #data = json.loads(request.data)
+    #value = data['value']
 
-    # Prepare data to send in here.
+    # read sensor data from file    
+    f = open(WSN_LOG_FILE_NAME, "r")
+    print("WSN-S> open sensor data log file: %s" % WSN_LOG_FILE_NAME, flush=True)
+    # skip 4 header line 
+    for _ in range(4):
+        row = f.readline()
+        print("WSN-S> header: %s" % row, flush=True)
+    # init    
     x = []
     y = []
-    for i in range(360):
-        # Sine value for example.
-        curr_x = float(i / 10)
-        x.append(curr_x)
-        y.append(math.sin(curr_x) * value)
-    
+    n = 0
+    # read x, y, z accelometer values
+    while n < 9600:
+        try:
+            row = f.readline()
+        except:
+            break
+        if not row:
+            break
+        if row.find('End') != -1:
+            print("WSN-S> end-of-data at [%d]" % n, flush=True)
+            break        
+        if len(row) < 7:
+            print("WSN-S> incomplete line at [%d]" % n, flush=True)
+        else: 
+            try:
+                col = row.split(',')
+                x_val = float(int(col[0])) / 3200.0
+                #
+                # here, put more option 
+                # - option: sum(abs(x), abx(y), abx(z))
+                y_val = abs(int(col[2])) + abs(int(col[3])) + abs(int(col[4]))
+                #
+                x.append(x_val)
+                y.append(y_val)
+            except:
+                print("WSN-S> error line at [%d]" % n, flush=True)
+            n += 1        
+    # fill zero    
+    while n < 9600:
+        n += 1
+        x_val = float(n) / 3200.0
+        y_val = 0.
+        x.append(x_val)
+        y.append(y_val)
+
+    print("WSN-S> read [%d] lines of data" % n, flush=True)    
+    f.close()
+
     return json.dumps({ 'x': x, 'y': y })
 
 #############################################
@@ -437,17 +530,75 @@ def post_graphTime():
 #
 @app.route('/post_graphFreq', methods=['POST'])
 def post_graphFreq():
-    data = json.loads(request.data)
-    value = data['value']
+    #data = json.loads(request.data)
+    #value = data['value']
 
-    # Prepare data to send in here.
+    # read sensor data from file    
+    f = open(WSN_LOG_FILE_NAME, "r")
+    print("WSN-S> open sensor data log file: %s" % WSN_LOG_FILE_NAME, flush=True)
+    # skip 4 header line 
+    for _ in range(4):
+        row = f.readline()
+        print("WSN-S> header: %s" % row, flush=True)
+    # init       
+    y = []
+    n = 0
+    # read x, y, z accelerometer values
+    while n < 9600:
+        try:
+            row = f.readline()
+        except:
+            break
+        if not row:
+            break
+        if row.find('End') != -1:
+            print("WSN-S> end-of-data at [%d]" % n, flush=True)
+            break        
+        if len(row) < 7:
+            print("WSN-S> incomplete line at [%d]" % n, flush=True)
+        else: 
+            try:
+                col = row.split(',')
+                #
+                # here, put more option 
+                # - option: sum(abs(x), abx(y), abx(z))
+                #
+                y_val = abs(int(col[2])) + abs(int(col[3])) + abs(int(col[4]))
+                #
+                y.append(y_val)
+            except:
+                print("WSN-S> error line at [%d]" % n, flush=True)
+            n += 1        
+    print("WSN-S> read [%d] lines of data" % n, flush=True)    
+    f.close()          
+    # prepare fourier Transform
+    print("WSN-S> prepare FFT", flush=True)
+    sampling_frequency = 3200
+    amplitude = np.ndarray( n )
+    # copy amplitude
+    idx = 0
+    while idx < n:
+        amplitude[idx] = y[idx]
+        idx += 1
+    # run fourier Transform
+    fourier_transform = np.fft.fft(amplitude)/len(amplitude)            # Normalize amplitude
+    fourier_transform = fourier_transform[range(int(len(amplitude)/2))] # Exclude sampling frequency
+    tp_count    = len(amplitude)
+    values      = np.arange(int(tp_count/2))
+    time_period = tp_count/sampling_frequency
+    frequencies = values/time_period
+    print("WSN-S> done FFT", flush=True)
+    # convert to list
     x = []
     y = []
-    for i in range(60):
-        # Sine value for example.
-        curr_x = float(i / 10)
-        x.append(curr_x)
-        y.append(math.sin(curr_x) * value)
+    idx = 1
+    n = tp_count/2
+    while idx < n:   
+        x_val = float(frequencies[idx])
+        y_val = abs(float(fourier_transform[idx]))
+        x.append(x_val)
+        y.append(y_val)
+        idx += 1
     
     return json.dumps({ 'x': x, 'y': y })
 
@@ -460,8 +611,9 @@ def post_graphFreq():
 #
 if __name__ == '__main__':
     if open_socket():
+        ## accept_socket(ACCEPT_WAIT_TIME)
         app.run(host='0.0.0.0')
     close_socket()
-    print("WSN-S> all done !")
+    print("WSN-S> all done !", flush=True)
 #
 #############################################        
