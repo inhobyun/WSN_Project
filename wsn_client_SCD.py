@@ -261,7 +261,7 @@ def SCD_check_STE_rolling( p ):
     global gSTEisRolling
     #
     STE_result_0 = p.readCharacteristic( SCD_STE_RESULT_HND )
-    time.sleep(.3)
+    time.sleep(.2)
     STE_result_1 = p.readCharacteristic( SCD_STE_RESULT_HND )
     print ("SCD> checking rolling counter [%d] [%d]" % (int(STE_result_0[32]), int(STE_result_1[32])), flush=True)
     if STE_result_0[32] != STE_result_1[32] :
@@ -556,12 +556,14 @@ def SCD_clear_memory( p ):
 #############################################
 # run STE for idling
 #
-def SCD_run_STE_for_idling( p ): 
+def SCD_run_STE_for_idling( p ):
+    global gSTEisRolling 
     #
     # rolls STE for short time period
     #
     # start STE w/o memory writing
     print ("SCD> STE running for idling ...", flush=True)
+    rolling_status_backup = gSTEisRolling
     p.setDelegate( NotifyDelegate(p) )
     SCD_set_STE_config(p, False)
     SCD_toggle_STE_rolling(p, True, True)
@@ -570,7 +572,7 @@ def SCD_run_STE_for_idling( p ):
     while time.time() - tm <= 0.3:
         p.waitForNotifications(0.1)
     # stop STE
-    SCD_toggle_STE_rolling(p, False, False) 
+    SCD_toggle_STE_rolling(p, rolling_status_backup, False) 
     SCD_print_STE_status()
     return
 
