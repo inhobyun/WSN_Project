@@ -98,19 +98,20 @@
 <script>
 
     var tid = null
+    var col = 'black'
 
     function dispData(data) {
-        //const oval_01 = parseFloat(document.getElementById('row_01').value);
-        //const oval_02 = parseFloat(document.getElementById('row_02').value);
-        //const oval_03 = parseFloat(document.getElementById('row_03').value);
-        //const oval_04 = parseFloat(document.getElementById('row_04').value);
-        //const oval_05 = parseFloat(document.getElementById('row_05').value);
-        //const oval_06 = parseFloat(document.getElementById('row_06').value);
-        //const oval_07 = parseFloat(document.getElementById('row_07').value);
-        //const oval_08 = parseFloat(document.getElementById('row_08').value);
-        //const oval_09 = parseFloat(document.getElementById('row_09').value);
-        //const oval_10 = parseFloat(document.getElementById('row_10').value);
-        //const oval_11 = parseFloat(document.getElementById('row_11').value);
+        const row_01 = parseFloat(document.getElementById('row_01').value);
+        const row_02 = parseFloat(document.getElementById('row_02').value);
+        const row_03 = parseFloat(document.getElementById('row_03').value);
+        const row_04 = parseFloat(document.getElementById('row_04').value);
+        const row_05 = parseFloat(document.getElementById('row_05').value);
+        const row_06 = parseFloat(document.getElementById('row_06').value);
+        const row_07 = parseFloat(document.getElementById('row_07').value);
+        const row_08 = parseFloat(document.getElementById('row_08').value);
+        const row_09 = parseFloat(document.getElementById('row_09').value);
+        const row_10 = parseFloat(document.getElementById('row_10').value);
+        const row_11 = parseFloat(document.getElementById('row_11').value);
         document.getElementById("row_00").innerHTML = data.row_00;
         document.getElementById("row_01").innerHTML = data.row_01;
         document.getElementById("row_02").innerHTML = data.row_02;
@@ -125,16 +126,54 @@
         document.getElementById("row_11").innerHTML = data.row_11;
         document.getElementById("status_01").innerHTML = data.status_01;
         document.getElementById("status_02").innerHTML = data.status_02;
-        if (data.status_01 == 'VIBRATION') {
-            document.getElementById("status_01").style.color = 'blue';
-        } else {
-            document.getElementById("status_01").style.color = 'gray';
+        if (data.status_01 == 'VIBRATION') { col = 'blue'; } else { col = 'gray'; }
+        document.getElementById("status_01").style.color = col;
+        if (data.status_01 == 'ABNORMAL') { col = 'red'; } else { col = 'gray'; }
+        document.getElementById("status_02").style.color = col;
+        if (row_01 > parseFloat(data.row_01)) { col = 'red'; } else { 
+            if (row_01 < parseFloat(data.row_01)) { col = 'blue'; } else { col = 'black'; } 
         }
-        if (data.status_02 == 'ABNORMAL') {
-            document.getElementById("status_02").style.color = 'red';
-        } else {
-            document.getElementById("status_02").style.color = 'gray';
+        document.getElementById("row_01").style.color = col;
+        if (row_02 > parseFloat(data.row_02)) { col = 'red'; } else { 
+            if (row_02 < parseFloat(data.row_02)) { col = 'blue'; } else { col = 'black'; } 
         }
+        document.getElementById("row_02").style.color = col;
+        if (row_03 > parseFloat(data.row_03)) { col = 'red'; } else { 
+            if (row_03 < parseFloat(data.row_03)) { col = 'blue'; } else { col = 'black'; } 
+        }
+        document.getElementById("row_03").style.color = col;
+        if (row_04 > parseFloat(data.row_04)) { col = 'red'; } else { 
+            if (row_04 < parseFloat(data.row_04)) { col = 'blue'; } else { col = 'black'; } 
+        }
+        document.getElementById("row_04").style.color = col;
+        if (row_05 > parseFloat(data.row_05)) { col = 'red'; } else { 
+            if (row_05 < parseFloat(data.row_05)) { col = 'blue'; } else { col = 'black'; } 
+        }
+        document.getElementById("row_05").style.color = col;
+        if (row_06 > parseFloat(data.row_06)) { col = 'red'; } else { 
+            if (row_06 < parseFloat(data.row_06)) { col = 'blue'; } else { col = 'black'; } 
+        }
+        document.getElementById("row_06").style.color = col;
+        if (row_07 > parseFloat(data.row_07)) { col = 'red'; } else { 
+            if (row_07 < parseFloat(data.row_07)) { col = 'blue'; } else { col = 'black'; } 
+        }
+        document.getElementById("row_08").style.color = col;
+        if (row_08 > parseFloat(data.row_08)) { col = 'red'; } else { 
+            if (row_08 < parseFloat(data.row_08)) { col = 'blue'; } else { col = 'black'; } 
+        }
+        document.getElementById("row_08").style.color = col;
+        if (row_09 > parseFloat(data.row_09)) { col = 'red'; } else { 
+            if (row_09 < parseFloat(data.row_09)) { col = 'blue'; } else { col = 'black'; } 
+        }
+        document.getElementById("row_09").style.color = col;
+        if (row_10 > parseFloat(data.row_10)) { col = 'red'; } else { 
+            if (row_10 < parseFloat(data.row_10)) { col = 'blue'; } else { col = 'black'; } 
+        }
+        document.getElementById("row_10").style.color = col;
+        if (row_11 > parseFloat(data.row_11)) { col = 'red'; } else { 
+            if (row_11 < parseFloat(data.row_11)) { col = 'blue'; } else { col = 'black'; } 
+        }
+        document.getElementById("row_11").style.color = col;
     }
 
     function monBegin() {
