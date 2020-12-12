@@ -14,6 +14,7 @@ by Inho Byun, Researcher/KAIST
                     started 2020-11-05
                     updated 2020-12-03; working revision
                     updated 2020-12-08; comm protocol, BLE scan updated
+                    updated 2020-12-10; acquisition
 """
 import asyncio
 from bluepy.btle import Scanner, DefaultDelegate, UUID, Peripheral
@@ -56,17 +57,18 @@ SCD_BDT_DATA_FLOW_HND = 45    # RN, uuid: 02a65821-3003-1000-2000-b05cb05cb05c
 #
 # MAX constants of BOSCH SCD
 #
-SCD_MAX_MTU   = 65                # MAX SCD Comm. Packet size
-SCD_MAX_FLASH = 0x0b0000          # 11*16**4 = 720896 = 704K
+SCD_MAX_MTU   = 65       # MAX SCD Comm. Packet size
+SCD_MAX_FLASH = 0x0b0000 # 11*16**4 = 720896 = 704K
 
 #
 # Some constant parameters
 #
-SCAN_TIME       = 8.     # scanning duration for BLE devices 
-RESCAN_INTERVAL = 90.    # 1.5 min.; interval time to rescan BLE after scan failed
-RESCAN_PERIOD   = 11100. # 3 hrs 5 min.; time period to rescan BLE to connect 
+SCAN_TIME       = 10.   # scanning duration for BLE devices 
+RESCAN_INTERVAL = 50.   # 1 min.; looping to rescan BLE after scan failed
+##RESCAN_PERIOD   = 11100. # 3 hrs 5 min.; time period to rescan BLE to connect
+RESCAN_PERIOD   = 43200. # 12 hrs; time period to rescan BLE to connect  
 #
-STE_RUN_TIME    = 3.     # STE rolling time in secconds for SENSOR data recording
+STE_RUN_TIME    = 3.5    # STE rolling time in secconds for SENSOR data recording
 STE_FREQUENCY   = (400, 800, 1600, 3200, 6400)  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz 
 #
 # global variables
@@ -78,7 +80,7 @@ gSTEcfgMode   = bytes(35)  # Sensor Mode
 gSTEnotiCnt   = 0     # count of notifications from connected device
 gSTEstartTime = 0.    # notification start timestamp
 gSTElastTime  = 0.    # last notification timestamp
-gSTElastData  = None    # last notification data
+gSTElastData  = None  # last notification data
 gSTEisRolling = False # flag wether STE is on rolling
 # BDT - Block Data Transfer
 gBDTnotiCnt   = 0
@@ -87,7 +89,7 @@ gBDTlastTime  = 0.
 gBDTdata      = bytearray(SCD_MAX_FLASH)
 gBDTtextBlock = ''
 gBDTtextLen   = 0
-gBDTtextLen   = 0
+gBDTtextPos   = 0
 gBDTcrc32     = bytearray(4)
 gBDTisRolled = False
 # IDLE
@@ -102,10 +104,11 @@ gIDLEinterval = 60.   # time interval to make BLE traffic to keep connection
 # target TCP Server identifiers
 #
 ##TCP_HOST_NAME = "127.0.0.1"       # TEST Host Name
-TCP_HOST_NAME = "10.2.2.3"        # TEST Host Name
+##TCP_HOST_NAME = "10.2.2.3"        # TEST Host Name
 ##TCP_HOST_NAME = "192.168.0.3"     # TEST Host Name
-##TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
+TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
 TCP_PORT      = 8088              # Default TCP Port Name
+TCP_PACKET_MAX= 1024                # max TCP packet size 
 #
 TCP_DEV_READY_MSG = 'DEV_READY'     # server message to check client ready
 TCP_DEV_CLOSE_MSG = 'DEV_CLOSE'     # server message to disconnect client
@@ -122,7 +125,7 @@ gTCPreader = None
 gTCPwriter = None
 gTCPrxMsg  = None
 gTCPtxMsg  = None
-gTCPnullRXcnt = 0
+gTCPrxErr  = 0
 
 #############################################
 # handle to receive command message
@@ -132,7 +135,7 @@ async def tcp_RX(loop):
     global gTCPrxMsg
     global gTCPreader
     global gTCPwriter
-    global gTCPnullRXcnt
+    global gTCPrxErr
     #
     if gTCPwriter == None:
         print('\n>--->\nAIO-C> connecting server to read ... ', end ='', flush=True)
@@ -142,7 +145,7 @@ async def tcp_RX(loop):
     rx_data = None
     print('AIO-C> [RX] wait => ', end = '', flush=True)
     try:
-        rx_data = await asyncio.wait_for ( gTCPreader.read(512), timeout=10.0 )
+        rx_data = await asyncio.wait_for ( gTCPreader.read(TCP_PACKET_MAX), timeout=10.0 )
     except asyncio.TimeoutError:
         print('timeout', flush=True)
         pass
@@ -154,10 +157,10 @@ async def tcp_RX(loop):
         if rx_data != None:
             gTCPrxMsg = rx_data.decode()
         if gTCPrxMsg == '':
-            gTCPnullRXcnt += 1
-            print('null received: %d times' % gTCPnullRXcnt, flush=True)
+            gTCPrxErr += 1
+            print('null received: %d times' % gTCPrxErr, flush=True)
         else:
-            gTCPnullRXcnt = 0
+            gTCPrxErr = 0
             print('"%r" received' % gTCPrxMsg, flush=True) 
     
 #############################################
@@ -259,7 +262,7 @@ def SCD_check_STE_rolling( p ):
     global gSTEisRolling
     #
     STE_result_0 = p.readCharacteristic( SCD_STE_RESULT_HND )
-    time.sleep(.3)
+    time.sleep(.2)
     STE_result_1 = p.readCharacteristic( SCD_STE_RESULT_HND )
     print ("SCD> checking rolling counter [%d] [%d]" % (int(STE_result_0[32]), int(STE_result_1[32])), flush=True)
     if STE_result_0[32] != STE_result_1[32] :
@@ -554,21 +557,25 @@ def SCD_clear_memory( p ):
 #############################################
 # run STE for idling
 #
-def SCD_run_STE_for_idling( p ): 
+def SCD_run_STE_for_idling( p ):
+    global gSTEisRolling 
     #
     # rolls STE for short time period
     #
     # start STE w/o memory writing
     print ("SCD> STE running for idling ...", flush=True)
+    rolling_status_backup = gSTEisRolling
     p.setDelegate( NotifyDelegate(p) )
     SCD_set_STE_config(p, False)
     SCD_toggle_STE_rolling(p, True, True)
     # take rolling time ( added more overhead time)
     tm = time.time()
     while time.time() - tm <= 0.3:
-        p.waitForNotifications(0.1)
+        wait_flag = p.waitForNotifications(0.1)
+        if wait_flag :
+            continue
     # stop STE
-    SCD_toggle_STE_rolling(p, False, False) 
+    SCD_toggle_STE_rolling(p, rolling_status_backup, False) 
     SCD_print_STE_status()
     return
 
@@ -592,7 +599,9 @@ def SCD_run_STE_and_BDT( p ):
     tm = time.time()
     while time.time() - tm <= STE_RUN_TIME:
         wait_flag = p.waitForNotifications(1.)
-    # stop STE
+        if wait_flag :
+            continue
+     # stop STE
     SCD_toggle_STE_rolling(p, False, False) 
     SCD_print_STE_status()
     #
@@ -664,7 +673,6 @@ def SCD_BDT_text_block():
     global gBDTtextBlock
     global gBDTtextLen
     global gBDTtextPos
-
     
     print ("SCD> text block creation from BDT ...", flush=True)
     if gBDTtextBlock != '':
@@ -739,7 +747,7 @@ def SCD_BDT_text_block():
 #############################################
 # create text memory block from BDT w/o non-data
 #
-def SCD_BDT_get_text1024():
+def SCD_BDT_get_text(returnMax = TCP_PACKET_MAX):
     global gBDTtextBlock
     global gBDTtextLen
     global gBDTtextPos
@@ -748,7 +756,7 @@ def SCD_BDT_get_text1024():
         rtn = 'End of Data\n'
         gBDTtextPos = idx = 0
     else:
-        idx = gBDTtextPos + 1024    
+        idx = gBDTtextPos + returnMax    
         if idx > gBDTtextLen:
             idx = gBDTtextLen
         while ( gBDTtextBlock[idx-1:idx] != '\n' ) and ( idx > gBDTtextPos ):
@@ -800,7 +808,7 @@ if  SCD_clear_memory(p) == None:
 #
 gIDLElastTime = time.time()
 loop = asyncio.get_event_loop()
-while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPnullRXcnt < 10:
+while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxErr < 10:
     #
     # wait any message from server
     #
@@ -826,7 +834,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPnullRXcnt < 10:
             p.setDelegate( NotifyDelegate(p) )
             SCD_set_STE_config(p, False)
             SCD_toggle_STE_rolling(p, True, False)
-            gIDLElastTime = time.time()
+            ## gIDLElastTime = time.time()
         elif gTCPrxMsg == TCP_STE_REQ_MSG:
             # request STE data
             if gSTEisRolling:
@@ -835,13 +843,13 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPnullRXcnt < 10:
                 gSTElastData = p.readCharacteristic(SCD_STE_RESULT_HND)
                 gSTElastTime = time.time()
                 gTCPtxMsg = SCD_string_STE_data(gSTElastTime, gSTElastData)
-                gIDLElastTime = gSTElastTime   
+                ## gIDLElastTime = gSTElastTime   
             else:
                 print ("WSN-C> invalid message, STE has not been started !", flush=True)    
         elif gTCPrxMsg == TCP_BDT_RUN_MSG:
             # start BDT
             print ("WSN-C> start BDT running ...")
-            if not (gSTEisRolling or gBDTisRolled):                
+            if not gSTEisRolling:                
                 SCD_run_STE_and_BDT(p)
                 if SCD_clear_memory(p) == None:
                     p = SCD_scan_and_connect(False)
@@ -854,7 +862,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPnullRXcnt < 10:
             # request BDT data
             if gBDTisRolled:
                 print ("WSN-C> request BDT data ...", flush=True)
-                gTCPtxMsg = SCD_BDT_get_text1024()
+                gTCPtxMsg = SCD_BDT_get_text()
                 if gTCPtxMsg.find("End") != -1:
                     gBDTisRolled = False
             else:
@@ -865,7 +873,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPnullRXcnt < 10:
             SCD_set_STE_config (p, False)
             SCD_toggle_STE_rolling (p, False, False)
             SCD_print_STE_status()
-            gIDLElastTime = time.time()
+            ## gIDLElastTime = time.time()
         else:
             # invalid message
             print ("WSN-C> invalid [RX] message !", flush=True)    
@@ -888,7 +896,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPnullRXcnt < 10:
             loop.run_until_complete( tcp_TX(gTCPtxMsg, loop) )
         except ConnectionResetError:
             print ("WSN-C> server connection is broken !", flush=True)
-            break;        
+            break
 #
 #############################################
 
