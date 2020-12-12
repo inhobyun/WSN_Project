@@ -718,7 +718,7 @@ if __name__ == '__main__':
     print("WSN-S> starting !", flush=True)
     if open_socket():
         #
-        # wait client connection
+        # wait client connection (in case of test, not used)
         #
         ## accept_socket(ACCEPT_WAIT_TIME)
         #
