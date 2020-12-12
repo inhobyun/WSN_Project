@@ -209,7 +209,7 @@
         </script>
 
         <script>
-        function drawGraph(data, color_val) {
+        function drawGraph(data, color_val, y_min_id, y_max_id, x_min_id, x_max_id) {
             // Clear the chart box.
             document.getElementById('chart-box').innerHTML = '';
     
@@ -226,10 +226,23 @@
                 .append("g")
                     .attr("transform",
                         "translate(" + margin.left + "," + margin.top + ")");
-    
+
+            const y_min  = d3.min(data.y);
+            const y_max  = d3.max(data.y);
+            const x_min  = d3.min(data.x);
+            const x_max  = d3.max(data.x);
+            var y_from = y_min;
+            var y_to   = y_max;
+            var x_from = x_min;
+            var x_to   = x_max;
+            if (y_max > y_min_id.value && y_min_id.value > y_min) { y_from = y_min_id.value; };
+            if (x_max > x_min_id.value && x_min_id.value > x_min) { x_from = x_min_id.value; };
+            if (y_max > y_max_id.value && y_max_id.value > y_min) { y_to   = y_max_id.value; };
+            if (x_max > x_max_id.value && x_max_id.value > x_min) { x_to   = x_max_id.value; };
+
             // Add X axis
             var x = d3.scaleLinear()
-                .domain([d3.min(data.x), d3.max(data.x)])
+                .domain([ x_from, x_to ])
                 .range([ 0, width ]);
             svg.append("g")
                 .attr("transform", "translate(0," + height + ")")
@@ -237,10 +250,15 @@
     
             // Add Y axis
             var y = d3.scaleLinear()
-                .domain([d3.min(data.y), d3.max(data.y)])
+                .domain([ y_from, y_to ])
                 .range([ height, 0 ]);
             svg.append("g")
                 .call(d3.axisLeft(y));
+
+            y_min_id.value = y_min;
+            y_max_id.value = y_max;
+            x_min_id.value = x_min;
+            x_max_id.value = x_max;
     
             var points = [];
             data.x.forEach((value, i) => {

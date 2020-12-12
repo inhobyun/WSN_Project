@@ -16,19 +16,19 @@
     
     <div style="position:absolute; left:  8px; top:172px;"><label>Y (g)</label></div>
     <div style="position:absolute; left: 70px; top:172px;"><label for="y_min">Min</label></div>
-    <div style="position:absolute; left:102px; top:170px;"><input type="number" id="y_min" value="0"></div>
+    <div style="position:absolute; left:102px; top:170px;"><input type="number" id="y_min" value=''></div>
     <div style="position:absolute; left: 70px; top:202px;"><label for="y_max">Max</label></div>
-    <div style="position:absolute; left:102px; top:200px;"><input type="number" id="y_max" value="0.50"></div>   
+    <div style="position:absolute; left:102px; top:200px;"><input type="number" id="y_max" value=''></div>   
     <div style="position:absolute; left: 70px; top:232px;"><label for="y_grid">Grid</label></div>
-    <div style="position:absolute; left:102px; top:230Px;"><input type="number" id="y_grid" value="0.05"></div>
+    <div style="position:absolute; left:102px; top:230Px;"><input type="number" id="y_grid" value='' disabled></div>
     
     <div style="position:absolute; left:  8px; top:272px;"><label>X (Hz)</label></div>
     <div style="position:absolute; left: 70px; top:272px;"><label>Min</label></div>
-    <div style="position:absolute; left:102px; top:270px;"><input type="number" id="x_min" value="0"></div>  
+    <div style="position:absolute; left:102px; top:270px;"><input type="number" id="x_min" value=''></div>  
     <div style="position:absolute; left: 70px; top:302px;"><label>Max</label></div>
-    <div style="position:absolute; left:102px; top:300px;"><input type="number" id="x_max" value="200"></div>
+    <div style="position:absolute; left:102px; top:300px;"><input type="number" id="x_max" value=''></div>
     <div style="position:absolute; left: 70px; top:332px;"><label>Grid</label></div>
-    <div style="position:absolute; left:102px; top:330px;"><input type="number" id="x_grid" value="1600"></div>
+    <div style="position:absolute; left:102px; top:330px;"><input type="number" id="x_grid" value='' disabled></div>
   
     <div style="position:absolute; left:  8px; top:370px;"><label>Draw Mode:</label></div>
     <div style="position:absolute; left:100px; top:370px;"><input type="radio" id="draw_s" name="draw" value="draw_s" checked>
@@ -64,11 +64,19 @@
             }).then(response => {
                 const data = response.data;
                 // drawing
-                drawGraph(data, color_val);
-                document.getElementById("time_stamp").innerHTML = data.t
-                document.getElementById("freq_stamp").innerHTML = data.f
-                document.getElementById("mode_stamp").innerHTML = data.m
+                drawGraph(data, color_val,
+                    document.getElementById("y_min"),
+                    document.getElementById("y_max"),
+                    document.getElementById("x_min"),
+                    document.getElementById("x_max")
+                );
+                document.getElementById("time_stamp").innerHTML = data.t;
+                document.getElementById("freq_stamp").innerHTML = data.f;
+                document.getElementById("mode_stamp").innerHTML = data.m;
                 document.getElementById("btn_draw").disabled = false;
+                document.getElementById("man_scroll").disabled = false;
+                document.getElementById("man_scroll").checked = true;
+                document.getElementById("auto_scroll").disabled = true;
             }).catch(function (error) {
                 alert('Error occurred on submit: ' + error);
             });
