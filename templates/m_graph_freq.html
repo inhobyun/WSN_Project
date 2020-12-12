@@ -39,10 +39,16 @@
 
     <div style="text-align:left"><Strong>Accelerometer Sensor Data - Frequency Graph</Strong></div>
     <div style="text-align:left">
-        <label id="time_stamp_label"></label>Sensor Measured Time : </label>
+        <label id="time_label"></label>Measured Time : </label>
         <label id="time_stamp" style="font-weight:bold; color:blueviolet;"></label>
+        
+        <label id="freq_label"></label>, Frequency : </label>
+        <label id="freq_stamp" style="font-weight:bold; color:blueviolet;"></label>
+        
+        <label id="mode_label"></label>, Draw Mode : </label>
+        <label id="mode_stamp" style="font-weight:bold; color:blueviolet;"></label>
     </div> 
-    
+        
     <div class="form">
         <div id="chart-box"></div>
     </div>
@@ -50,18 +56,22 @@
     <script>
         function dispGraph(color_val) {
             document.getElementById("btn_draw").disabled = true;
-            // const value = document.getElementById('???').value;
+            //
+            // add drawing option hera afterward
+            //
             axios.post('/post_graphFreq', {
-                // value: Number(value),
+                // value: value
             }).then(response => {
                 const data = response.data;
+                // drawing
                 drawGraph(data, color_val);
                 document.getElementById("time_stamp").innerHTML = data.t
-                // console.log(data);
+                document.getElementById("freq_stamp").innerHTML = data.f
+                document.getElementById("mode_stamp").innerHTML = data.m
+                document.getElementById("btn_draw").disabled = false;
             }).catch(function (error) {
                 alert('Error occurred on submit: ' + error);
             });
-            document.getElementById("btn_draw").disabled = false;
         }
     </script>
     

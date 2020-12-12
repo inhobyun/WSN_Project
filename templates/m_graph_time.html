@@ -11,7 +11,7 @@
     <div style="position:absolute; left:  8px; top:128px;"><label>Scaling Mode:</label></div>
     <div style="position:absolute; left:100px; top:128px;"><input type="radio" id="auto_scroll" name="scroll" value="auto_scroll" checked>
                                                            <label>Automatic</label></div>
-    <div style="position:absolute; left:100px; top:146px;"><input type="radio" id="man_scroll" name="scroll" value="man_scroll">
+    <div style="position:absolute; left:100px; top:146px;"><input type="radio" id="man_scroll" name="scroll" value="man_scroll" disabled>
                                                            <label>Manual</label></div>
     
     <div style="position:absolute; left:  8px; top:172px;"><label>Y (g)</label></div>
@@ -31,13 +31,13 @@
     <div style="position:absolute; left:102px; top:330px;"><input type="number" id="x_grid" value="0.5"></div>
   
     <div style="position:absolute; left:  8px; top:370px;"><label>Draw Mode:</label></div>
-    <div style="position:absolute; left:100px; top:370px;"><input type="radio" id="draw_s" name="draw" value="draw_s" checked>
+    <div style="position:absolute; left:100px; top:370px;"><input type="radio" id="draw_s" name="draw" value="Sum(X,Y,Z)" checked>
                                                            <label>Sum of all direction</label></div>
-    <div style="position:absolute; left:100px; top:388px;"><input type="radio" id="draw_x" name="draw" value="draw_x">
+    <div style="position:absolute; left:100px; top:388px;"><input type="radio" id="draw_x" name="draw" value="X only">
                                                            <label>X direction only</label></div>
-    <div style="position:absolute; left:100px; top:406px;"><input type="radio" id="draw_y" name="draw" value="draw_y">
+    <div style="position:absolute; left:100px; top:406px;"><input type="radio" id="draw_y" name="draw" value="Y only">
                                                            <label>Y direction only</label></div>
-    <div style="position:absolute; left:100px; top:424px;"><input type="radio" id="draw_z" name="draw" value="draw_z">
+    <div style="position:absolute; left:100px; top:424px;"><input type="radio" id="draw_z" name="draw" value="Z only">
                                                            <label>Z direction only</label></div>
 {% endblock %}
 
@@ -45,8 +45,14 @@
 
 <div style="text-align:left"><Strong>Accelerometer Sensor Data - Time Series Graph</Strong></div>
 <div style="text-align:left">
-    <label id="time_stamp_label"></label>Sensor Measured Time : </label>
+    <label id="time_label"></label>Measured Time : </label>
     <label id="time_stamp" style="font-weight:bold; color:blueviolet;"></label>
+    
+    <label id="freq_label"></label>, Frequency : </label>
+    <label id="freq_stamp" style="font-weight:bold; color:blueviolet;"></label>
+    
+    <label id="mode_label"></label>, Draw Mode : </label>
+    <label id="mode_stamp" style="font-weight:bold; color:blueviolet;"></label>
 </div> 
 
 <div class="form">
@@ -55,20 +61,29 @@
 
 <script>
     function dispGraph(color_val) {
-        document.getElementById("btn_draw").disabled = true;
-        // const value = document.getElementById('???').value;
-        axios.post('/post_graphTime', {
-            // value: Number(value),
-        }).then(response => {
-            const data = response.data;
-            drawGraph(data, color_val);
-            document.getElementById("time_stamp").innerHTML = data.t
-            // console.log(data);
-        }).catch(function (error) {
-            alert('Error occurred on submit: ' + error);
-        });
-        document.getElementById("btn_draw").disabled = false;
-    }
+            document.getElementById("btn_draw").disabled = true;
+            // drawing option
+            var r_btn = document.getElementsByName("draw");
+            var i, value;
+            for (i = 0; i < r_btn.length; i++) {
+                if ( r_btn[i].checked ) {
+                    value = r_btn[i].value;
+                }
+            }    
+            axios.post('/post_graphTime', {
+                value: value,
+            }).then(response => {
+                const data = response.data;
+                // drawing
+                drawGraph(data, color_val);
+                document.getElementById("time_stamp").innerHTML = data.t
+                document.getElementById("freq_stamp").innerHTML = data.f
+                document.getElementById("mode_stamp").innerHTML = data.m
+                document.getElementById("btn_draw").disabled = false;
+            }).catch(function (error) {
+                alert('Error occurred on submit: ' + error);
+            });            
+        }
 </script>    
 
 {% endblock %}
