@@ -140,7 +140,7 @@ def check_tcp_error():
 ##############################################
 # accept socket
 #
-def accept_socket(blockingTimer = 60):
+def accept_socket(blockingTimer = 8):
     global gSocketServer
     global gSocketConn
     global gSocketAddr
