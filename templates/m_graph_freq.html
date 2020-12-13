@@ -9,9 +9,9 @@
     <div style="text-align:right;"><button class="button-l" id="btn_draw" onclick="dispGraph('green')"><b> Draw Graph </b></button></div>
     
     <div style="position:absolute; left:  8px; top:128px;"><label>Scaling Mode:</label></div>
-    <div style="position:absolute; left:100px; top:128px;"><input type="radio" id="auto_scroll" name="scroll" value="auto_scroll" checked>
+    <div style="position:absolute; left:100px; top:128px;"><input type="radio" id="scale_auto" name="scale" onchange="clearScale()" value="scale_auto" checked>
                                                            <label>Automatic</label></div>
-    <div style="position:absolute; left:100px; top:146px;"><input type="radio" id="man_scroll" name="scroll" value="man_scroll" disabled>
+    <div style="position:absolute; left:100px; top:146px;"><input type="radio" id="scale_manu" name="scale" onchange="clearScale()" value="scale_manu" disabled>
                                                            <label>Manual</label></div>
     
     <div style="position:absolute; left: 16px; top:172px;"><label>Y (g)</label></div>
@@ -74,13 +74,21 @@
                 document.getElementById("freq_stamp").innerHTML = data.f;
                 document.getElementById("mode_stamp").innerHTML = data.m;
                 document.getElementById("btn_draw").disabled = false;
-                document.getElementById("man_scroll").disabled = false;
-                document.getElementById("man_scroll").checked = true;
-                document.getElementById("auto_scroll").disabled = true;
+                document.getElementById("scale_manu").disabled = false;
+                document.getElementById("scale_manu").checked = true;
             }).catch(function (error) {
                 alert('Error occurred on submit: ' + error);
             });
         }
+        
+        function clearScale() {
+            if ( ! document.getElementById("scale_manu").checked ) {
+                document.getElementById("y_min").value = '';
+                document.getElementById("y_max").value = '';
+                document.getElementById("x_min").value = '';
+                document.getElementById("x_max").value = '';
+            }
+        }    
     </script>
     
 {% endblock %}

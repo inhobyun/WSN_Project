@@ -613,12 +613,12 @@ def post_graphTime():
                 print("WSN-S> error line at [%d]" % n, flush=True)
             n += 1        
     # fill zero    
-    while n < 9600:
-        n += 1
-        x_val = float(n) / 3200.0
-        y_val = 0.
-        x.append(x_val)
-        y.append(y_val)
+    ##while n < 9600:
+    ##  n += 1
+    ##  x_val = float(n) / 3200.0
+    ##  y_val = 0.
+    ##  x.append(x_val)
+    ##  y.append(y_val)
     #
     print("WSN-S> read [%d] lines of data" % n, flush=True)    
     f.close()
