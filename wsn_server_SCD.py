@@ -28,9 +28,10 @@ import time
 ##TCP_HOST_NAME = "10.2.2.3"        # TEST Host Name
 ##TCP_HOST_NAME = "192.168.0.3"     # TEST Host Name
 ##TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
-TCP_HOST_NAME = socket.gethostname()
-TCP_PORT      = 8088                # Default TCP Port Name
-TCP_PACKET_MAX= 1024                # max TCP packet size 
+TCP_HOST_NAME   = socket.gethostname()
+TCP_PORT        = 8088              # Default TCP Port Name
+TCP_PACKET_MAX  = 1024              # max TCP packet size
+TCP_ERR_CNT_MAX = 8                 # max unknown error count before reconnection
 #
 TCP_DEV_READY_MSG = 'DEV_READY'     # server message to check client ready
 TCP_DEV_CLOSE_MSG = 'DEV_CLOSE'     # server message to disconnect client
@@ -54,6 +55,7 @@ WSN_STAMP_FREQ    = "accelometer ODR"
 gSocketServer   = None
 gSocketConn     = None
 gSocketAddr     = None
+gTcpErrCnt      = 0
 #
 gBDTtextList    = []
 #
@@ -73,6 +75,8 @@ def open_socket(clientNum = 1):
     global TCP_HOST_NAME
     global TCP_PORT
     global gSocketServer
+    global gTcpErrCnt
+
     #
     if len(sys.argv) > 1:
         print ("TCP-S> take argument as port# (default: %d)" % TCP_PORT, flush=True)
@@ -92,6 +96,7 @@ def open_socket(clientNum = 1):
     print ("TCP-S> binded...", flush=True)    
     gSocketServer.listen(clientNum)
     print ("TCP-S> listening...", flush=True) 
+    gTcpErrCnt = 0
     #
     return True 
 
@@ -102,11 +107,13 @@ def close_socket():
     global gSocketServer
     global gSocketConn
     global gSocketAddr
+    global gTcpErrCnt
     #
     if gSocketConn != None:
         print ("TCP-S> close accepted connection", flush=True)
         gSocketConn.close()
         gSocketConn = gSocketAddr = None
+        gTcpErrCnt = 0
     #
     if gSocketServer != None:
         print ("TCP-S> close socket", flush=True)
@@ -116,13 +123,30 @@ def close_socket():
     return    
 
 ##############################################
+# check TCP error
+#
+def check_tcp_error():
+    global gSocketServer
+    global gSocketConn
+    global gSocketAddr
+    global gTcpErrCnt
+    #
+    if gTcpErrCnt > TCP_ERR_CNT_MAX:
+        close_socket()
+        open_socket()
+
+    return
+
+##############################################
 # accept socket
 #
 def accept_socket(blockingTimer = 60):
     global gSocketServer
     global gSocketConn
     global gSocketAddr
+    global gTcpErrCnt
     #
+    check_tcp_error()
     if gSocketConn == None:
         print ("\n>--->\nTCP-S> wait client; accepting => ", end = '', flush=True)
         try:
@@ -141,7 +165,9 @@ def accept_socket(blockingTimer = 60):
 def read_from_socket(blockingTimer = 8):
     global gSocketServer
     global gSocketConn
+    global gTcpErrCnt
     #
+    accept_socket(3)
     print ("\nTCP-S> [RX] wait => ", end = '', flush=True)
     rx_msg = ''
     try:
@@ -150,6 +176,7 @@ def read_from_socket(blockingTimer = 8):
     except TimeoutError:
         print ("timeout !", flush=True)
     except:
+        gTcpErrCnt += 1
         print ("error !", flush=True)
     else:
         rx_msg = data.decode()
@@ -169,11 +196,14 @@ def read_from_socket(blockingTimer = 8):
 def write_to_socket(tx_msg):
     global gSocketServer
     global gSocketConn
+    global gTcpErrCnt
     #
+    accept_socket(3)
     print ("\nTCP-S> [TX] try => ", end = '', flush=True)
     try:
         gSocketConn.send(tx_msg.encode())
     except:
+        gTcpErrCnt += 1
         print ("error !", flush=True)
     else:
         print ('"%r" sent' % tx_msg, flush=True)
@@ -223,6 +253,7 @@ env = Environment(
 #
 @app.route('/')
 def root():
+    check_tcp_error()
     template = env.get_template('main.html')
     return template.render()
 
@@ -231,6 +262,7 @@ def root():
 #
 @app.route('/m_Ooops')
 def Ooops():
+    check_tcp_error()
     template = env.get_template('m_Ooops.html')
     return template.render()
 
@@ -239,6 +271,7 @@ def Ooops():
 #
 @app.route('/m_monitor')
 def monitor():
+    check_tcp_error()
     template = env.get_template('m_monitor.html')
     return template.render()
 
@@ -247,6 +280,7 @@ def monitor():
 #
 @app.route('/m_acquisition')
 def acquisition():
+    check_tcp_error()
     template = env.get_template('m_acquisition.html')
     return template.render()
 
@@ -255,6 +289,7 @@ def acquisition():
 #
 @app.route('/m_graph_time')
 def graph_time():
+    check_tcp_error()
     template = env.get_template('m_graph_time.html')
     return template.render()
 
@@ -263,6 +298,7 @@ def graph_time():
 #
 @app.route('/m_graph_freq')
 def graph_freq():
+    check_tcp_error()
     template = env.get_template('m_graph_freq.html')
     return template.render()
 
@@ -271,6 +307,7 @@ def graph_freq():
 #
 @app.route('/m_intro_1')
 def intro_1():
+    check_tcp_error()
     template = env.get_template('m_intro_1.html')
     return template.render()
 
@@ -279,6 +316,7 @@ def intro_1():
 #
 @app.route('/m_intro_2')
 def intro_2():
+    check_tcp_error()
     template = env.get_template('m_intro_2.html')
     return template.render()
 
