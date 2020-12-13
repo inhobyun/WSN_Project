@@ -1,22 +1,22 @@
 {% extends "m_base.html" %}
 
 {% block foot %}
-    <div style="color:aqua;">Acquire Sensor Data...</div>
+    <div style="color:#fff;">Push [Run] button to run data acquisition...</div>
 {% endblock %}
 
 {% block left %}
-    <div style="text-align:center;"><Strong>Sensor Data Analysis</Strong></div><br> 
-    <div style="text-align: right; padding-right:8px;"><button id="btn_start_1" onclick="startSTEandBDT()"> Run... </button></div><br>
-    <div style="text-align: right; padding-right:8px;"><button id="btn_start_2" onclick="startBDTtoSever()" disabled> Run... </button></div><br>
-    <div style="text-align: right; padding-right:8px;"><button id="btn_start_3" onclick="startBDTtoFile()"   disabled> Run... </button></div>
-    <div style="position:absolute; left:8px; top: 92px;"><label>Run accelometer sensor</label></div>
-    <div style="position:absolute; left:8px; top:130px;"><label>Sensor CSV data transfer</label></div>
-    <div style="position:absolute; left:8px; top:168px;"><label>Sensor data save to *.csv file</label></div>
+    <div style="text-align:center;"><b>Sensor Data Acquisition</b></div><br> 
+    <div style="text-align: right; padding-right:8px;"><button class="button-l" id="btn_start_1" onclick="startSTEandBDT()"> Run... </button></div><br>
+    <div style="text-align: right; padding-right:8px;"><button class="button-l" id="btn_start_2" onclick="startBDTtoSever()" disabled> Run... </button></div><br>
+    <div style="text-align: right; padding-right:8px;"><button class="button-l" id="btn_start_3" onclick="startBDTtoFile()"   disabled> Run... </button></div>
+    <div style="position:absolute; left:8px; top: 99px;"><label>Run accelometer sensor</label></div>
+    <div style="position:absolute; left:8px; top:136px;"><label>Sensor CSV data transfer</label></div>
+    <div style="position:absolute; left:8px; top:173px;"><label>Sensor data save to *.csv file</label></div>
 {% endblock %}
 
 {% block right %}
 
-<div style="text-align:center; font-weight:bold; font: size 16;"><Strong>SCD Sensor Data Acquisition</Strong></div>
+<div style="text-align:center; font-weight:bold; font: size 16;"><b>Sensor Data Acquisition Running Status</b></div>
 <div style="text-align:left;   font-weight:bold; font: size 16; color:blue"  id="inf_message"><br></div>
 <div style="text-align:left;   font-weight:bold; font: size 20; color:red"   id="err_message"></div>
 <div style="text-align:left;   font-weight:bold; font: size 20; color:black" id="fin_message"></div>     

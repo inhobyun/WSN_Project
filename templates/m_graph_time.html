@@ -1,12 +1,12 @@
 {% extends "m_base.html" %}
 
 {% block foot %}
-    <div style="color:aqua;">Display Time Series Graph...</div>
+    <div style="color:#fff;">Push [Draw Graph] button to draw time-series graph...</div>
 {% endblock %}
 
 {% block left %}
-    <div style="text-align:center;"><label><Strong>Graph X & Y Axis Setting</Strong></label></div><br> 
-    <div style="text-align:right;"><button id="btn_draw" onclick="dispGraph('blue')"><Strong> Draw Graph </Strong></button></div>
+    <div style="text-align:center;"><label><b>Graph X & Y Axis Setting</b></label></div><br> 
+    <div style="text-align:right;"><button class="button-l" id="btn_draw" onclick="dispGraph('blue')"><b> Draw Graph </b></button></div>
     
     <div style="position:absolute; left:  8px; top:128px;"><label>Scaling Mode:</label></div>
     <div style="position:absolute; left:100px; top:128px;"><input type="radio" id="auto_scroll" name="scroll" value="auto_scroll" checked>
@@ -14,7 +14,7 @@
     <div style="position:absolute; left:100px; top:146px;"><input type="radio" id="man_scroll" name="scroll" value="man_scroll" disabled>
                                                            <label>Manual</label></div>
     
-    <div style="position:absolute; left:  8px; top:172px;"><label>Y (g)</label></div>
+    <div style="position:absolute; left: 16px; top:172px;"><label>Y (g)</label></div>
     <div style="position:absolute; left: 70px; top:172px;"><label for="y_min">Min</label></div>
     <div style="position:absolute; left:102px; top:170px;"><input type="number" id="y_min" value=''></div>
     <div style="position:absolute; left: 70px; top:202px;"><label for="y_max">Max</label></div>
@@ -22,7 +22,7 @@
     <div style="position:absolute; left: 70px; top:232px;"><label for="y_grid">Grid</label></div>
     <div style="position:absolute; left:102px; top:230Px;"><input type="number" id="y_grid" value='' disabled></div>
     
-    <div style="position:absolute; left:  8px; top:272px;"><label>X (sec)</label></div>
+    <div style="position:absolute; left: 16px; top:272px;"><label>X (sec)</label></div>
     <div style="position:absolute; left: 70px; top:272px;"><label>Min</label></div>
     <div style="position:absolute; left:102px; top:270px;"><input type="number" id="x_min" value=''></div>  
     <div style="position:absolute; left: 70px; top:302px;"><label>Max</label></div>
@@ -43,7 +43,7 @@
 
 {% block right %}
 
-<div style="text-align:left"><Strong>Accelerometer Sensor Data - Time Series Graph</Strong></div>
+<div style="text-align:left"><b>Accelerometer Sensor Data - Time Series Graph</b></div>
 <div style="text-align:left">
     <label id="time_label"></label>Measured Time : </label>
     <label id="time_stamp" style="font-weight:bold; color:blueviolet;"></label>

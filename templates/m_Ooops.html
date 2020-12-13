@@ -1,7 +1,7 @@
 {% extends "m_base.html" %}
 
 {% block left %}
-    <div style="text-align:center;">Sensor Config. Setting</div>
+    <div style="text-align:center;"><b>Sensor Config. Setting</b></div>
 
     <div style="position:absolute; left:  8px; top:100px;">
         <input type="checkbox" id="accl_on" name="sensor" value="accl">                                                   
@@ -62,15 +62,18 @@
 {% endblock %}
 
 {% block right %}
-    <div style="text-align:center;">Snesor Description</div>
+    <div style="text-align:center;">
+        <b>Snesor Description</b><br>
+        model: BOSCH SCD 110 - support 4 sensors: 3-Axis acclerlometer, temperature, light, magnetometer
+    </div>
     <br>
     <div style="text-align:center; padding-top:16px;">
-        <img src="/static/images/sensor_SCD.png" align="middle">
+        <img src="/static/images/sensor_SCD.png">
     </div>    
 {% endblock %}
 
 {% block foot %}
-    <div style="font-size:14px; color:red;">
-        <strong>Sorry!</strong> This page is not working. <a href="/">Click</a> to return...
+    <div style="font-size:14px; color:#fff;">
+        Select the sensor mode
     </div>
 {% endblock %}
