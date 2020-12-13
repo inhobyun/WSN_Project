@@ -45,6 +45,9 @@ TCP_BDT_END_MSG   = 'BDT_END'       # client message to inform BDT data transfer
 #
 ACCEPT_WAIT_TIME  = 11100           # 3 hrs 5 min.; time period to wait client connection
 WSN_LOG_FILE_NAME = "SCD_BDT_Data_log.csv" 
+WSN_STAMP_TIME    = "server time"
+WSN_STAMP_DELAY   = "delay time"
+WSN_STAMP_FREQ    = "accelometer ODR"
 #
 # global variables
 #
@@ -189,6 +192,17 @@ def write_to_socket(tx_msg):
 def time_stamp():
     tm = time.time()
     return ( "%s (%.3f)" % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm) )
+
+#############################################
+# get stamp string from header lines
+#
+def stamp_heder(header, target):
+    rtn_stamp = 'unknown'
+    if header.find(target) != -1:
+        idx = header.find(':')
+        if idx >= len(target): 
+            rtn_stamp = header[idx+1:].strip() 
+    return rtn_stamp
 
 #############################################
 #############################################
@@ -544,22 +558,20 @@ def post_BDTtoFile():
 #
 @app.route('/post_graphTime', methods=['POST'])
 def post_graphTime():
-    #data = json.loads(request.data)
-    #value = data['value']
+    data = json.loads(request.data)
+    value = data['value']
 
     # read sensor data from file    
     f = open(WSN_LOG_FILE_NAME, "r")
     print("WSN-S> open sensor data log file: %s" % WSN_LOG_FILE_NAME, flush=True)
     # check 4 header lines
     row = f.readline()
-    time_stamp = 'unknown'
-    if row[0:11] == "server time":
-        idx = row.find(':')
-        if idx > 10:
-            time_stamp = row[idx:] 
-    for _ in range(3):
-        row = f.readline()
-        print("WSN-S> header: %s" % row, flush=True)
+    time_stamp = stamp_heder(row,WSN_STAMP_TIME)
+    row = f.readline()
+    time_stamp += '+' + stamp_heder(row,WSN_STAMP_DELAY)
+    row = f.readline()
+    freq_stamp = stamp_heder(row,WSN_STAMP_FREQ)
+    row = f.readline()
     # init    
     x = []
     y = []
@@ -583,10 +595,17 @@ def post_graphTime():
                 x_val = float(int(col[0])) / 3200.0
                 # ===========================================
                 # here, handle more options afterward 
-                # - option: sum(abs(x), abx(y), abx(z))
+                # - option: sum, x, y, z
                 # - ...
                 # ===========================================
-                y_val = abs(int(col[2])) + abs(int(col[3])) + abs(int(col[4]))
+                if value == 'X only':
+                    y_val = abs(int(col[2]))
+                elif value == 'Y only':
+                    y_val = abs(int(col[3]))
+                elif value == 'Z only':
+                    y_val = abs(int(col[4]))
+                else:
+                    y_val = abs(int(col[2])) + abs(int(col[3])) + abs(int(col[4]))              
                 # ===========================================
                 x.append(x_val)
                 y.append(y_val)
@@ -594,17 +613,17 @@ def post_graphTime():
                 print("WSN-S> error line at [%d]" % n, flush=True)
             n += 1        
     # fill zero    
-    while n < 9600:
-        n += 1
-        x_val = float(n) / 3200.0
-        y_val = 0.
-        x.append(x_val)
-        y.append(y_val)
+    ##while n < 9600:
+    ##  n += 1
+    ##  x_val = float(n) / 3200.0
+    ##  y_val = 0.
+    ##  x.append(x_val)
+    ##  y.append(y_val)
     #
     print("WSN-S> read [%d] lines of data" % n, flush=True)    
     f.close()
 
-    return json.dumps({ 'x': x, 'y': y, 't': time_stamp })
+    return json.dumps({ 'x': x, 'y': y, 't': time_stamp, 'f': freq_stamp, 'm': value })
 
 #############################################
 # graphics - frequency UI - drawing
@@ -619,14 +638,12 @@ def post_graphFreq():
     print("WSN-S> open sensor data log file: %s" % WSN_LOG_FILE_NAME, flush=True)
     # check 4 header lines
     row = f.readline()
-    time_stamp = 'unknown'
-    if row[0:11] == "server time":
-        idx = row.find(':')
-        if idx > 10:
-            time_stamp = row[idx:] 
-    for _ in range(3):
-        row = f.readline()
-        print("WSN-S> header: %s" % row, flush=True)
+    time_stamp = stamp_heder(row,WSN_STAMP_TIME)
+    row = f.readline()
+    time_stamp += '+' + stamp_heder(row,WSN_STAMP_DELAY)
+    row = f.readline()
+    freq_stamp = stamp_heder(row,WSN_STAMP_FREQ)
+    row = f.readline()
     # init       
     y = []
     n = 0
@@ -688,7 +705,7 @@ def post_graphFreq():
         y.append(y_val)
         idx += 1
     
-    return json.dumps({ 'x': x, 'y': y, 't': time_stamp })
+    return json.dumps({ 'x': x, 'y': y, 't': time_stamp, 'f': freq_stamp, 'm': 'Fourier Transform' })
 
 #############################################
 #############################################
@@ -701,9 +718,9 @@ if __name__ == '__main__':
     print("WSN-S> starting !", flush=True)
     if open_socket():
         #
-        # wait client connection
+        # wait client connection (in case of test, not used)
         #
-        accept_socket(ACCEPT_WAIT_TIME)
+        ## accept_socket(ACCEPT_WAIT_TIME)
         #
         # flask web server running
         #
