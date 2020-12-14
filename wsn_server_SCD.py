@@ -340,20 +340,8 @@ def post_monStart():
 
     # check BDT lock flag
     if gBDTlockFlag or gSTElockFlag:
-        rows = {'row_00' : '*',
-                'row_01' : '*',
-                'row_02' : '*',
-                'row_03' : '*',
-                'row_04' : '*',
-                'row_05' : '*',
-                'row_06' : '*',
-                'row_07' : '*',
-                'row_08' : '*',
-                'row_09' : '*',
-                'row_10' : '*',
-                'row_11' : '*',
-                'status_01' : '[Somebody is running STE or BDT]',
-                'status_02' : '[only one can run STE or BDT]'
+        rows = {'row' : ['*','*','*','*','*','*','*','*','*','*','*','*'],
+                'status' : ['[Somebody is running STE or BDT]', '[only one can run STE or BDT]']
                }               
         return json.dumps(rows)
 
@@ -383,48 +371,18 @@ def post_monStart():
         # analyz more to display status afterward....
         # ===========================================
         if max(val_x, val_y, val_z) >= 0.7 or (val_x > 0.2 and val_y > 0.2  and val_z > 0.2):        
-            status_01 = 'VIBRATION'
-            status_02 = 'ABNORMAL'
+            status = ['VIBRATION', 'ABNORMAL']
         elif max(val_x, val_y, val_z) >= 0.2:
-            status_01 = 'VIBRATION'
-            status_02 = 'NORMAL'
+            status = ['VIBRATION', 'NORMAL']
         elif val_x == 0.0 and val_y == 0.0  and val_z == 0.0: 
-            status_01 = 'STOP'
-            status_02 = 'NORMAL'
+            status = ['STOP', 'NORMAL']
         else:    
-            status_01 = 'STOP(NOISE)'
-            status_02 = 'UNKNOWN'
+            status = ['STOP(noisy)', 'UNKNOWN']
         # ===========================================
-        rows = {'row_00' : vals[ 0],
-                'row_01' : vals[ 1],
-                'row_02' : vals[ 2],
-                'row_03' : vals[ 3],
-                'row_04' : vals[ 4],
-                'row_05' : vals[ 5],
-                'row_06' : vals[ 6],
-                'row_07' : vals[ 7],
-                'row_08' : vals[ 8],
-                'row_09' : vals[ 9],
-                'row_10' : vals[10],
-                'row_11' : vals[11],
-                'status_01' : status_01,
-                'status_02' : status_02
-               }
+        rows = {'row' : vals, 'status' : status }
     else:                          
-        rows = {'row_00' : '?',
-                'row_01' : '?',
-                'row_02' : '?',
-                'row_03' : '?',
-                'row_04' : '?',
-                'row_05' : '?',
-                'row_06' : '?',
-                'row_07' : '?',
-                'row_08' : '?',
-                'row_09' : '?',
-                'row_10' : '?',
-                'row_11' : '?',
-                'status_01' : '[-?-]',
-                'status_02' : '[-?-]'
+        rows = {'row' : ['?','?','?','?','?','?','?','?','?','?','?','?'],
+                'status' : ['-?-', '-?-']
                }               
 
     return json.dumps(rows)
@@ -447,21 +405,9 @@ def post_monStop():
         time.sleep(0.2)
         write_to_socket(TCP_STE_STOP_MSG)
         gIsMonStarted = False
-        rows = {'row_00' : time_stamp(),
-                'row_01' : '-',
-                'row_02' : '-',
-                'row_03' : '-',
-                'row_04' : '-',
-                'row_05' : '-',
-                'row_06' : '-',
-                'row_07' : '-',
-                'row_08' : '-',
-                'row_09' : '-',
-                'row_10' : '-',
-                'row_11' : '-',
-                'status_01' : '[---]',
-                'status_02' : '[---]'
-               }
+        rows = {'row' : [time_stamp(),'*','*','*','*','*','*','*','*','*','*','*'],
+                'status' : ['---', '---']
+               }               
 
     # release STE lock flag
     gSTElockFlag = False    

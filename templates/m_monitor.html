@@ -18,17 +18,17 @@
 
 <div style="text-align:center"><b>SCD Sensor Data - on-time display</b></div><br>
 <div>
-    <label id="row_00_label">Sensor Measured Time : </label>
-    <label id="row_00" style="font-weight:bold; font-size: 20px; color:blueviolet;"><b>YYYY-MM-DD hh:mm:ss [unix time]</b></label>
+    <label id="row_0_label">Sensor Measured Time : </label>
+    <label id="row_0" style="font-weight:bold; font-size: 20px; color:blueviolet;"><b>YYYY-MM-DD hh:mm:ss [unix time]</b></label>
 </div> 
 <br>   
 <div style="padding-left:35px">
-    <label id="status_01_label">Movement Status : </label>
-    <label id="status_01" style="font-weight:bold; font-size: 20px; color:grey;">[---]</label>
+    <label id="status_0_label">Movement Status : </label>
+    <label id="status_0" style="font-weight:bold; font-size: 20px; color:grey;">unknown</label>
 </div>
 <div style="padding-left:69px">   
-    <label id="status_02_label">Fault Status : </label>
-    <label id="status_02" style="font-weight:bold; font-size: 20px; color:grey;">[---]</label>
+    <label id="status_1_label">Fault Status : </label>
+    <label id="status_1" style="font-weight:bold; font-size: 20px; color:grey;">unknown</label>
 </div>
 <br> 
 
@@ -40,47 +40,47 @@
     </tr>
     <tr>
         <td class="col_00">accelerometer mean X-axis</td>
-        <td class="col_01" id="row_01">-</td>
+        <td class="col_01" id="row_1">-</td>
         <td class="col_02" style="text-align:left;">G-forces (g)</td>
     </tr>
     <tr>
         <td class="col_00">accelerometer variance X-axis</td>
-        <td class="col_01" id="row_02">-</td>
+        <td class="col_01" id="row_2">-</td>
         <td class="col_02" style="text-align:left;">g<sup>2</sup></td>
     </tr>
     <tr>
         <td class="col_00">accelerometer mean. Y-axis</td>
-        <td class="col_01" id="row_03">-</td>
+        <td class="col_01" id="row_3">-</td>
         <td class="col_02" style="text-align:left;">G-forces (g)</td>
     </tr>
     <tr>
         <td class="col_00">accelerometer variance Y-axis</td>
-        <td class="col_01" id="row_04">-</td>
+        <td class="col_01" id="row_4">-</td>
         <td class="col_02" style="text-align:left;">g<sup>2</sup></td>
     </tr>
     <tr>
         <td class="col_00">accelerometer mean. Z-axis</td>
-        <td class="col_01" id="row_05">-</td>
+        <td class="col_01" id="row_5">-</td>
         <td class="col_02" style="text-align:left;">G-forces (g)</td>
     </tr>
     <tr>
         <td class="col_00">accelerometer variance Z-axis</td>
-        <td class="col_01" id="row_06">-</td>
+        <td class="col_01" id="row_6">-</td>
         <td class="col_02" style="text-align:left;">g<sup>2</sup></td>
     </tr>
     <tr>
         <td class="col_00">temperature</td>
-        <td class="col_01" id="row_07">-</td>
+        <td class="col_01" id="row_7">-</td>
         <td class="col_02" style="text-align:left;">celcius (℃)</td>
     </tr>
     <tr>
         <td class="col_00">light</td>
-        <td class="col_01" id="row_08">-</td>
+        <td class="col_01" id="row_8">-</td>
         <td class="col_02" style="text-align:left;">Lux (lx)</td>
     </tr>
     <tr>
         <td class="col_00">magnetometer X-axis</td>
-        <td class="col_01" id="row_09">-</td>
+        <td class="col_01" id="row_9">-</td>
         <td class="col_02" style="text-align:left;">micro-tesla (&#181;T)</td>
     </tr>
     <tr>
@@ -97,83 +97,36 @@
 
 <script>
 
-    var tid = null
-    var col = 'black'
+    var tid = null;
+    var col = 'black';
+    var row_val;
+    var dat_val;
+    var row_col = new Array(12);
+    var i;
 
     function dispData(data) {
-        const row_01 = parseFloat(document.getElementById('row_01').value);
-        const row_02 = parseFloat(document.getElementById('row_02').value);
-        const row_03 = parseFloat(document.getElementById('row_03').value);
-        const row_04 = parseFloat(document.getElementById('row_04').value);
-        const row_05 = parseFloat(document.getElementById('row_05').value);
-        const row_06 = parseFloat(document.getElementById('row_06').value);
-        const row_07 = parseFloat(document.getElementById('row_07').value);
-        const row_08 = parseFloat(document.getElementById('row_08').value);
-        const row_09 = parseFloat(document.getElementById('row_09').value);
-        const row_10 = parseFloat(document.getElementById('row_10').value);
-        const row_11 = parseFloat(document.getElementById('row_11').value);
-        document.getElementById("row_00").innerHTML = data.row_00;
-        document.getElementById("row_01").innerHTML = data.row_01;
-        document.getElementById("row_02").innerHTML = data.row_02;
-        document.getElementById("row_03").innerHTML = data.row_03;
-        document.getElementById("row_04").innerHTML = data.row_04;
-        document.getElementById("row_05").innerHTML = data.row_05;
-        document.getElementById("row_06").innerHTML = data.row_06;
-        document.getElementById("row_07").innerHTML = data.row_07;
-        document.getElementById("row_08").innerHTML = data.row_08;
-        document.getElementById("row_09").innerHTML = data.row_09;
-        document.getElementById("row_10").innerHTML = data.row_10;
-        document.getElementById("row_11").innerHTML = data.row_11;
-        document.getElementById("status_01").innerHTML = data.status_01;
-        document.getElementById("status_02").innerHTML = data.status_02;
-        if (data.status_01 == 'VIBRATION') { col = 'blue'; } else { col = 'gray'; }
-        document.getElementById("status_01").style.color = col;
-        if (data.status_01 == 'ABNORMAL') { col = 'red'; } else { col = 'gray'; }
-        document.getElementById("status_02").style.color = col;
-        if (row_01 > parseFloat(data.row_01)) { col = 'red'; } else { 
-            if (row_01 < parseFloat(data.row_01)) { col = 'blue'; } else { col = 'black'; } 
+        
+        row_col[0] = 'blueviolet';
+        for ( i = 1; i  < 12; i++ ) { 
+            row_val = parseFloat(document.getElementById("row_" + i).value);
+            dat_val = parseFloat(data.row[i]);
+            if (row_val > dat_val) { row_col[i] = 'red'; } else { 
+                if (row_val < dat_val) { row_col[i] = 'blue'; } else { row_col[i] = 'black'; } 
+            }
+            document.getElementById("row_" + i).style.color = col;
         }
-        document.getElementById("row_01").style.color = col;
-        if (row_02 > parseFloat(data.row_02)) { col = 'red'; } else { 
-            if (row_02 < parseFloat(data.row_02)) { col = 'blue'; } else { col = 'black'; } 
+
+        for ( i = 0; i  < 12; i++ ) {     
+            document.getElementById("row_" + i).innerHTML = data.row[i].fontcolor(row_col[i]);
         }
-        document.getElementById("row_02").style.color = col;
-        if (row_03 > parseFloat(data.row_03)) { col = 'red'; } else { 
-            if (row_03 < parseFloat(data.row_03)) { col = 'blue'; } else { col = 'black'; } 
-        }
-        document.getElementById("row_03").style.color = col;
-        if (row_04 > parseFloat(data.row_04)) { col = 'red'; } else { 
-            if (row_04 < parseFloat(data.row_04)) { col = 'blue'; } else { col = 'black'; } 
-        }
-        document.getElementById("row_04").style.color = col;
-        if (row_05 > parseFloat(data.row_05)) { col = 'red'; } else { 
-            if (row_05 < parseFloat(data.row_05)) { col = 'blue'; } else { col = 'black'; } 
-        }
-        document.getElementById("row_05").style.color = col;
-        if (row_06 > parseFloat(data.row_06)) { col = 'red'; } else { 
-            if (row_06 < parseFloat(data.row_06)) { col = 'blue'; } else { col = 'black'; } 
-        }
-        document.getElementById("row_06").style.color = col;
-        if (row_07 > parseFloat(data.row_07)) { col = 'red'; } else { 
-            if (row_07 < parseFloat(data.row_07)) { col = 'blue'; } else { col = 'black'; } 
-        }
-        document.getElementById("row_08").style.color = col;
-        if (row_08 > parseFloat(data.row_08)) { col = 'red'; } else { 
-            if (row_08 < parseFloat(data.row_08)) { col = 'blue'; } else { col = 'black'; } 
-        }
-        document.getElementById("row_08").style.color = col;
-        if (row_09 > parseFloat(data.row_09)) { col = 'red'; } else { 
-            if (row_09 < parseFloat(data.row_09)) { col = 'blue'; } else { col = 'black'; } 
-        }
-        document.getElementById("row_09").style.color = col;
-        if (row_10 > parseFloat(data.row_10)) { col = 'red'; } else { 
-            if (row_10 < parseFloat(data.row_10)) { col = 'blue'; } else { col = 'black'; } 
-        }
-        document.getElementById("row_10").style.color = col;
-        if (row_11 > parseFloat(data.row_11)) { col = 'red'; } else { 
-            if (row_11 < parseFloat(data.row_11)) { col = 'blue'; } else { col = 'black'; } 
-        }
-        document.getElementById("row_11").style.color = col;
+        for ( i = 0; i  < 2; i++ ) { 
+            document.getElementById("status_" + i).innerHTML = data.status[i];
+        }    
+
+        if (data.status[0] == 'VIBRATION') { col = 'blue'; } else { col = 'gray'; }
+        document.getElementById("status_0").style.color = col;
+        if (data.status[1] == 'ABNORMAL') { col = 'red'; } else { col = 'gray'; }
+        document.getElementById("status_1").style.color = col;
     }
 
     function monBegin() {
