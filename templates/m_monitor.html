@@ -128,7 +128,7 @@
         document.getElementById("status_02").innerHTML = data.status_02;
         if (data.status_01 == 'VIBRATION') { col = 'blue'; } else { col = 'gray'; }
         document.getElementById("status_01").style.color = col;
-        if (data.status_01 == 'ABNORMAL') { col = 'red'; } else { col = 'gray'; }
+        if (data.status_01 == 'ABNORMAL') { col = 'red'; } else { col = 'red'; }
         document.getElementById("status_02").style.color = col;
         if (row_01 > parseFloat(data.row_01)) { col = 'red'; } else { 
             if (row_01 < parseFloat(data.row_01)) { col = 'blue'; } else { col = 'black'; } 
