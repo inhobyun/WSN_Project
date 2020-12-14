@@ -382,7 +382,7 @@ def post_monStart():
         # ===========================================
         # analyz more to display status afterward....
         # ===========================================
-        if max(val_x, val_y, val_z) >= 0.7 or (val_x > 0.2 and val_y > 0.2  and val_z > 0.2):        
+        if max(val_x, val_y, val_z) >= 1.0 or (val_x > 0.2 and val_y > 0.2  and val_z > 0.2):        
             status_01 = 'VIBRATION'
             status_02 = 'ABNORMAL'
         elif max(val_x, val_y, val_z) >= 0.2:
