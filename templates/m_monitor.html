@@ -101,23 +101,24 @@
     var col = 'black';
     var row_val;
     var dat_val;
-    var row_col = new Array(12);
+    var row_col = new Array();
     var i;
 
     function dispData(data) {
         
         row_col[0] = 'blueviolet';
         for ( i = 1; i  < 12; i++ ) { 
-            row_val = parseFloat(document.getElementById("row_" + i).value);
-            dat_val = parseFloat(data.row[i]);
-            if (row_val > dat_val) { row_col[i] = 'red'; } else { 
-                if (row_val < dat_val) { row_col[i] = 'blue'; } else { row_col[i] = 'black'; } 
+            row_val = parseFloat( document.getElementById("row_" + i).innerHTML );
+            dat_val = parseFloat( data.row[i] );
+            if (row_val > dat_val) { col = 'blue'; } else { 
+                if (row_val < dat_val) { col = 'red'; } else { col = 'black'; } 
             }
-            document.getElementById("row_" + i).style.color = col;
+            row_col[i] = col;
         }
 
         for ( i = 0; i  < 12; i++ ) {     
-            document.getElementById("row_" + i).innerHTML = data.row[i].fontcolor(row_col[i]);
+            document.getElementById("row_" + i).innerHTML = data.row[i]; //.fontcolor(row_col[i]);
+            document.getElementById("row_" + i).style.color = row_col[i];
         }
         for ( i = 0; i  < 2; i++ ) { 
             document.getElementById("status_" + i).innerHTML = data.status[i];
