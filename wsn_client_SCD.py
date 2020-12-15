@@ -567,6 +567,7 @@ def SCD_run_STE_for_idling( p ):
     print ("SCD> STE running for idling ...", flush=True)
     p.setDelegate( NotifyDelegate(p) )
     SCD_set_STE_config(p, False)
+    rolling_status_backup = gSTEisRolling
     SCD_toggle_STE_rolling(p, True, True)
     # take rolling time ( added more overhead time)
     tm = time.time()
