@@ -6,39 +6,58 @@
 
 {% block left %}
     <div style="text-align:center;"><label><b>Graph X & Y Axis Setting</b></label></div><br> 
-    <div style="text-align:right;"><button class="button-l" id="btn_draw" onclick="dispGraph('blue')"><b> Draw Graph </b></button></div>
+    <div style="text-align:right;">
+        <button class="button-l" id="btn_draw" onclick="dispGraph('Green')">Draw Graph</button>
+    </div><br>
     
-    <div style="position:absolute; left:  8px; top:128px;"><label>Scaling Mode:</label></div>
-    <div style="position:absolute; left:100px; top:128px;"><input type="radio" id="scale_auto" name="scale" onchange="clearScale()" value="scale_auto" checked>
-                                                           <label>Automatic</label></div>
-    <div style="position:absolute; left:100px; top:146px;"><input type="radio" id="scale_manu" name="scale" onchange="clearScale()" value="scale_manu" disabled>
-                                                           <label>Manual</label></div>
-    
-    <div style="position:absolute; left: 16px; top:172px;"><label>Y (g)</label></div>
-    <div style="position:absolute; left: 70px; top:172px;"><label for="y_min">Min</label></div>
-    <div style="position:absolute; left:102px; top:170px;"><input type="number" id="y_min" value=''></div>
-    <div style="position:absolute; left: 70px; top:202px;"><label for="y_max">Max</label></div>
-    <div style="position:absolute; left:102px; top:200px;"><input type="number" id="y_max" value=''></div>   
-    <div style="position:absolute; left: 70px; top:232px;"><label for="y_grid">Grid</label></div>
-    <div style="position:absolute; left:102px; top:230Px;"><input type="number" id="y_grid" value='' disabled></div>
-    
-    <div style="position:absolute; left: 16px; top:272px;"><label>X (sec)</label></div>
-    <div style="position:absolute; left: 70px; top:272px;"><label>Min</label></div>
-    <div style="position:absolute; left:102px; top:270px;"><input type="number" id="x_min" value=''></div>  
-    <div style="position:absolute; left: 70px; top:302px;"><label>Max</label></div>
-    <div style="position:absolute; left:102px; top:300px;"><input type="number" id="x_max" value=''></div>
-    <div style="position:absolute; left: 70px; top:332px;"><label>Grid</label></div>
-    <div style="position:absolute; left:102px; top:330px;"><input type="number" id="x_grid" value='' disabled></div>
+    <div style="text-align:left;">
+        <label for="scale">Scaling Mode:</label>
+    </div>
+    <div style="text-align:left; padding-left:72px">
+        <input type="radio" id="scale_auto" name="scale" onchange="clearScale()" value="scale_auto" checked>                                                   
+        <label for="scale">Automatic</label><br>
+        <input type="radio" id="scale_manu" name="scale" onchange="clearScale()" value="scale_manu" disabled>                                                   
+        <label for="scale">Manual</label>
+    </div><br>
   
-    <div style="position:absolute; left:  8px; top:370px;"><label>Draw Mode:</label></div>
-    <div style="position:absolute; left:100px; top:370px;"><input type="radio" id="draw_s" name="draw" value="Sum(X,Y,Z)" checked>
-                                                           <label>Sum of all direction</label></div>
-    <div style="position:absolute; left:100px; top:388px;"><input type="radio" id="draw_x" name="draw" value="X only">
-                                                           <label>X direction only</label></div>
-    <div style="position:absolute; left:100px; top:406px;"><input type="radio" id="draw_y" name="draw" value="Y only">
-                                                           <label>Y direction only</label></div>
-    <div style="position:absolute; left:100px; top:424px;"><input type="radio" id="draw_z" name="draw" value="Z only">
-                                                           <label>Z direction only</label></div>
+    <div style="text-align:left;">
+        <label>Y (g)</label>
+    </div>    
+    <div style="text-align:right;">
+        <label for="y_min">Min</label>
+        <input type="number" id="y_min" name="y_min" value=''><br>
+        <label for="y_max">Max</label>
+        <input type="number" id="y_max" name="y_max" value=''><br>   
+        <label for="y_grid">Grid</label>
+        <input type="number" id="y_grid"name="y_grid" value='' disabled>
+    </div><br>
+    
+    <div style="text-align:left;">
+        <label>X (sec)</label>
+    </div>
+    <div style="text-align:right;">
+        <label for="x_min">Min</label>
+        <input type="number" id="x_min" name="x_min" value=''><br>
+        <label for="x_max">Max</label>
+        <input type="number" id="x_max" name="x_max" value=''><br>   
+        <label for="x_grid">Grid</label>
+        <input type="number" id="x_grid"name="x_grid" value='' disabled>
+    </div><br>
+    
+    <div style="text-align:left;">
+        <label>Draw Mode:</label>
+    </div>
+    <div style="text-align:left; padding-left:72px"">
+        <input type="radio" id="draw_s" name="draw" value="Sum(X,Y,Z)" checked>
+        <label for="draw">Sum of all direction</label><br>
+        <input type="radio" id="draw_x" name="draw" value="X only">
+        <label for="draw">X direction only</label><br>
+        <input type="radio" id="draw_y" name="draw" value="Y only">
+        <label for="draw">Y direction only</label><br>
+        <input type="radio" id="draw_z" name="draw" value="Z only">
+        <label for="draw">Z direction only</label>
+    </div>
+                                                       
 {% endblock %}
 
 {% block right %}
