@@ -438,7 +438,7 @@ def post_STEandBDT():
     # send BDT run
     accept_socket()
     write_to_socket(TCP_BDT_RUN_MSG)
-    time.sleep(1.0)
+    time.sleep(10.0)
     # wait till completed
     write_to_socket(TCP_DEV_READY_MSG)
     from_client = ''
@@ -479,9 +479,9 @@ def post_BDTtoServer():
     while True:
         # send BDT request
         accept_socket()
-        time.sleep(0.2)
+        time.sleep(0.1)
         write_to_socket(TCP_BDT_REQ_MSG)
-        time.sleep(0.2)
+        time.sleep(0.1)
         # get data from client
         from_client = ''
         while from_client == '':

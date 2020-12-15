@@ -6,12 +6,18 @@
 
 {% block left %}
     <div style="text-align:center;"><b>Sensor Data Acquisition</b></div><br> 
-    <div style="text-align: right; padding-right:8px;"><button class="button-l" id="btn_start_1" onclick="startSTEandBDT()"> Run... </button></div><br>
-    <div style="text-align: right; padding-right:8px;"><button class="button-l" id="btn_start_2" onclick="startBDTtoSever()" disabled> Run... </button></div><br>
-    <div style="text-align: right; padding-right:8px;"><button class="button-l" id="btn_start_3" onclick="startBDTtoFile()"   disabled> Run... </button></div>
-    <div style="position:absolute; left:8px; top: 99px;"><label>Run accelometer sensor</label></div>
-    <div style="position:absolute; left:8px; top:136px;"><label>Sensor CSV data transfer</label></div>
-    <div style="position:absolute; left:8px; top:173px;"><label>Sensor data save to *.csv file</label></div>
+    <div style="text-align: right">
+        <label for="btn_start_1">Run accelometer sensor</label>
+        <button class="button-l" id="btn_start_1" name="btn_start_1" onclick="startSTEandBDT()"> Run... </button>
+    </div><br>
+    <div style="text-align: right">
+        <label for="btn_start_2">Sensor CSV data transfer</label>
+        <button class="button-l" id="btn_start_2" name="btn_start_2" onclick="startBDTtoSever()" disabled> Run... </button>
+    </div><br>
+    <div style="text-align: right">
+        <label for="btn_start_3">Data save to *.csv file</label>
+        <button class="button-l" id="btn_start_3" name="btn_start_3" onclick="startBDTtoFile()"   disabled> Run... </button>
+    </div>
 {% endblock %}
 
 {% block right %}

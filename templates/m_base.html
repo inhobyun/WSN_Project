@@ -21,189 +21,204 @@
 
     <style>
 
-    * {
-        box-sizing: border-box;
-        margin-top: 0px;
-        margin-left: 0px;
-        margin-bottom: 0px;
-        margin-right: 0px;
-    }
-
-    body {
-        font-family: Arial, Helvetica, sans-serif;
-    }
-
-    /* The grid container */
-    .grid-container {
-        display: grid;
-        grid-template-columns: 280px auto;
-    } 
-
-    .top,
-    .top-left,
-    .top-right {
-        padding-top: 6px;
-        padding-bottom: 6px;
-        padding-left: 6px;
-        padding-right: 6px;
-        font-size: 16px;
-    }
-    
-    .top {
-        grid-area: top;
-        background-color: #999;
-        color: black;
-        text-align: center;
-    }
-
-    .top-left,
-    .top-right {
-        background-color: #666;
-        color: white;
-    }
-
-    .top-left {
-        grid-area: top-left;
-        text-align: left;
-    }
-
-    .top-right {
-        grid-area: top-right;
-        text-align: right;
-    }
-
-    .left,
-    .right {
-        height: 840px; /* Should be removed. Only for demonstration */
-        font-size: 14px;
-        padding-top: 4px;
-        padding-bottom: 4px;
-    }
-
-    /* Style the left column */
-    .left {
-        grid-area: left;
-        background-color: #aaa;
-        padding-left: 2px;
-        padding-right: 2px;
-    }
-
-    /* Style the right column */
-    .right {
-        grid-area: right;
-        background-color: whitesmoke;
-        padding-left: 4px;
-        padding-right: 4px;
-    }
-
-    /* Style the footer */
-    .foot {
-        grid-area: foot;
-        background-color: #999;
-        color: white;
-        padding-top: 4px;
-        padding-bottom: 4px;
-        text-align: center;
-        font-size: 14px;
-    }
-
-    /* Style the table */
-    table {
-        width: 60%;
-        text-align: left;
-        table-layout: auto;
-    }
-
-    table,
-    td,
-    th {
-        border-collapse: collapse;
-    }
-
-    th,
-    td {
-        padding: 6px;
-        border: solid 1px;
-    }
-
-    th {
-        text-align: center;
-        background-color: #99b;
-    }
-
-    td {
-        text-align: right;
-    }
-
-    td.col_01 {
-        font-size: 16px;
-        font-weight: bold;
-    }
-
-
-    /* Responsive layout - makes the three columns stack on top of each other instead of next to each other */
-    @media (min-width: 1280px) {
-        .grid-container  {
-            grid-template-areas: 
-            'top      top      top      top'
-            'top-left top-left top-left top-right' 
-            'left     right    right    right' 
-            'foot     foot     foot     foot';
+        * {
+            font-size: 16px;
+            box-sizing: border-box;
+            margin-top: 0px;
+            margin-left: 0px;
+            margin-bottom: 0px;
+            margin-right: 0px;
         }
-    }
 
-    .button {
-        display: inline-block;
-        padding: 2px 4px;
-        font-size: 16px;
-        cursor: pointer;
-        text-align: center;
-        text-decoration: none;
-        outline: none;
-        color: #00f;
-        background-color: #fff;
-        border: none;
-        border-radius: 4px;
-        box-shadow: 0 8px #777;
-    }
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+        }
 
-    .button:disabled {
-        background-color: #888;
-        color: #77e;
-    }
+        /* The grid container */
+        .grid-container {
+            display: grid;
+            grid-template-columns: 280px auto;
+            grid-template-areas: 
+                'top      top      top'
+                'top-left top-left top-right' 
+                'left     right    right' 
+                'foot     foot     foot';
+        } 
 
-    .button:hover {
-        background-color: #88f;
-        color: #fff;
-    }
+        .top,
+        .top-left,
+        .top-right {
+            padding-top: 6px;
+            padding-bottom: 6px;
+            padding-left: 6px;
+            padding-right: 6px;       
+        }
+        
+        .top {
+            grid-area: top;
+            background-color: #999;
+            color: black;
+            text-align: center;
+        }
 
-    .button:active {
-        background-color: #88f;
-        box-shadow: 0 4px #666;
-        transform: translateY(4px);
-    }
+        .top-left,
+        .top-right {
+            background-color: #666;
+            color: white;
+        }
 
-    .button-l {
-        display: inline-block;
-        cursor: pointer;
-        text-align: center;
-        text-decoration: none;
-        outline: none;
-        color: #00f;
-        background-color: #fff;
-        border: 1px solid #00f;
-        border-radius: 3px;
-    }
+        .top-left {
+            grid-area: top-left;
+            text-align: left;
+        }
 
-    .button-l:disabled {
-        background-color: #888;
-        color: #44a;
-    }
+        .top-right {
+            grid-area: top-right;
+            text-align: right;
+        }
 
-    .button-l:hover {
-        background-color: #484;
-        color: #fff;
-    }
+        .left,
+        .right {
+            height: 840px; /* Should be removed. Only for demonstration */
+            padding-top: 4px;
+            padding-bottom: 4px;
+            padding-left: 4px;
+            padding-right: 4px;
+        }
+
+        /* Style the left column */
+        .left {
+            grid-area: left;
+            background-color: #aaa;
+        }
+
+        /* Style the right column */
+        .right {
+            grid-area: right;
+            background-color: whitesmoke;
+        }
+
+        /* Style the footer */
+        .foot {
+            grid-area: foot;
+            background-color: #999;
+            color: white;
+            padding-top: 4px;
+            padding-bottom: 4px;
+            text-align: center;
+        }
+
+        /* Style the table */
+        table {
+            width: 60%;
+            text-align: left;
+            table-layout: auto;
+        }
+
+        table,
+        td,
+        th {
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 6px;
+            border: solid 1px;
+        }
+
+        th {
+            text-align: center;
+            background-color: #99b;
+        }
+
+        td {
+            text-align: right;
+        }
+
+        td.col_00 {
+            background-color: #999;
+        }
+
+        td.col_01 {
+            font-weight: bold;
+        }
+
+        td.col_02 {
+            color: #444;
+        }
+
+        /* Responsive layout */
+        @media (min-width: 480px) and (max-width: 640px) {
+            * {
+                font-size: 12px;
+            }
+            table {
+                width: 98%
+            }
+        }
+        @media (min-width: 641px) and (max-width: 1080px) {
+            * {
+                font-size: 14px;
+            }
+            table {
+                width: 86%
+            }
+        }
+    
+        .button {
+            display: inline-block;
+            padding: 2px 4px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            outline: none;
+            color: #00f;
+            background-color: #fff;
+            border: none;
+            border-radius: 4px;
+            box-shadow: 0 8px #777;
+        }
+
+        .button:disabled {
+            background-color: #888;
+            color: #77e;
+        }
+
+        .button:hover {
+            background-color: #88f;
+            color: #fff;
+        }
+
+        .button:active {
+            background-color: #88f;
+            box-shadow: 0 4px #666;
+            transform: translateY(4px);
+        }
+
+        .button-l {
+            display: inline-block;
+            cursor: pointer;
+            font-weight: bold;
+            text-align: center;
+            text-decoration: none;
+            outline: none;
+            color: #00f;
+            background-color: #fff;
+            border: 1px solid #00f;
+            border-radius: 3px;
+        }
+
+        .button-l:disabled {
+            background-color: #888;
+            color: #44a;
+        }
+
+        .button-l:hover {
+            background-color: #559;
+            color: #fff;
+        }
 
     </style>
 
@@ -219,15 +234,15 @@
             <b>【Sensor Data Monitoring & Analysis】</b> prototype β version
         </div>      
         <div class="top-left">
-            <button class="button" id="btn_ihome" onclick="window.location.href='/'"             ><i class="fa fa-home"></i> Home </button>
-            <button class="button" id="btn_confi" onclick="window.location.href='/m_Ooops'"      ><b>Sensor Configuration  </b></button>
-            <button class="button" id="btn_monit" onclick="window.location.href='/m_monitor'"    ><b>Sensor Monitoring     </b></button>
-            <button class="button" id="btn_acqui" onclick="window.location.href='/m_acquisition'"><b>Data Acqusition       </b></button>
-            <button class="button" id="btn_gtime" onclick="window.location.href='/m_graph_time'" ><b>Analysis - Time Series</b></button>
-            <button class="button" id="btn_gfreq" onclick="window.location.href='/m_graph_freq'" ><b>Analysis - Frequency  </b></button>
+            <button class="button" id="btn_ihome" onclick="window.location.href='/'"             ><i class="fa fa-home"></i></button>
+            <button class="button" id="btn_confi" onclick="window.location.href='/m_Ooops'"      ><b>Configuration       </b></button>
+            <button class="button" id="btn_monit" onclick="window.location.href='/m_monitor'"    ><b>Monitoring          </b></button>
+            <button class="button" id="btn_acqui" onclick="window.location.href='/m_acquisition'"><b>Data Acqusition     </b></button>
+            <button class="button" id="btn_gtime" onclick="window.location.href='/m_graph_time'" ><b>Analysis - Time     </b></button>
+            <button class="button" id="btn_gfreq" onclick="window.location.href='/m_graph_freq'" ><b>Analysis - Frequency</b></button>
         </div>
         <div class="top-right">
-            <button class="button" id="btn_about" onclick="window.location.href='/m_intro_1'">About...</button>
+            <button class="button" id="btn_about" onclick="window.location.href='/m_intro_1'"><i class="fa fa-info-circle"></i></button>
         </div>
     
         <div class="left">
@@ -290,6 +305,7 @@
             if (x_max > x_min_id.value && x_min_id.value > x_min) { x_fr = x_min_id.value; };
             if (y_max > y_max_id.value && y_max_id.value > y_min) { y_to = y_max_id.value; };
             if (x_max > x_max_id.value && x_max_id.value > x_min) { x_to = x_max_id.value; };
+            if (x_fr < 0.01) { x_fr = 0.0 } // adjust binnary error 
             // Add X axis
             var x = d3.scaleLinear()
                 .domain([ x_fr, x_to ])

@@ -1,5 +1,10 @@
 {% extends "m_base.html" %}
 
+
+{% block foot %}
+    <div>Select the sensor mode</div>
+{% endblock %}
+
 {% block left %}
     <div style="text-align:center;"><b>Sensor Config. Setting</b></div>
 
@@ -70,10 +75,4 @@
     <div style="text-align:center; padding-top:16px;">
         <img src="/static/images/sensor_SCD.png">
     </div>    
-{% endblock %}
-
-{% block foot %}
-    <div style="font-size:14px; color:#fff;">
-        Select the sensor mode
-    </div>
 {% endblock %}
