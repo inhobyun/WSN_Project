@@ -68,7 +68,7 @@ RESCAN_INTERVAL = 50.   # 1 min.; looping to rescan BLE after scan failed
 ##RESCAN_PERIOD   = 11100. # 3 hrs 5 min.; time period to rescan BLE to connect
 RESCAN_PERIOD   = 43200. # 12 hrs; time period to rescan BLE to connect  
 #
-STE_RUN_TIME    = 3.5    # STE rolling time in secconds for SENSOR data recording
+STE_RUN_TIME    = 2.0    # STE rolling time in secconds for SENSOR data recording
 STE_FREQUENCY   = (400, 800, 1600, 3200, 6400)  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz 
 #
 # global variables
@@ -285,7 +285,7 @@ def SCD_toggle_STE_rolling( p, will_start = False, will_notify = False ):
         if not gSTEisRolling:
             if will_notify:
                 p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1) )
-                time.sleep(0.3)
+                time.sleep(0.1)
             p.writeCharacteristic( SCD_SET_MODE_HND, b'\x00' )    
             p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
             print ("SCD> STE is starting", flush=True)        
@@ -298,7 +298,7 @@ def SCD_toggle_STE_rolling( p, will_start = False, will_notify = False ):
             ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
             while ( ret_val != b'\x00' ):
                 print ("SCD> => STE has not completed yet, generic command is [%s]" % ret_val.hex(), flush=True)
-                time.sleep(0.3)
+                time.sleep(0.1)
                 ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
             print ("SCD> STE stoped", flush=True)
             gSTEisRolling = False
@@ -599,7 +599,7 @@ def SCD_run_STE_and_BDT( p ):
     # take rolling time ( added more overhead time)
     tm = time.time()
     while time.time() - tm <= STE_RUN_TIME:
-        wait_flag = p.waitForNotifications(1.)
+        wait_flag = p.waitForNotifications(0.1)
         if wait_flag :
             continue
      # stop STE
@@ -609,20 +609,20 @@ def SCD_run_STE_and_BDT( p ):
     # start BDT
     #
     print ("SCD> Bulk Data Transfer after a while ...", flush=True)
-    time.sleep(0.7)
+    time.sleep(0.3)
     p.setDelegate( NotifyDelegate(p) )
     print ("SCD> BDT Starting ...", flush=True)
-    time.sleep(0.7)
+    time.sleep(0.3)
     p.writeCharacteristic( SCD_BDT_DATA_FLOW_HND+1, struct.pack('<H', 1) )
-    time.sleep(0.7)
+    time.sleep(0.3)
     p.writeCharacteristic( SCD_BDT_CONTROL_HND, b'\x01' )
     ret_val = b'x01'
     while ret_val == b'x01':  
-        wait_flag = p.waitForNotifications(5.)
+        wait_flag = p.waitForNotifications(1.0)
         if wait_flag :
             continue
         ret_val = p.readCharacteristic( SCD_BDT_STATUS_HND )
-        time.sleep(0.7)
+        time.sleep(0.3)
     print ("\nSCD> Bulk Data Transfer completed...status is [%s], time [%.3f], count [%d]" % \
             (ret_val.hex(), (gBDTlastTime-gBDTstartTime), gBDTnotiCnt), flush=True )
     #
