@@ -285,7 +285,7 @@ def SCD_toggle_STE_rolling( p, will_start = False, will_notify = False ):
         if not gSTEisRolling:
             if will_notify:
                 p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1) )
-                time.sleep(0.7)
+                time.sleep(0.3)
             p.writeCharacteristic( SCD_SET_MODE_HND, b'\x00' )    
             p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
             print ("SCD> STE is starting", flush=True)        
@@ -293,11 +293,12 @@ def SCD_toggle_STE_rolling( p, will_start = False, will_notify = False ):
     else:
         if gSTEisRolling:
             p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
-            print ("SCD> STE is stopping", flush=True)        
+            print ("SCD> STE is stopping", flush=True)
+            time.sleep(0.3)        
             ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
             while ( ret_val != b'\x00' ):
                 print ("SCD> => STE has not completed yet, generic command is [%s]" % ret_val.hex(), flush=True)
-                time.sleep(0.7)
+                time.sleep(0.3)
                 ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
             print ("SCD> STE stoped", flush=True)
             gSTEisRolling = False
@@ -564,7 +565,6 @@ def SCD_run_STE_for_idling( p ):
     #
     # start STE w/o memory writing
     print ("SCD> STE running for idling ...", flush=True)
-    rolling_status_backup = gSTEisRolling
     p.setDelegate( NotifyDelegate(p) )
     SCD_set_STE_config(p, False)
     SCD_toggle_STE_rolling(p, True, True)
