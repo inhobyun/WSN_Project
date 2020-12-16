@@ -288,11 +288,11 @@ def SCD_toggle_STE_rolling( p, will_start = False, will_notify = False ):
                 p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1) )
                 time.sleep(0.2)
             p.writeCharacteristic( SCD_SET_MODE_HND, b'\xff' )    
-            time.sleep(0,2)
+            time.sleep(0.2)
             p.writeCharacteristic( SCD_SET_MODE_HND, b'\x00' )
-            time.sleep(0,2)
+            time.sleep(0.2)
             p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
-            time.sleep(0,2)
+            time.sleep(0.2)
             print ("SCD> STE is starting", flush=True)        
             gSTEisRolling = True
     else:
