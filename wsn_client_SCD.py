@@ -224,8 +224,8 @@ def SCD_set_STE_config( p, is_writing = False ):
     #
     #ode  = 0x00 # ?0 data rate - accelerometer ODR 400Hz
     #ode  = 0x01 # ?1 data rate - accelerometer ODR 800Hz
-    #ode  = 0x02 # ?2 data rate - accelerometer ODR 1600Hz
-    mode  = 0x03 # ?3 data rate - accelerometer ODR 3200Hz
+    mode  = 0x02 # ?2 data rate - accelerometer ODR 1600Hz
+    #ode  = 0x03 # ?3 data rate - accelerometer ODR 3200Hz
     #ode  = 0x04 # ?4 data rate - accelerometer ODR 6400Hz
     #ode |= 0x00 # 0? data rate - light sensor ODR 100ms(10Hz)
     #ode |= 0x10 # 1? data rate - light sensor ODR 800ms(1.25Hz)
