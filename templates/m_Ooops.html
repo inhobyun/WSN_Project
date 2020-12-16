@@ -6,8 +6,8 @@
 {% endblock %}
 
 {% block left %}
-    <div style="text-align:center;"><b>Sensor Config. Setting</b></div><br><br>
-
+    <div style="text-align:center;"><b>Sensor Config. Setting</b></div>
+    <br><br>
     <div style="text-align:left;">
         <input type="checkbox" id="accl_on" name="accl_on" value="accl">                                                   
         <label>Acclerlometer</label>
@@ -26,11 +26,13 @@
         <label>3200 Hz (default)</label><br>
         <input type="radio" id="freq_6400" name="accl_freq" value="6400" disabled=True>
         <label>6400 Hz</label>
-    </div><br>
+    </div>
+    <br>
     <div style="text-align:left;">
         <input type="checkbox" id="temp_on" name="sensor" value="temp" checked>
         <label>Temperature</label>
-    </div><br>
+    </div>
+    <br>
     <div style="text-align:left;">
         <input type="checkbox" id="ligh_on" name="sensor" value="ligh" checked>
         <label>Light</label>
@@ -64,6 +66,6 @@
     </div>
     <br>
     <div style="text-align:center; padding-top:16px;">
-        <img src="/static/images/sensor_SCD.png">
+        <img class="contain" src="/static/images/sensor_SCD.png">
     </div>    
 {% endblock %}

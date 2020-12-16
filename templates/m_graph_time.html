@@ -5,11 +5,12 @@
 {% endblock %}
 
 {% block left %}
-    <div style="text-align:center;"><label><b>Graph X & Y Axis Setting</b></label></div><br> 
+    <div style="text-align:center;"><label><b>Graph X & Y Axis Setting</b></label></div>
+    <br> 
     <div style="text-align:right;">
         <button class="button-l" id="btn_draw" onclick="dispGraph('Green')">Draw Graph</button>
-    </div><br>
-    
+    </div>
+    <br>
     <div style="text-align:left;">
         <label for="scale">Scaling Mode:</label>
     </div>
@@ -18,8 +19,8 @@
         <label for="scale">Automatic</label><br>
         <input type="radio" id="scale_manu" name="scale" onchange="clearScale()" value="scale_manu" disabled>                                                   
         <label for="scale">Manual</label>
-    </div><br>
-  
+    </div>
+    <br>
     <div style="text-align:left;">
         <label>Y (g)</label>
     </div>    
@@ -30,8 +31,8 @@
         <input type="number" id="y_max" name="y_max" value=''><br>   
         <label for="y_grid">Grid</label>
         <input type="number" id="y_grid"name="y_grid" value='' disabled>
-    </div><br>
-    
+    </div>
+    <br>
     <div style="text-align:left;">
         <label>X (sec)</label>
     </div>
@@ -42,8 +43,8 @@
         <input type="number" id="x_max" name="x_max" value=''><br>   
         <label for="x_grid">Grid</label>
         <input type="number" id="x_grid"name="x_grid" value='' disabled>
-    </div><br>
-    
+    </div>
+    <br>
     <div style="text-align:left;">
         <label>Draw Mode:</label>
     </div>

@@ -19,84 +19,86 @@
 
 {% block right %}
 
-<div style="text-align:center"><b>SCD Sensor Data - on-time display</b></div><br>
-<div>
-    <label id="row_0_label">Sensor Measured Time : </label>
-    <label id="row_0" style="font-weight:bold; font-size: 20px; color:blueviolet;"><b>YYYY-MM-DD hh:mm:ss [unix time]</b></label>
+<div style="text-align:center"><b>SCD Sensor Data - on-time display</b></div>
+<br>
+<hr style="text-align:center; width:640px;">
+<div style="padding-left:14px">
+    <label id="row_0_label">Measured Time : </label>
+    <label class="status" id="row_0" style="color:blueviolet;"><b>YYYY-MM-DD hh:mm:ss [unix_time]</b></label>
 </div> 
-<br>   
-<div style="padding-left:35px">
+<hr style="text-align:center; width:640px;">
+<div style="padding-left:0px">
     <label id="status_0_label">Movement Status : </label>
-    <label id="status_0" style="font-weight:bold; font-size: 20px; color:grey;">unknown</label>
+    <label class="status" id="status_0">unknown</label>
 </div>
-<div style="padding-left:69px">   
+<div style="padding-left:39px">   
     <label id="status_1_label">Fault Status : </label>
-    <label id="status_1" style="font-weight:bold; font-size: 20px; color:grey;">unknown</label>
+    <label class="status" id="status_1">unknown</label>
 </div>
-<br> 
-
-<table id="monitor">
-    <tr>
-        <th>Sensor</th>
-        <th>Value Measured</th>
-        <th>Unit of Measure</th>
-    </tr>
-    <tr>
-        <td class="col_00">accelerometer mean X-axis</td>
-        <td class="col_01" id="row_1">-</td>
-        <td class="col_02" style="text-align:left;">G-forces (g)</td>
-    </tr>
-    <tr>
-        <td class="col_00">accelerometer variance X-axis</td>
-        <td class="col_01" id="row_2">-</td>
-        <td class="col_02" style="text-align:left;">g<sup>2</sup></td>
-    </tr>
-    <tr>
-        <td class="col_00">accelerometer mean. Y-axis</td>
-        <td class="col_01" id="row_3">-</td>
-        <td class="col_02" style="text-align:left;">G-forces (g)</td>
-    </tr>
-    <tr>
-        <td class="col_00">accelerometer variance Y-axis</td>
-        <td class="col_01" id="row_4">-</td>
-        <td class="col_02" style="text-align:left;">g<sup>2</sup></td>
-    </tr>
-    <tr>
-        <td class="col_00">accelerometer mean. Z-axis</td>
-        <td class="col_01" id="row_5">-</td>
-        <td class="col_02" style="text-align:left;">G-forces (g)</td>
-    </tr>
-    <tr>
-        <td class="col_00">accelerometer variance Z-axis</td>
-        <td class="col_01" id="row_6">-</td>
-        <td class="col_02" style="text-align:left;">g<sup>2</sup></td>
-    </tr>
-    <tr>
-        <td class="col_00">temperature</td>
-        <td class="col_01" id="row_7">-</td>
-        <td class="col_02" style="text-align:left;">celcius (℃)</td>
-    </tr>
-    <tr>
-        <td class="col_00">light</td>
-        <td class="col_01" id="row_8">-</td>
-        <td class="col_02" style="text-align:left;">Lux (lx)</td>
-    </tr>
-    <tr>
-        <td class="col_00">magnetometer X-axis</td>
-        <td class="col_01" id="row_9">-</td>
-        <td class="col_02" style="text-align:left;">micro-tesla (&#181;T)</td>
-    </tr>
-    <tr>
-        <td class="col_00">magnetometer Y-axis</td>
-        <td class="col_01" id="row_10">-</td>
-        <td class="col_02" style="text-align:left;">micro-tesla (&#181;T)</td>
-    </tr>
-    <tr>
-        <td class="col_00">magnetometer Z-axis</td>
-        <td class="col_01" id="row_11">-</td>
-        <td class="col_02" style="text-align:left;">micro-tesla (&#181;T)</td>
+<div tyle="text-align:center;">
+    <table id="monitor">
+        <tr>
+            <th>Sensor</th>
+            <th>Value Measured</th>
+            <th>Unit of Measure</th>
         </tr>
-</table>
+        <tr>
+            <td class="col_00">accelerometer mean X-axis</td>
+            <td class="col_01" id="row_1">-</td>
+            <td class="col_02">G-forces (g)</td>
+        </tr>
+        <tr>
+            <td class="col_00">accelerometer variance X-axis</td>
+            <td class="col_01" id="row_2">-</td>
+            <td class="col_02">g<sup>2</sup></td>
+        </tr>
+        <tr>
+            <td class="col_00">accelerometer mean. Y-axis</td>
+            <td class="col_01" id="row_3">-</td>
+            <td class="col_02">G-forces (g)</td>
+        </tr>
+        <tr>
+            <td class="col_00">accelerometer variance Y-axis</td>
+            <td class="col_01" id="row_4">-</td>
+            <td class="col_02">g<sup>2</sup></td>
+        </tr>
+        <tr>
+            <td class="col_00">accelerometer mean. Z-axis</td>
+            <td class="col_01" id="row_5">-</td>
+            <td class="col_02">G-forces (g)</td>
+        </tr>
+        <tr>
+            <td class="col_00">accelerometer variance Z-axis</td>
+            <td class="col_01" id="row_6">-</td>
+            <td class="col_02">g<sup>2</sup></td>
+        </tr>
+        <tr>
+            <td class="col_00">temperature</td>
+            <td class="col_01" id="row_7">-</td>
+            <td class="col_02">celcius (℃)</td>
+        </tr>
+        <tr>
+            <td class="col_00">light</td>
+            <td class="col_01" id="row_8">-</td>
+            <td class="col_02">Lux (lx)</td>
+        </tr>
+        <tr>
+            <td class="col_00">magnetometer X-axis</td>
+            <td class="col_01" id="row_9">-</td>
+            <td class="col_02">micro-tesla (&#181;T)</td>
+        </tr>
+        <tr>
+            <td class="col_00">magnetometer Y-axis</td>
+            <td class="col_01" id="row_10">-</td>
+            <td class="col_02">micro-tesla (&#181;T)</td>
+        </tr>
+        <tr>
+            <td class="col_00">magnetometer Z-axis</td>
+            <td class="col_01" id="row_11">-</td>
+            <td class="col_02">micro-tesla (&#181;T)</td>
+            </tr>
+    </table>
+</div> 
 
 <script>
 
@@ -109,7 +111,6 @@
 
     function dispData(data) {
         
-        row_col[0] = 'blueviolet';
         for ( i = 1; i  < 12; i++ ) { 
             row_val = parseFloat( document.getElementById("row_" + i).innerHTML );
             dat_val = parseFloat( data.row[i] );
@@ -119,7 +120,8 @@
             row_col[i] = col;
         }
 
-        for ( i = 0; i  < 12; i++ ) {     
+        document.getElementById("row_0").innerHTML = data.row[0]; // time
+        for ( i = 1; i  < 12; i++ ) {     
             document.getElementById("row_" + i).innerHTML = data.row[i]; //.fontcolor(row_col[i]);
             document.getElementById("row_" + i).style.color = row_col[i];
         }
