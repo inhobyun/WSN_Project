@@ -224,8 +224,8 @@ def SCD_set_STE_config( p, is_writing = False ):
     #
     #ode  = 0x00 # ?0 data rate - accelerometer ODR 400Hz
     #ode  = 0x01 # ?1 data rate - accelerometer ODR 800Hz
-    mode  = 0x02 # ?2 data rate - accelerometer ODR 1600Hz
-    #ode  = 0x03 # ?3 data rate - accelerometer ODR 3200Hz
+    #ode  = 0x02 # ?2 data rate - accelerometer ODR 1600Hz
+    mode  = 0x03 # ?3 data rate - accelerometer ODR 3200Hz
     #ode  = 0x04 # ?4 data rate - accelerometer ODR 6400Hz
     #ode |= 0x00 # 0? data rate - light sensor ODR 100ms(10Hz)
     #ode |= 0x10 # 1? data rate - light sensor ODR 800ms(1.25Hz)
@@ -282,31 +282,32 @@ def SCD_toggle_STE_rolling( p, will_start = False, will_notify = False ):
         return
     #
     if will_start:
+        # turn STE on
         if not gSTEisRolling:
             if will_notify:
                 p.writeCharacteristic( SCD_STE_RESULT_HND+1, struct.pack('<H', 1) )
-                time.sleep(0.1)
-            p.writeCharacteristic( SCD_SET_MODE_HND, b'\x00' )    
+                time.sleep(0.2)
+            p.writeCharacteristic( SCD_SET_MODE_HND, b'\xff' )    
+            time.sleep(0,2)
+            p.writeCharacteristic( SCD_SET_MODE_HND, b'\x00' )
+            time.sleep(0,2)
             p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
+            time.sleep(0,2)
             print ("SCD> STE is starting", flush=True)        
             gSTEisRolling = True
     else:
+        # turn STE off
         if gSTEisRolling:
             p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
             print ("SCD> STE is stopping", flush=True)
-            time.sleep(0.3)        
+            time.sleep(0.2)        
             ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
             while ( ret_val != b'\x00' ):
                 print ("SCD> => STE has not completed yet, generic command is [%s]" % ret_val.hex(), flush=True)
-                time.sleep(0.1)
+                time.sleep(0.2)
                 ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
             print ("SCD> STE stoped", flush=True)
             gSTEisRolling = False
-        ret_val = p.readCharacteristic( SCD_SET_MODE_HND )
-        while ret_val !=  b'\x00':
-            print("SCD> set STE mode", flush=True)
-            p.writeCharacteristic( SCD_SET_MODE_HND, b'\x00' )
-            ret_val = p.readCharacteristic( SCD_SET_MODE_HND )
     #        
     return        
 
@@ -571,12 +572,17 @@ def SCD_run_STE_for_idling( p ):
     SCD_toggle_STE_rolling(p, True, True)
     # take rolling time ( added more overhead time)
     tm = time.time()
-    while time.time() - tm <= 0.3:
-        wait_flag = p.waitForNotifications(0.1)
+    while time.time() - tm <= 0.2:
+        wait_flag = p.waitForNotifications(0.2)
         if wait_flag :
             continue
     # stop STE
     SCD_toggle_STE_rolling(p, rolling_status_backup, False) 
+    tm = time.time()
+    while time.time() - tm <= 0.2:
+        wait_flag = p.waitForNotifications(0.2)
+        if wait_flag :
+            continue
     SCD_print_STE_status()
     return
 
@@ -599,12 +605,17 @@ def SCD_run_STE_and_BDT( p ):
     # take rolling time ( added more overhead time)
     tm = time.time()
     while time.time() - tm <= STE_RUN_TIME:
-        wait_flag = p.waitForNotifications(0.1)
+        wait_flag = p.waitForNotifications(0.3)
         if wait_flag :
             continue
      # stop STE
     SCD_toggle_STE_rolling(p, False, False) 
     SCD_print_STE_status()
+    tm = time.time()
+    while time.time() - tm <= 0.3:
+        wait_flag = p.waitForNotifications(0.1)
+        if wait_flag :
+            continue
     #
     # start BDT
     #
@@ -618,7 +629,7 @@ def SCD_run_STE_and_BDT( p ):
     p.writeCharacteristic( SCD_BDT_CONTROL_HND, b'\x01' )
     ret_val = b'x01'
     while ret_val == b'x01':  
-        wait_flag = p.waitForNotifications(1.0)
+        wait_flag = p.waitForNotifications(3.0)
         if wait_flag :
             continue
         ret_val = p.readCharacteristic( SCD_BDT_STATUS_HND )
