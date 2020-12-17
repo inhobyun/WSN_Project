@@ -258,6 +258,15 @@ def root():
     return template.render()
 
 #############################################
+# base MOBILE UI
+#
+@app.route('/m')
+def mroot():
+    check_tcp_error()
+    template = env.get_template('mmain.html')
+    return template.render()    
+
+#############################################
 # Ooops UI
 #
 @app.route('/m_Ooops')
@@ -267,9 +276,9 @@ def Ooops():
     return template.render()
 
 #############################################
-# sensor monitoring UI
+# sensor monitoring MOBILE UI
 #
-@app.route('/m')
+@app.route('/m_mobile')
 def mobile():
     check_tcp_error()
     template = env.get_template('m_mobile.html')
@@ -330,6 +339,14 @@ def intro_2():
     return template.render()
 
 #############################################
+# about UI - MOBILE
+#
+@app.route('/m_intro_0')
+def intro_0():
+    check_tcp_error()
+    template = env.get_template('m_intro_0.html')
+    return template.render()
+
 #############################################
 #         
 # sub-menu button stuffs
