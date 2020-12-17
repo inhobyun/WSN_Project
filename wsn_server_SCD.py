@@ -269,6 +269,15 @@ def Ooops():
 #############################################
 # sensor monitoring UI
 #
+@app.route('/m')
+def mobile():
+    check_tcp_error()
+    template = env.get_template('m_mobile.html')
+    return template.render()
+
+#############################################
+# sensor monitoring UI
+#
 @app.route('/m_monitor')
 def monitor():
     check_tcp_error()

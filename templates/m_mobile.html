@@ -1,0 +1,183 @@
+{% extends "m_mobile_base.html" %}
+
+{% block foot %}
+    <div>Push [Start] button to run monitoring...</div>
+{% endblock %}
+
+{% block left %}
+    <div style="text-align:center;"><b>Sensor Data Monitoring</b></div><br> 
+    <div style="text-align:  left; padding-left:8px;">
+        <label for="tm_interval">Display interval</label>
+        <input type="number" id="tm_interval" name="tm_interval" value="3" min="1" max="5">
+        <label for="tm_interval">sec</label>
+    </div><br>    
+    <div style="text-align: right; padding-right:8px; padding-bottom:8px;">
+        <button class="button-l" id="btn_start" onclick="monBegin()"> Start </button><br><br>
+        <button class="button-l" id="btn_stop"  onclick="monStop()" disabled> Stop </button>
+    </div>
+{% endblock %}
+
+{% block right %}
+
+<div style="text-align:center"><b>SCD Sensor Data - on-time display</b></div>
+<br>
+<hr style="text-align:center; width:640px;">
+<div style="padding-left:14px">
+    <label id="row_0_label">Measured Time : </label>
+    <label class="status" id="row_0" style="color:blueviolet;"><b>YYYY-MM-DD hh:mm:ss [unix_time]</b></label>
+</div> 
+<hr style="text-align:center; width:640px;">
+<div style="padding-left:0px">
+    <label id="status_0_label">Movement Status : </label>
+    <label class="status" id="status_0">unknown</label>
+</div>
+<div style="padding-left:39px">   
+    <label id="status_1_label">Fault Status : </label>
+    <label class="status" id="status_1">unknown</label>
+</div>
+<div tyle="text-align:center;">
+    <table id="monitor">
+        <tr>
+            <th>Sensor</th>
+            <th>Value Measured</th>
+            <th>Unit of Measure</th>
+        </tr>
+        <tr>
+            <td class="col_00">accelerometer mean X-axis</td>
+            <td class="col_01" id="row_1">-</td>
+            <td class="col_02">G-forces (g)</td>
+        </tr>
+        <tr>
+            <td class="col_00">accelerometer variance X-axis</td>
+            <td class="col_01" id="row_2">-</td>
+            <td class="col_02">g<sup>2</sup></td>
+        </tr>
+        <tr>
+            <td class="col_00">accelerometer mean. Y-axis</td>
+            <td class="col_01" id="row_3">-</td>
+            <td class="col_02">G-forces (g)</td>
+        </tr>
+        <tr>
+            <td class="col_00">accelerometer variance Y-axis</td>
+            <td class="col_01" id="row_4">-</td>
+            <td class="col_02">g<sup>2</sup></td>
+        </tr>
+        <tr>
+            <td class="col_00">accelerometer mean. Z-axis</td>
+            <td class="col_01" id="row_5">-</td>
+            <td class="col_02">G-forces (g)</td>
+        </tr>
+        <tr>
+            <td class="col_00">accelerometer variance Z-axis</td>
+            <td class="col_01" id="row_6">-</td>
+            <td class="col_02">g<sup>2</sup></td>
+        </tr>
+        <tr>
+            <td class="col_00">temperature</td>
+            <td class="col_01" id="row_7">-</td>
+            <td class="col_02">celcius (℃)</td>
+        </tr>
+        <tr>
+            <td class="col_00">light</td>
+            <td class="col_01" id="row_8">-</td>
+            <td class="col_02">Lux (lx)</td>
+        </tr>
+        <tr>
+            <td class="col_00">magnetometer X-axis</td>
+            <td class="col_01" id="row_9">-</td>
+            <td class="col_02">micro-tesla (&#181;T)</td>
+        </tr>
+        <tr>
+            <td class="col_00">magnetometer Y-axis</td>
+            <td class="col_01" id="row_10">-</td>
+            <td class="col_02">micro-tesla (&#181;T)</td>
+        </tr>
+        <tr>
+            <td class="col_00">magnetometer Z-axis</td>
+            <td class="col_01" id="row_11">-</td>
+            <td class="col_02">micro-tesla (&#181;T)</td>
+            </tr>
+    </table>
+</div> 
+
+<script>
+
+    var tid = null;
+    var col = 'black';
+    var row_val;
+    var dat_val;
+    var row_col = new Array();
+    var i;
+
+    function dispData(data) {
+        
+        for ( i = 1; i  < 12; i++ ) { 
+            row_val = parseFloat( document.getElementById("row_" + i).innerHTML );
+            dat_val = parseFloat( data.row[i] );
+            if (row_val > dat_val) { col = 'blue'; } else { 
+                if (row_val < dat_val) { col = 'red'; } else { col = 'black'; } 
+            }
+            row_col[i] = col;
+        }
+
+        document.getElementById("row_0").innerHTML = data.row[0]; // time
+        for ( i = 1; i  < 12; i++ ) { 
+            if ( data.row[i] != '*' ) {   
+                document.getElementById("row_" + i).innerHTML = data.row[i]; //.fontcolor(row_col[i]);
+            }    
+            document.getElementById("row_" + i).style.color = row_col[i];
+        }
+        for ( i = 0; i  < 2; i++ ) { 
+            document.getElementById("status_" + i).innerHTML = data.status[i];
+        }    
+
+        if (data.status[0] == 'VIBRATION') { col = 'blue'; } else { col = 'gray'; }
+        document.getElementById("status_0").style.color = col;
+        if (data.status[1] == 'ABNORMAL') { col = 'red'; } else { col = 'gray'; }
+        document.getElementById("status_1").style.color = col;
+    }
+
+    function monBegin() {
+        // control UI before function run
+        disableAllMenus();           
+        document.getElementById("btn_start").disabled = true;
+        document.getElementById("btn_stop" ).disabled = false;
+        monStart();
+    }
+
+    function monStart() {
+        const value = document.getElementById('tm_interval').value;
+        axios.post('/post_monStart', {
+            //value: Number(value),
+        }).then(response => {
+            const data = response.data;
+            console.log(data);
+            dispData(data);
+        }).catch(function (error) {
+            alert('Error occurred on submit: ' + error);
+        });
+        tid = setTimeout(monStart, Number(value)*1000);
+    }
+    
+    function monStop() {
+        // control UI before function run
+        disableAllMenus();           
+        document.getElementById("btn_start").disabled = false;
+        document.getElementById("btn_stop" ).disabled = true;
+        const value = document.getElementById('tm_interval').value;
+        clearTimeout ( tid );
+        axios.post('/post_monStop', {
+            //value: Number(value),
+        }).then(response => {
+            const data = response.data;
+            //console.log(data);
+            dispData(data);
+        }).catch(function (error) {
+            alert('Error occurred on submit: ' + error);
+        });
+        // control UI after function run
+        enableAllMenus();           
+    }
+</script>
+
+{% endblock %}
