@@ -700,17 +700,23 @@ def post_graphFreq():
 #
 if __name__ == '__main__':
     print("WSN-S> starting !", flush=True)
-    if open_socket():
-        #
-        # wait client connection (in case of test, not used)
-        #
-        ## accept_socket(ACCEPT_WAIT_TIME)
-        #
-        # flask web server running
-        #
-        app.run(host='0.0.0.0')
-        #
-        close_socket()
+    try:
+        if open_socket():
+            #
+            # wait client connection (normally not used, only in case of test, )
+            #
+            ## accept_socket(ACCEPT_WAIT_TIME)
+            #
+            # flask web server running
+            #
+            app.run(host='0.0.0.0')
+            #
+    except KeyboardInterrupt:
+        print("WSN-S> 'ctrl-c'pressed, close client...", flush=True)
+        write_to_socket(TCP_DEV_CLOSE_MSG)
+    except:     
+        print("WSN-S> error during running...", flush=True)
+    close_socket()
     print("WSN-S> all done !", flush=True)
 #
 #############################################        
