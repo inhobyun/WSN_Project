@@ -633,7 +633,6 @@ def SCD_run_STE_and_BDT( p ):
         if wait_flag :
             continue
         ret_val = p.readCharacteristic( SCD_BDT_STATUS_HND )
-        time.sleep(0.3)
     print ("\nSCD> Bulk Data Transfer completed...status is [%s], time [%.3f], count [%d]" % \
             (ret_val.hex(), (gBDTlastTime-gBDTstartTime), gBDTnotiCnt), flush=True )
     #
