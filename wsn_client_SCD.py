@@ -59,7 +59,6 @@ SCD_BDT_DATA_FLOW_HND = 45    # RN, uuid: 02a65821-3003-1000-2000-b05cb05cb05c
 #
 SCD_MAX_MTU   = 65       # MAX SCD Comm. Packet size
 SCD_MAX_FLASH = 0x0b0000 # 11*16**4 = 720896 = 704K
-
 #
 # Some constant parameters
 #
@@ -68,7 +67,7 @@ RESCAN_INTERVAL = 50.   # 1 min.; looping to rescan BLE after scan failed
 ##RESCAN_PERIOD   = 11100. # 3 hrs 5 min.; time period to rescan BLE to connect
 RESCAN_PERIOD   = 43200. # 12 hrs; time period to rescan BLE to connect  
 #
-STE_RUN_TIME    = 2.0    # STE rolling time in secconds for SENSOR data recording
+STE_RUN_TIME    = 2.3    # STE rolling time in secconds for SENSOR data recording
 STE_FREQUENCY   = (400, 800, 1600, 3200, 6400)  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz 
 #
 # global variables
@@ -578,11 +577,6 @@ def SCD_run_STE_for_idling( p ):
             continue
     # stop STE
     SCD_toggle_STE_rolling(p, rolling_status_backup, False) 
-    tm = time.time()
-    while time.time() - tm <= 0.2:
-        wait_flag = p.waitForNotifications(0.2)
-        if wait_flag :
-            continue
     SCD_print_STE_status()
     return
 
@@ -605,38 +599,34 @@ def SCD_run_STE_and_BDT( p ):
     # take rolling time ( added more overhead time)
     tm = time.time()
     while time.time() - tm <= STE_RUN_TIME:
-        wait_flag = p.waitForNotifications(0.3)
+        wait_flag = p.waitForNotifications(0.33)
         if wait_flag :
             continue
      # stop STE
     SCD_toggle_STE_rolling(p, False, False) 
     SCD_print_STE_status()
-    tm = time.time()
-    while time.time() - tm <= 0.3:
-        wait_flag = p.waitForNotifications(0.1)
-        if wait_flag :
-            continue
     #
     # start BDT
     #
     print ("SCD> Bulk Data Transfer after a while ...", flush=True)
-    time.sleep(0.3)
+    time.sleep(0.7)
     p.setDelegate( NotifyDelegate(p) )
     print ("SCD> BDT Starting ...", flush=True)
-    time.sleep(0.3)
+    time.sleep(0.7)
     p.writeCharacteristic( SCD_BDT_DATA_FLOW_HND+1, struct.pack('<H', 1) )
-    time.sleep(0.3)
+    time.sleep(0.7)
     p.writeCharacteristic( SCD_BDT_CONTROL_HND, b'\x01' )
     ret_val = b'x01'
     while ret_val == b'x01':  
-        wait_flag = p.waitForNotifications(3.0)
+        wait_flag = p.waitForNotifications(8.0)
         if wait_flag :
             continue
         ret_val = p.readCharacteristic( SCD_BDT_STATUS_HND )
     print ("\nSCD> Bulk Data Transfer completed...status is [%s], time [%.3f], count [%d]" % \
             (ret_val.hex(), (gBDTlastTime-gBDTstartTime), gBDTnotiCnt), flush=True )
     #
-    gBDTisRolled = True        
+    if ret_val == b'x02':
+        gBDTisRolled = True        
     return
 
 #############################################
