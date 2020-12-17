@@ -1,11 +1,29 @@
 {% extends "m_mobile_base.html" %}
 
+{% block head %}
+    <style>
+        .grid-container {
+            display: grid;
+            width: 600px;
+            grid-template-columns: 5% auto;
+            grid-template-areas: 
+                'top      top      top      top       top'
+                'top-left top-left top-left top-right top-right' 
+                'left     right    right    right     right' 
+                'foot     foot     foot     foot      foot';
+        }
+        .right {
+            width: 390px;
+        }
+    </style>
+{% endblock %}
+
 {% block left %}
 {% endblock %}
 
 {% block right %}
-    <div Style="text-align:center; padding:30px;">
-        <img class="contain" src="/static/images/mmain.png">
+    <div style="text-align:left; padding-top:30px;">
+        <img class="contain" width=550 src="/static/images/mmain.png">
     </div>
 {% endblock %}
 

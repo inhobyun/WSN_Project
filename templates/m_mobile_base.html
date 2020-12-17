@@ -46,20 +46,21 @@
 
         .contain {
             object-fit: contain;
-            height: 680px; 
+            /* height: 680px; */ 
         }
 
-        /* The grid container */
+        /* The grid container
         .grid-container {
             display: grid;
             width: 600px;
-            grid-template-columns: 150px auto; /* fixed size - would be removed */
+            grid-template-columns: 150px auto;
             grid-template-areas: 
                 'top      top      top      top'
                 'top-left top-left top-left top-right' 
                 'left     righ     right    right' 
                 'foot     foot     foot     foot';
-        } 
+        }
+        */ 
 
         .top,
         .top-left,
@@ -106,6 +107,7 @@
         /* Style the left column */
         .left {
             grid-area: left;
+            text-align: center;
             background-color: #aaa;
         }
 
@@ -113,7 +115,7 @@
         .right {
             grid-area: right;
             text-align: left;
-            background-color: whitesmoke;
+            background-color: white;
         }
 
         /* Style the footer */
@@ -127,10 +129,10 @@
         }
 
         label.status {
-                font-size: 30px;
-                font-weight: bold;
-                color: grey;
-            }    
+            font-size: 30px;
+            font-weight: bold;
+            color: grey;
+        }    
 
         /* Style the table */
         table {
@@ -211,6 +213,7 @@
         .button-l {
             display: inline-block;
             cursor: pointer;
+            padding: 10px;
             font-size: 24px;
             font-weight: bold;
             text-align: center;
@@ -219,7 +222,7 @@
             color: #00f;
             background-color: #ff0;
             border: 1px solid #00f;
-            border-radius: 3px;
+            border-radius: 8px;
         }
 
         .button-l:disabled {
@@ -242,7 +245,7 @@
 
     <div class="grid-container">
         <div class="top">
-            <b>【Sensor Data Monitoring & Analysis】</b> prototype β version
+            <b>【Sensor Data Monitoring】</b> prototype β version
         </div>      
         <div class="top-left">
             <button class="button-r" id="btn_ihome" onclick="window.location.href='/m'"        ><i class="fa fa-home"></i>Home</button>
