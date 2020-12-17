@@ -711,11 +711,10 @@ if __name__ == '__main__':
             #
             app.run(host='0.0.0.0')
             #
-    except KeyboardInterrupt:
-        print("WSN-S> 'ctrl-c'pressed, close client...", flush=True)
-        write_to_socket(TCP_DEV_CLOSE_MSG)
+    ##except KeyboardInterrupt: # does not work, seems caught by flask
     except:     
-        print("WSN-S> error during running...", flush=True)
+        print("WSN-S> error during running, close client...", flush=True)
+        write_to_socket(TCP_DEV_CLOSE_MSG)
     close_socket()
     print("WSN-S> all done !", flush=True)
 #

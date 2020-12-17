@@ -49,13 +49,13 @@
         <label>Draw Mode:</label>
     </div>
     <div style="text-align:left; padding-left:72px"">
-        <input type="radio" id="draw_s" name="draw" value="Sum(X,Y,Z)" checked>
+        <input type="radio" id="draw_s" name="draw" onchange="setAutoScale()" value="Sum(X,Y,Z)" checked>
         <label for="draw">Sum of all direction</label><br>
-        <input type="radio" id="draw_x" name="draw" value="X only">
+        <input type="radio" id="draw_x" name="draw" onchange="setAutoScale()" value="X only">
         <label for="draw">X direction only</label><br>
-        <input type="radio" id="draw_y" name="draw" value="Y only">
+        <input type="radio" id="draw_y" name="draw" onchange="setAutoScale()" value="Y only">
         <label for="draw">Y direction only</label><br>
-        <input type="radio" id="draw_z" name="draw" value="Z only">
+        <input type="radio" id="draw_z" name="draw" onchange="setAutoScale()" value="Z only">
         <label for="draw">Z direction only</label>
     </div>
                                                        
@@ -120,6 +120,16 @@
                 document.getElementById("x_max").value = '';
             }
         }    
+
+        function setAutoScale() {
+            document.getElementById("scale_auto").checked  = true
+            document.getElementById("scale_manu").disabled  = true   
+            document.getElementById("y_min").value = '';
+            document.getElementById("y_max").value = '';
+            document.getElementById("x_min").value = '';
+            document.getElementById("x_max").value = '';
+        }    
+
 </script>    
 
 {% endblock %}

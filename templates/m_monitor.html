@@ -121,8 +121,10 @@
         }
 
         document.getElementById("row_0").innerHTML = data.row[0]; // time
-        for ( i = 1; i  < 12; i++ ) {     
-            document.getElementById("row_" + i).innerHTML = data.row[i]; //.fontcolor(row_col[i]);
+        for ( i = 1; i  < 12; i++ ) { 
+            if ( data.row[i] != '*' ) {   
+                document.getElementById("row_" + i).innerHTML = data.row[i]; //.fontcolor(row_col[i]);
+            }    
             document.getElementById("row_" + i).style.color = row_col[i];
         }
         for ( i = 0; i  < 2; i++ ) { 
