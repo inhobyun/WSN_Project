@@ -382,7 +382,7 @@ def post_monStart():
         time.sleep(0.2)
         write_to_socket(TCP_STE_REQ_MSG)
         time.sleep(0.2)
-        from_client = read_from_socket()
+        from_client = read_from_socket(blockingTimer = 16)
         time.sleep(0.2)
     # get the data to post
     if from_client != None:
@@ -469,7 +469,7 @@ def post_STEandBDT():
     write_to_socket(TCP_DEV_READY_MSG)
     from_client = ''
     while from_client == '':
-        from_client = read_from_socket(blockingTimer = 3)
+        from_client = read_from_socket(blockingTimer = 8)
     #
     msgs = {'msg_00' : time_stamp()
            }
@@ -511,7 +511,7 @@ def post_BDTtoServer():
         # get data from client
         from_client = ''
         while from_client == '':
-            from_client = read_from_socket(blockingTimer = 3)
+            from_client = read_from_socket(blockingTimer = 8)
         if from_client.find('End of Data') == -1:
             gBDTtextList.append(from_client)
         else:
