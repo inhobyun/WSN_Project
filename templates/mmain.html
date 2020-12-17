@@ -5,12 +5,17 @@
         .grid-container {
             display: grid;
             width: 600px;
-            grid-template-columns: 30px auto;
+            height: 900px;
+            grid-template-columns: 16px auto;
             grid-template-areas: 
                 'top      top      top      top       top'
                 'top-left top-left top-left top-right top-right' 
                 'left     right    right    right     right' 
                 'foot     foot     foot     foot      foot';
+        }
+        .right {
+            width: 584px;
+            text-align: center;
         }
     </style>
 {% endblock %}
@@ -19,11 +24,13 @@
 {% endblock %}
 
 {% block right %}
-    <div style="text-align:left; padding-top:30px;">
-        <img class="contain" width=550 src="/static/images/mmain.png">
+    <div style="text-align:center; padding-top:20px;">
+        <img class="contain" width=550; src="/static/images/mmain.png">
     </div>
 {% endblock %}
 
 {% block foot %}
-    <div>by Systems & Industrial Engineering Dep., KAIST</div>
+    <div>
+        <b>by Systems & Industrial Engineering Dep., KAIST</b>
+    </div>
 {% endblock %}

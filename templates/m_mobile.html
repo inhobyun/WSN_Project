@@ -5,6 +5,7 @@
         .grid-container {
             display: grid;
             width: 600px;
+            height: 940px;
             grid-template-columns: 150px auto;
             grid-template-areas: 
                 'top      top      top      top'
@@ -13,7 +14,7 @@
                 'foot     foot     foot     foot';
         }
         .right {
-            /* width: 390px; */
+            width: 490px;
         }
     </style>
 {% endblock %}
@@ -154,9 +155,17 @@
             document.getElementById("status_" + i).innerHTML = data.status[i];
         }    
 
-        if (data.status[0] == 'VIBRATION') { col = 'blue'; } else { col = 'gray'; }
+        if (data.status[0] == 'UNKNOWN') {
+            col = "gray";
+        } else {
+            if (data.status[0] == 'VIBRATION') { col = 'blue'; } else { col = 'black'; }
+        }    
         document.getElementById("status_0").style.color = col;
-        if (data.status[1] == 'ABNORMAL') { col = 'red'; } else { col = 'gray'; }
+        if (data.status[1] == 'UNKNOWN') {
+            col = "gray";
+        } else {
+            if (data.status[1] == 'ABNORMAL') { col = 'red'; } else { col = 'black'; }
+        }    
         document.getElementById("status_1").style.color = col;
     }
 
