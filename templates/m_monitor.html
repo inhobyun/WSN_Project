@@ -142,13 +142,13 @@
         disableAllMenus();           
         document.getElementById("btn_start").disabled = true;
         document.getElementById("btn_stop" ).disabled = false;
-        monStart();
+        monStart("true");
     }
 
-    function monStart() {
+    function monStart(first) {
         const value = document.getElementById('tm_interval').value;
         axios.post('/post_monStart', {
-            //value: Number(value),
+            value: first,
         }).then(response => {
             const data = response.data;
             //console.log(data);
@@ -156,7 +156,7 @@
         }).catch(function (error) {
             alert('Error occurred on submit: ' + error);
         });
-        tid = setTimeout(monStart, Number(value)*1000);
+        tid = setTimeout(monStart, Number(value)*1000, "false");
     }
     
     function monStop() {

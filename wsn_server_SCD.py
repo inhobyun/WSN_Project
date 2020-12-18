@@ -357,15 +357,15 @@ def intro_0():
 #
 @app.route('/post_monStart', methods=['POST'])
 def post_monStart():
-    #data = json.loads(request.data)
-    #value = data['value']
+    data = json.loads(request.data)
+    value = data['value']
     #
     global gIsMonStarted
     global gSTElockFlag
     global gBDTlockFlag
 
     # check BDT lock flag
-    if gBDTlockFlag or gSTElockFlag:
+    if (value=='false') and (gBDTlockFlag or gSTElockFlag):
         rows = {'row' : ['*','*','*','*','*','*','*','*','*','*','*','*'],
                 'status' : ['[Somebody is running STE or BDT]', '[only one can run STE or BDT]']
                }               
