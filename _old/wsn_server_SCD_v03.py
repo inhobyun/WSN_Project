@@ -258,12 +258,30 @@ def root():
     return template.render()
 
 #############################################
+# base MOBILE UI
+#
+@app.route('/m')
+def mroot():
+    check_tcp_error()
+    template = env.get_template('mmain.html')
+    return template.render()    
+
+#############################################
 # Ooops UI
 #
 @app.route('/m_Ooops')
 def Ooops():
     check_tcp_error()
     template = env.get_template('m_Ooops.html')
+    return template.render()
+
+#############################################
+# sensor monitoring MOBILE UI
+#
+@app.route('/m_mobile')
+def mobile():
+    check_tcp_error()
+    template = env.get_template('m_mobile.html')
     return template.render()
 
 #############################################
@@ -321,6 +339,14 @@ def intro_2():
     return template.render()
 
 #############################################
+# about UI - MOBILE
+#
+@app.route('/m_intro_0')
+def intro_0():
+    check_tcp_error()
+    template = env.get_template('m_intro_0.html')
+    return template.render()
+
 #############################################
 #         
 # sub-menu button stuffs
@@ -331,19 +357,21 @@ def intro_2():
 #
 @app.route('/post_monStart', methods=['POST'])
 def post_monStart():
-    #data = json.loads(request.data)
-    #value = data['value']
+    data = json.loads(request.data)
+    value = data['value']
     #
     global gIsMonStarted
     global gSTElockFlag
     global gBDTlockFlag
 
-    # check BDT lock flag
-    if gBDTlockFlag or gSTElockFlag:
-        rows = {'row' : ['*','*','*','*','*','*','*','*','*','*','*','*'],
-                'status' : ['[Somebody is running STE or BDT]', '[only one can run STE or BDT]']
+    # check STE, BDT lock flag
+    if (value==0 and  gSTElockFlag) or gBDTlockFlag:
+        rows = {'row' : [time_stamp(),'*','*','*','*','*','*','*','*','*','*','*'],
+                'status' : ['[monitoring runs]', '[by other user]'],
+                'timer' : 'off'
                }               
-        return json.dumps(rows)
+        return json.dumps(rows)   
+    gSTElockFlag = True
 
     # send STE start & request
     accept_socket()
@@ -356,7 +384,7 @@ def post_monStart():
         time.sleep(0.2)
         write_to_socket(TCP_STE_REQ_MSG)
         time.sleep(0.2)
-        from_client = read_from_socket()
+        from_client = read_from_socket(blockingTimer = 16)
         time.sleep(0.2)
     # get the data to post
     if from_client != None:
@@ -379,10 +407,11 @@ def post_monStart():
         else:    
             status = ['STOP(noisy)', 'UNKNOWN']
         # ===========================================
-        rows = {'row' : vals, 'status' : status }
+        rows = {'row' : vals, 'status' : status, 'timer' : 'on' }
     else:                          
-        rows = {'row' : ['?','?','?','?','?','?','?','?','?','?','?','?'],
-                'status' : ['-?-', '-?-']
+        rows = {'row' : [time_stamp(),'?','?','?','?','?','?','?','?','?','?','?'],
+                'status' : ['-?-', '-?-'],
+                'timer' : 'on'
                }               
 
     return json.dumps(rows)
@@ -404,14 +433,13 @@ def post_monStop():
     if gIsMonStarted:
         time.sleep(0.2)
         write_to_socket(TCP_STE_STOP_MSG)
-        gIsMonStarted = False
-        rows = {'row' : [time_stamp(),'*','*','*','*','*','*','*','*','*','*','*'],
-                'status' : ['---', '---']
-               }               
+        gIsMonStarted = False # release STE lock flag
+        gSTElockFlag = False
 
-    # release STE lock flag
-    gSTElockFlag = False    
-
+    rows = {'row' : [time_stamp(),'*','*','*','*','*','*','*','*','*','*','*'],
+            'status' : ['---', '---'],
+            'timer' : 'off'
+            }               
     return json.dumps(rows)
 
 #############################################
@@ -443,7 +471,7 @@ def post_STEandBDT():
     write_to_socket(TCP_DEV_READY_MSG)
     from_client = ''
     while from_client == '':
-        from_client = read_from_socket(blockingTimer = 3)
+        from_client = read_from_socket(blockingTimer = 8)
     #
     msgs = {'msg_00' : time_stamp()
            }
@@ -485,7 +513,7 @@ def post_BDTtoServer():
         # get data from client
         from_client = ''
         while from_client == '':
-            from_client = read_from_socket(blockingTimer = 3)
+            from_client = read_from_socket(blockingTimer = 8)
         if from_client.find('End of Data') == -1:
             gBDTtextList.append(from_client)
         else:
@@ -700,17 +728,22 @@ def post_graphFreq():
 #
 if __name__ == '__main__':
     print("WSN-S> starting !", flush=True)
-    if open_socket():
-        #
-        # wait client connection (in case of test, not used)
-        #
-        ## accept_socket(ACCEPT_WAIT_TIME)
-        #
-        # flask web server running
-        #
-        app.run(host='0.0.0.0')
-        #
-        close_socket()
+    try:
+        if open_socket():
+            #
+            # wait client connection (normally not used, only in case of test, )
+            #
+            ## accept_socket(ACCEPT_WAIT_TIME)
+            #
+            # flask web server running
+            #
+            app.run(host='0.0.0.0')
+            #
+    ##except KeyboardInterrupt: # does not work, seems caught by flask
+    except:     
+        print("WSN-S> error during running, close client...", flush=True)
+        write_to_socket(TCP_DEV_CLOSE_MSG)
+    close_socket()
     print("WSN-S> all done !", flush=True)
 #
 #############################################        

@@ -31,6 +31,7 @@ import time
 TCP_HOST_NAME   = socket.gethostname()
 TCP_PORT        = 8088              # Default TCP Port Name
 TCP_PACKET_MAX  = 1024              # max TCP packet size
+TCP_KEEP_TIME   = 300               # max time interval to keep same TCP port
 TCP_ERR_CNT_MAX = 8                 # max unknown error count before reconnection
 #
 TCP_DEV_READY_MSG = 'DEV_READY'     # server message to check client ready
@@ -56,6 +57,7 @@ gSocketServer   = None
 gSocketConn     = None
 gSocketAddr     = None
 gTcpErrCnt      = 0
+gTcpLastTime    = 0
 #
 gBDTtextList    = []
 #
@@ -76,6 +78,7 @@ def open_socket(clientNum = 1):
     global TCP_PORT
     global gSocketServer
     global gTcpErrCnt
+    global gTcpLastTime
 
     #
     if len(sys.argv) > 1:
@@ -96,7 +99,7 @@ def open_socket(clientNum = 1):
     print ("TCP-S> binded...", flush=True)    
     gSocketServer.listen(clientNum)
     print ("TCP-S> listening...", flush=True) 
-    gTcpErrCnt = 0
+    gTcpLastTime = gTcpErrCnt = 0
     #
     return True 
 
@@ -113,7 +116,7 @@ def close_socket():
         print ("TCP-S> close accepted connection", flush=True)
         gSocketConn.close()
         gSocketConn = gSocketAddr = None
-        gTcpErrCnt = 0
+        gTcpLastTime = gTcpErrCnt = 0
     #
     if gSocketServer != None:
         print ("TCP-S> close socket", flush=True)
@@ -126,9 +129,6 @@ def close_socket():
 # check TCP error
 #
 def check_tcp_error():
-    global gSocketServer
-    global gSocketConn
-    global gSocketAddr
     global gTcpErrCnt
     #
     if gTcpErrCnt > TCP_ERR_CNT_MAX:
@@ -145,8 +145,12 @@ def accept_socket(blockingTimer = 8):
     global gSocketConn
     global gSocketAddr
     global gTcpErrCnt
+    global gTcpLastTime
     #
     check_tcp_error()
+    if ( gTcpLastTime == 0 or gTcpLastTime - time.time() > TCP_KEEP_TIME ):
+        close_socket()
+        open_socket()
     if gSocketConn == None:
         print ("\n>--->\nTCP-S> wait client; accepting => ", end = '', flush=True)
         try:
@@ -173,6 +177,7 @@ def read_from_socket(blockingTimer = 8):
     try:
         gSocketServer.setblocking(blockingTimer)
         data = gSocketConn.recv(TCP_PACKET_MAX)
+        gTcpLastTime = time.time()
     except TimeoutError:
         print ("timeout !", flush=True)
     except:
@@ -202,6 +207,7 @@ def write_to_socket(tx_msg):
     print ("\nTCP-S> [TX] try => ", end = '', flush=True)
     try:
         gSocketConn.send(tx_msg.encode())
+        gTcpLastTime = time.time()
     except:
         gTcpErrCnt += 1
         print ("error !", flush=True)

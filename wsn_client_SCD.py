@@ -107,7 +107,8 @@ gIDLEinterval = 60.   # time interval to make BLE traffic to keep connection
 ##TCP_HOST_NAME = "192.168.0.3"     # TEST Host Name
 TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
 TCP_PORT      = 8088              # Default TCP Port Name
-TCP_PACKET_MAX= 1024                # max TCP packet size 
+TCP_PACKET_MAX= 1024              # max TCP packet size
+TCP_KEEP_TIME = 300               # max time interval to keep same TCP port
 #
 TCP_DEV_READY_MSG = 'DEV_READY'     # server message to check client ready
 TCP_DEV_CLOSE_MSG = 'DEV_CLOSE'     # server message to disconnect client
@@ -120,31 +121,36 @@ TCP_BDT_END_MSG   = 'BDT_END'       # client message to inform BDT data transfer
 #
 # global variables
 #
-gTCPreader = None
-gTCPwriter = None
-gTCPrxMsg  = None
-gTCPtxMsg  = None
-gTCPrxErr  = 0
+gTCPlastTime = 0
+gTCPreader   = None
+gTCPwriter   = None
+gTCPrxMsg    = None
+gTCPtxMsg    = None
+gTCPrxErr    = 0
 
 #############################################
 # handle to receive command message
 #############################################
 #
 async def tcp_RX(loop):
+    global gTCPlastTime
     global gTCPrxMsg
     global gTCPreader
     global gTCPwriter
     global gTCPrxErr
     #
-    if gTCPwriter == None:
+    if ( gTCPwriter == None ) or ( gTCPlastTime == 0 or gTCPlastTime - time.time() > TCP_KEEP_TIME ):
+        if gTCPwriter != None:
+            gTCPwriter.close()
         print('\n>--->\nAIO-C> connecting server to read ... ', end ='', flush=True)
         gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
         print('connected\n<---<\n', flush=True)
     #
     rx_data = None
-    print('AIO-C> [RX] wait => ', end = '', flush=True)
+    print('AIO-C> [RX] wait => ', end = '', flush=True)    
     try:
         rx_data = await asyncio.wait_for ( gTCPreader.read(TCP_PACKET_MAX), timeout=10.0 )
+        gTCPlastTime = time.time()
     except asyncio.TimeoutError:
         print('timeout', flush=True)
         pass
@@ -167,21 +173,25 @@ async def tcp_RX(loop):
 #############################################
 #
 async def tcp_TX(tx_msg, loop):
+    global gTCPlastTime
     global gTCPrxMsg
     global gTCPreader
     global gTCPwriter
     #
-    if gTCPwriter == None:
+    if ( gTCPwriter == None ) or ( gTCPlastTime == 0 or gTCPlastTime - time.time() > TCP_KEEP_TIME ):
+        if gTCPwriter != None:
+            gTCPwriter.close()
         print('\n>--->\nAIO-C> connecting server to write ... ', end ='', flush=True)
         gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
         print('connected\n<---<\n', flush=True)
     #
     if tx_msg != None and tx_msg != '':
-        print('AIO-C> [TX] try => ', end = '', flush=True)
+        print('AIO-C> [TX] try => ', end = '', flush=True)        
         tx_data = tx_msg.encode()
         try:
             gTCPwriter.write(tx_data)
-            await asyncio.wait_for ( gTCPwriter.drain(), timeout=10.0 )        
+            await asyncio.wait_for ( gTCPwriter.drain(), timeout=10.0 )
+            gTCPlastTime = time.time()        
         except asyncio.TimeoutError:
             print('timeout !', flush=True)
         except:
