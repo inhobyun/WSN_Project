@@ -364,12 +364,15 @@ def post_monStart():
     global gSTElockFlag
     global gBDTlockFlag
 
-    # check BDT lock flag
-    if (value=='false') and (gBDTlockFlag or gSTElockFlag):
-        rows = {'row' : ['*','*','*','*','*','*','*','*','*','*','*','*'],
-                'status' : ['[Somebody is running STE or BDT]', '[only one can run STE or BDT]']
+    # check STE, BDT lock flag
+    print('WSN-S> monitoring start argument: "%r"' % value, flush=True)
+    if (value==0 and  gSTElockFlag) or gBDTlockFlag:
+        rows = {'row' : [time_stamp(),'*','*','*','*','*','*','*','*','*','*','*'],
+                'status' : ['[monitoring runs]', '[by other user]'],
+                'timer' : 'off'
                }               
-        return json.dumps(rows)
+        return json.dumps(rows)   
+    gSTElockFlag = True
 
     # send STE start & request
     accept_socket()
@@ -377,7 +380,7 @@ def post_monStart():
         time.sleep(0.2)
         write_to_socket(TCP_STE_START_MSG)
         from_client = None
-        gIsMonStarted = gSTElockFlag = True
+        gIsMonStarted = True
     else:    
         time.sleep(0.2)
         write_to_socket(TCP_STE_REQ_MSG)
@@ -405,10 +408,11 @@ def post_monStart():
         else:    
             status = ['STOP(noisy)', 'UNKNOWN']
         # ===========================================
-        rows = {'row' : vals, 'status' : status }
+        rows = {'row' : vals, 'status' : status, 'timer' : 'on' }
     else:                          
-        rows = {'row' : ['?','?','?','?','?','?','?','?','?','?','?','?'],
-                'status' : ['-?-', '-?-']
+        rows = {'row' : [time_stamp(),'?','?','?','?','?','?','?','?','?','?','?'],
+                'status' : ['-?-', '-?-'],
+                'timer' : 'on'
                }               
 
     return json.dumps(rows)
@@ -430,14 +434,13 @@ def post_monStop():
     if gIsMonStarted:
         time.sleep(0.2)
         write_to_socket(TCP_STE_STOP_MSG)
-        gIsMonStarted = False
-        rows = {'row' : [time_stamp(),'*','*','*','*','*','*','*','*','*','*','*'],
-                'status' : ['---', '---']
-               }               
+        gIsMonStarted = False # release STE lock flag
+        gSTElockFlag = False
 
-    # release STE lock flag
-    gSTElockFlag = False    
-
+    rows = {'row' : [time_stamp(),'*','*','*','*','*','*','*','*','*','*','*'],
+            'status' : ['---', '---'],
+            'timer' : 'off'
+            }               
     return json.dumps(rows)
 
 #############################################

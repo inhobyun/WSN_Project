@@ -173,24 +173,28 @@
         // control UI before function run
         disableAllMenus();           
         document.getElementById("btn_start").disabled = true;
-        document.getElementById("btn_stop" ).disabled = false;
-        monStart();
+        monStart(0);
     }
 
-    function monStart() {
-        const value = document.getElementById('tm_interval').value;
+    function monStart(value) {
+        const interval = document.getElementById('tm_interval').value;
         axios.post('/post_monStart', {
-            //value: Number(value),
+            value: value,
         }).then(response => {
             const data = response.data;
             //console.log(data);
             dispData(data);
+            if (data.timer == 'on') {
+                tid = setTimeout(monStart, Number(interval)*1000, 1);
+                document.getElementById("btn_stop" ).disabled = false;
+            } else {
+                enableAllMenus();           
+            }  
         }).catch(function (error) {
             alert('Error occurred on submit: ' + error);
         });
-        tid = setTimeout(monStart, Number(value)*1000);
     }
-    
+   
     function monStop() {
         // control UI before function run
         disableAllMenus();           

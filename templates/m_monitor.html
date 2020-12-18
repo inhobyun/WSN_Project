@@ -141,22 +141,26 @@
         // control UI before function run
         disableAllMenus();           
         document.getElementById("btn_start").disabled = true;
-        document.getElementById("btn_stop" ).disabled = false;
-        monStart("true");
+        monStart(0);
     }
 
-    function monStart(first) {
-        const value = document.getElementById('tm_interval').value;
+    function monStart(value) {
+        const interval = document.getElementById('tm_interval').value;
         axios.post('/post_monStart', {
-            value: first,
+            value: value,
         }).then(response => {
             const data = response.data;
             //console.log(data);
             dispData(data);
+            if (data.timer == 'on') {
+                tid = setTimeout(monStart, Number(interval)*1000, 1);
+                document.getElementById("btn_stop" ).disabled = false;
+            } else {
+                enableAllMenus();           
+            }  
         }).catch(function (error) {
             alert('Error occurred on submit: ' + error);
         });
-        tid = setTimeout(monStart, Number(value)*1000, "false");
     }
     
     function monStop() {
