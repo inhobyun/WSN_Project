@@ -137,7 +137,8 @@
         /* Style the table */
         table {
             text-align: left;
-            table-layout: auto;
+            table-layout: fixed;
+            /* width: 430px; */
         }
 
         table,
@@ -163,14 +164,17 @@
         }
 
         td.col_00 {
+            width: 180px;
             background-color: #999;
         }
 
         td.col_01 {
+            width: 90px;
             font-weight: bold;
         }
 
         td.col_02 {
+            width: 160px;
             text-align: left;
             color: #444;
         }
@@ -248,11 +252,11 @@
             <b>【Sensor Data Monitoring】</b> prototype β version
         </div>      
         <div class="top-left">
-            <button class="button-r" id="btn_ihome" onclick="window.location.href='/m'"        ><i class="fa fa-home"></i>Home</button>
-            <button class="button-r" id="btn_monit" onclick="window.location.href='/m_mobile'" ><b>Monitoring</b></button>
+            <button class="button-r" id="btn_ihome" onclick="window.location.href='/m'"        ><i class="fa fa-home"></i> Home</button>
+            <button class="button-r" id="btn_monit" onclick="window.location.href='/m_mobile'" ><b>Sensor Monitoring</b></button>
         </div>
         <div class="top-right">
-            <button class="button-r" id="btn_about" onclick="window.location.href='/m_intro_0'"><i class="fa fa-info-circle"></i>About...</button>
+            <button class="button-r" id="btn_about" onclick="window.location.href='/m_intro_0'"><i class="fa fa-info-circle"></i> About...</button>
         </div>
     
         <div class="left">
