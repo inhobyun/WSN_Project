@@ -377,7 +377,7 @@ def post_monStart():
         time.sleep(0.2)
         write_to_socket(TCP_STE_START_MSG)
         from_client = None
-        gIsMonStarted = True
+        gIsMonStarted = gSTElockFlag = True
     else:    
         time.sleep(0.2)
         write_to_socket(TCP_STE_REQ_MSG)
