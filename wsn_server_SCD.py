@@ -365,7 +365,6 @@ def post_monStart():
     global gBDTlockFlag
 
     # check STE, BDT lock flag
-    print('WSN-S> monitoring start argument: "%r"' % value, flush=True)
     if (value==0 and  gSTElockFlag) or gBDTlockFlag:
         rows = {'row' : [time_stamp(),'*','*','*','*','*','*','*','*','*','*','*'],
                 'status' : ['[monitoring runs]', '[by other user]'],
