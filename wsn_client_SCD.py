@@ -139,12 +139,15 @@ async def tcp_RX(loop):
     global gTCPwriter
     global gTCPrxErr
     #
-    if ( gTCPwriter == None ) or ( gTCPlastTime == 0 or gTCPlastTime - time.time() > TCP_KEEP_TIME ):
-        if gTCPwriter != None:
-            gTCPwriter.close()
+    if ( gTCPwriter == None ):
         print('\n>--->\nAIO-C> connecting server to read ... ', end ='', flush=True)
         gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
         print('connected\n<---<\n', flush=True)
+    elif ( gTCPlastTime == 0 ) or ( gTCPlastTime - time.time() > TCP_KEEP_TIME ):
+        gTCPwriter.close()
+        print('\n>--->\nAIO-C> rennecting server to read ... ', end ='', flush=True)
+        gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
+        print('rennected\n<---<\n', flush=True)
     #
     rx_data = None
     print('AIO-C> [RX] wait => ', end = '', flush=True)    
@@ -178,12 +181,15 @@ async def tcp_TX(tx_msg, loop):
     global gTCPreader
     global gTCPwriter
     #
-    if ( gTCPwriter == None ) or ( gTCPlastTime == 0 or gTCPlastTime - time.time() > TCP_KEEP_TIME ):
-        if gTCPwriter != None:
-            gTCPwriter.close()
-        print('\n>--->\nAIO-C> connecting server to write ... ', end ='', flush=True)
+    if ( gTCPwriter == None ):
+        print('\n>--->\nAIO-C> connecting server to read ... ', end ='', flush=True)
         gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
         print('connected\n<---<\n', flush=True)
+    elif ( gTCPlastTime == 0 ) or ( gTCPlastTime - time.time() > TCP_KEEP_TIME ):
+        gTCPwriter.close()
+        print('\n>--->\nAIO-C> rennecting server to read ... ', end ='', flush=True)
+        gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
+        print('rennected\n<---<\n', flush=True)
     #
     if tx_msg != None and tx_msg != '':
         print('AIO-C> [TX] try => ', end = '', flush=True)        
