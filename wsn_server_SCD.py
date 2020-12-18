@@ -99,7 +99,8 @@ def open_socket(clientNum = 1):
     print ("TCP-S> binded...", flush=True)    
     gSocketServer.listen(clientNum)
     print ("TCP-S> listening...", flush=True) 
-    gTcpLastTime = gTcpErrCnt = 0
+    gTcpErrCnt = 0
+    gTcpLastTime = time.time()
     #
     return True 
 
@@ -111,6 +112,7 @@ def close_socket():
     global gSocketConn
     global gSocketAddr
     global gTcpErrCnt
+    global gTcpLastTime
     #
     if gSocketConn != None:
         print ("TCP-S> close accepted connection", flush=True)
@@ -148,9 +150,10 @@ def accept_socket(blockingTimer = 8):
     global gTcpLastTime
     #
     check_tcp_error()
-    if ( gTcpLastTime == 0 or gTcpLastTime - time.time() > TCP_KEEP_TIME ):
-        close_socket()
-        open_socket()
+    if ( gSocketConn != None ) and ( (gTcpLastTime == 0) or (gTcpLastTime - time.time() > TCP_KEEP_TIME) ):
+        gSocketConn.close()
+        gSocketConn = gSocketAddr = None
+        print ("\n>--->\nTCP-S> expire connection ...", end = '', flush=True)
     if gSocketConn == None:
         print ("\n>--->\nTCP-S> wait client; accepting => ", end = '', flush=True)
         try:
@@ -161,6 +164,7 @@ def accept_socket(blockingTimer = 8):
             gSocketConn = gSocketAddr = None
             return False         
         print ("accepted port# [", gSocketAddr, "]\n<---<\n", flush=True)
+    gTcpLastTime = time.time()
     return True    
 
 ##############################################
@@ -170,6 +174,7 @@ def read_from_socket(blockingTimer = 8):
     global gSocketServer
     global gSocketConn
     global gTcpErrCnt
+    global gTcpLastTime
     #
     accept_socket(3)
     print ("\nTCP-S> [RX] wait => ", end = '', flush=True)
@@ -202,6 +207,7 @@ def write_to_socket(tx_msg):
     global gSocketServer
     global gSocketConn
     global gTcpErrCnt
+    global gTcpLastTime
     #
     accept_socket(3)
     print ("\nTCP-S> [TX] try => ", end = '', flush=True)
