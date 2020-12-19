@@ -840,8 +840,12 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxErr < 300:
     try:
         loop.run_until_complete( tcp_RX(loop) )
     except ConnectionResetError:
-        print ("WSN-C> server connection is broken !", flush=True)
+        print ("WSN-C> server connection is reset !", flush=True)
         break
+    except TimeoutError:
+        print ("WSN-C> server connection is timed-out !", flush=True)
+        time.sleep(1.)
+        continue
     #
     if gTCPrxMsg != None and gTCPrxMsg != '':
         #
