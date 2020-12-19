@@ -164,7 +164,7 @@ def accept_socket(blockingTimer = 8):
             gSocketConn = gSocketAddr = None
             return False         
         print ("accepted port# [", gSocketAddr, "]\n<---<\n", flush=True)
-    gTCPlastTime = time.time()
+        gTCPlastTime = time.time()
     return True    
 
 ##############################################
@@ -181,8 +181,7 @@ def read_from_socket(blockingTimer = 8):
     rx_msg = ''
     try:
         gSocketServer.setblocking(blockingTimer)
-        data = gSocketConn.recv(TCP_PACKET_MAX)
-        gTCPlastTime = time.time()
+        data = gSocketConn.recv(TCP_PACKET_MAX)        
     except TimeoutError:
         print ("timeout !", flush=True)
     except:
@@ -196,7 +195,8 @@ def read_from_socket(blockingTimer = 8):
         else:
             txt = rx_msg[0:40]
             txt.replace('\n','\\n')
-            print ('received "%r"...; %d bytes' % (txt ,n), flush=True)    
+            print ('received "%r"...; %d bytes' % (txt ,n), flush=True)
+        gTCPlastTime = time.time()        
     #    
     return rx_msg   
 
@@ -213,12 +213,12 @@ def write_to_socket(tx_msg):
     print ("\nTCP-S> [TX] try => ", end = '', flush=True)
     try:
         gSocketConn.send(tx_msg.encode())
-        gTCPlastTime = time.time()
     except:
         gTCPerrCnt += 1
         print ("error !", flush=True)
     else:
         print ('"%r" sent' % tx_msg, flush=True)
+        gTCPlastTime = time.time()
     #    
     return
 #

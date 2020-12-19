@@ -142,17 +142,18 @@ async def tcp_RX(loop):
     if ( gTCPwriter == None ):
         print('\n>--->\nAIO-C> connecting server to read ... ', end ='', flush=True)
         gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
+        gTCPlastTime = time.time()
         print('connected\n<---<\n', flush=True)
     elif ( gTCPlastTime == 0 ) or ( gTCPlastTime - time.time() > TCP_KEEP_TIME ):
         gTCPwriter.close()
         print('\n>--->\nAIO-C> rennecting server to read ... ', end ='', flush=True)
         gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
+        gTCPlastTime = time.time()
         print('rennected\n<---<\n', flush=True)
     #
     rx_data = None
     print('AIO-C> [RX] wait => ', end = '', flush=True)    
     try:
-        gTCPlastTime = time.time()
         rx_data = await asyncio.wait_for ( gTCPreader.read(TCP_PACKET_MAX), timeout=10.0 )
     except asyncio.TimeoutError:
         print('timeout', flush=True)
@@ -169,7 +170,8 @@ async def tcp_RX(loop):
             print('null received: %d times' % gTCPrxErr, flush=True)
         else:
             gTCPrxErr = 0
-            print('"%r" received' % gTCPrxMsg, flush=True) 
+            print('"%r" received' % gTCPrxMsg, flush=True)
+        gTCPlastTime = time.time()     
     
 #############################################
 # handle to send data
@@ -184,18 +186,19 @@ async def tcp_TX(tx_msg, loop):
     if ( gTCPwriter == None ):
         print('\n>--->\nAIO-C> connecting server to read ... ', end ='', flush=True)
         gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
+        gTCPlastTime = time.time()
         print('connected\n<---<\n', flush=True)
     elif ( gTCPlastTime == 0 ) or ( gTCPlastTime - time.time() > TCP_KEEP_TIME ):
         gTCPwriter.close()
         print('\n>--->\nAIO-C> rennecting server to read ... ', end ='', flush=True)
         gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
+        gTCPlastTime = time.time()
         print('rennected\n<---<\n', flush=True)
     #
     if tx_msg != None and tx_msg != '':
         print('AIO-C> [TX] try => ', end = '', flush=True)        
         tx_data = tx_msg.encode()
-        try:
-            gTCPlastTime = time.time()        
+        try:        
             gTCPwriter.write(tx_data)
             await asyncio.wait_for ( gTCPwriter.drain(), timeout=10.0 )
         except asyncio.TimeoutError:
@@ -210,7 +213,8 @@ async def tcp_TX(tx_msg, loop):
             else:
                 txt = tx_msg[0:40]
                 txt.replace('\n','\\n')
-                print('"%r"...; %d bytes sent' % (txt, n), flush=True)    
+                print('"%r"...; %d bytes sent' % (txt, n), flush=True)
+            gTCPlastTime = time.time()        
     else:
         print('AIO-C> [TX] nothing to send !', flush=True)    
 
