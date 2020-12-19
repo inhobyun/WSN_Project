@@ -6,6 +6,7 @@ by Inho Byun, Researcher/KAIST
                     started 2020-10-01
                     updated 2020-12-09; monitoring, graph drawing working
                     updated 2020-12-10; acquisition
+                    updated 2020-12-19; mobile UI, multi-monitoring protection, connection renewal
 """
 import datetime
 from flask import Flask, redirect, request
@@ -31,7 +32,7 @@ import time
 TCP_HOST_NAME   = socket.gethostname()
 TCP_PORT        = 8088              # Default TCP Port Name
 TCP_PACKET_MAX  = 1024              # max TCP packet size
-TCP_KEEP_TIME   = 300               # max time interval to keep same TCP port
+TCP_KEEP_TIME   = 300.              # max time interval to keep same TCP port
 TCP_ERR_CNT_MAX = 8                 # max unknown error count before reconnection
 #
 TCP_DEV_READY_MSG = 'DEV_READY'     # server message to check client ready
@@ -57,7 +58,7 @@ gSocketServer   = None
 gSocketConn     = None
 gSocketAddr     = None
 gTCPerrCnt      = 0
-gTCPlastTime    = 0
+gTCPlastTime    = 0.
 #
 gBDTtextList    = []
 #
@@ -150,7 +151,7 @@ def accept_socket(blockingTimer = 8):
     global gTCPlastTime
     #
     check_tcp_error()
-    if ( gSocketConn != None ) and ( (gTCPlastTime == 0) or (gTCPlastTime - time.time() > TCP_KEEP_TIME) ):
+    if ( gSocketConn != None ) and ( (gTCPlastTime == 0) or (time.time() - gTCPlastTime > TCP_KEEP_TIME) ):
         gSocketConn.close()
         gSocketConn = gSocketAddr = None
         print ("\n>--->\nTCP-S> expire connection ...", end = '', flush=True)

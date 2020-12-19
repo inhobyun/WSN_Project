@@ -15,6 +15,7 @@ by Inho Byun, Researcher/KAIST
                     updated 2020-12-03; working revision
                     updated 2020-12-08; comm protocol, BLE scan updated
                     updated 2020-12-10; acquisition
+                    updated 2020-12-19; connection renewal
 """
 import asyncio
 from bluepy.btle import Scanner, DefaultDelegate, UUID, Peripheral
@@ -108,7 +109,7 @@ gIDLEinterval = 60.   # time interval to make BLE traffic to keep connection
 TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
 TCP_PORT      = 8088              # Default TCP Port Name
 TCP_PACKET_MAX= 1024              # max TCP packet size
-TCP_KEEP_TIME = 300               # max time interval to keep same TCP port
+TCP_KEEP_TIME = 300.              # max time interval to keep same TCP port
 #
 TCP_DEV_READY_MSG = 'DEV_READY'     # server message to check client ready
 TCP_DEV_CLOSE_MSG = 'DEV_CLOSE'     # server message to disconnect client
@@ -121,7 +122,7 @@ TCP_BDT_END_MSG   = 'BDT_END'       # client message to inform BDT data transfer
 #
 # global variables
 #
-gTCPlastTime = 0
+gTCPlastTime = 0.
 gTCPreader   = None
 gTCPwriter   = None
 gTCPrxMsg    = None
@@ -144,7 +145,7 @@ async def tcp_RX(loop):
         gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
         gTCPlastTime = time.time()
         print('connected\n<---<\n', flush=True)
-    elif ( gTCPlastTime == 0 ) or ( gTCPlastTime - time.time() > TCP_KEEP_TIME ):
+    elif ( gTCPlastTime == 0 ) or ( time.time() - gTCPlastTime > TCP_KEEP_TIME ):
         gTCPwriter.close()
         print('\n>--->\nAIO-C> rennecting server to read ... ', end ='', flush=True)
         gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
@@ -188,7 +189,7 @@ async def tcp_TX(tx_msg, loop):
         gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
         gTCPlastTime = time.time()
         print('connected\n<---<\n', flush=True)
-    elif ( gTCPlastTime == 0 ) or ( gTCPlastTime - time.time() > TCP_KEEP_TIME ):
+    elif ( gTCPlastTime == 0 ) or ( time.time() - gTCPlastTime > TCP_KEEP_TIME ):
         gTCPwriter.close()
         print('\n>--->\nAIO-C> rennecting server to read ... ', end ='', flush=True)
         gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
