@@ -127,7 +127,7 @@ gTCPreader   = None
 gTCPwriter   = None
 gTCPrxMsg    = None
 gTCPtxMsg    = None
-gTCPrxNull    = 0
+gTCPrxErr    = 0
 
 #############################################
 # handle to receive command message
@@ -138,7 +138,7 @@ async def tcp_RX(loop):
     global gTCPrxMsg
     global gTCPreader
     global gTCPwriter
-    global gTCPrxNull
+    global gTCPrxErr
     #
     if ( gTCPwriter == None ):
         print('\n>--->\nAIO-C> connecting server to read ... ', end ='', flush=True)
@@ -167,11 +167,11 @@ async def tcp_RX(loop):
         if rx_data != None:
             gTCPrxMsg = rx_data.decode()
         if gTCPrxMsg == '':
-            gTCPrxNull += 1
-            print('null received: %d times' % gTCPrxNull, flush=True)
+            gTCPrxErr += 1
+            print('null received: %d times' % gTCPrxErr, flush=True)
             time.sleep(1.)
         else:
-            gTCPrxNull = 0
+            gTCPrxErr = 0
             print('"%r" received' % gTCPrxMsg, flush=True)
         gTCPlastTime = time.time()     
     
@@ -831,7 +831,7 @@ if  SCD_clear_memory(p) == None:
 #
 gIDLElastTime = time.time()
 loop = asyncio.get_event_loop()
-while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxNull < 300:
+while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxErr < 300:
     #
     # wait any message from server
     #
@@ -853,10 +853,8 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxNull < 300:
         #
         if gTCPrxMsg == TCP_DEV_READY_MSG:
             # start STE rolling w/o memory writing
-            print ("WSN-C> got [%s]..." % TCP_DEV_READY_MSG, flush=True)
-            #
-            # polling processing here
-            #
+            print ("WSN-C> response to [%s]..." % TCP_DEV_READY_MSG, flush=True)
+            gTCPtxMsg = TCP_DEV_READY_MSG
         elif gTCPrxMsg == TCP_STE_START_MSG:
             # start STE rolling w/o memory writing
             print ("WSN-C> start STE rolling...", flush=True)

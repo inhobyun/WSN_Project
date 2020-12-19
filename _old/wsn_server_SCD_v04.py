@@ -31,8 +31,6 @@ import time
 ##TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
 TCP_HOST_NAME   = socket.gethostname()
 TCP_PORT        = 8088              # Default TCP Port Name
-##TCP_HTTP_PORT = 5000              # origin flask WEB server port
-TCP_HTTP_PORT   = 8081              # WEB server port
 TCP_PACKET_MAX  = 1024              # max TCP packet size
 TCP_KEEP_TIME   = 86400.            # max time interval to keep same TCP port
 TCP_ERR_CNT_MAX = 8                 # max unknown error count before reconnection
@@ -739,28 +737,6 @@ def post_graphFreq():
         idx += 1
     
     return json.dumps({ 'x': x, 'y': y, 't': time_stamp, 'f': freq_stamp, 'm': 'Fourier Transform' })
-
-#############################################
-#         
-# misc stuffs
-#
-
-#############################################
-#
-# DEVICE READY polling
-@app.route('/get_polling/<message>', methods=['GET'])
-def get_polling(message):
-
-    msg = escape(message)
-    ret_msg = '' 
-    if msg == TCP_DEV_READY_MSG:
-        write_to_socket(TCP_DEV_READY_MSG)
-        ret_msg = 'sent: ' + msg + ' at ' + time_stamp() + ' to WSN client'
-    else:    
-        print('WSN-S> "%r" reeived ' % msg, flush=True)
-        ret_msg = 'received: ' + msg + ' at ' + time_stamp()
-
-    return ret_msg
 
 #############################################
 #############################################
