@@ -154,7 +154,7 @@ def accept_socket(blockingTimer = 8):
     global gTCPerrCnt
     global gTCPlastTime
     #
-    check_tcp_error():
+    check_tcp_error()
     if gSocketConn == None:
         print ("\n>--->\nTCP-S> wait client; accepting => ", end = '', flush=True)
         try:

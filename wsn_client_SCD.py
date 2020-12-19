@@ -967,7 +967,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxNull < 300:
     # if last server communication is too long ago, polling
     #
     if t - gTCPlastTime > TCP_POLL_TIME:
-            loop.run_until_complete( http_TXRX(TCP_DEV_READY_MSG, loop) )        
+            loop.run_until_complete( http_TX_RX(TCP_DEV_READY_MSG, loop) )        
 #
 #############################################
 
