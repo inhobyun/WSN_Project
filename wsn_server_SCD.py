@@ -151,7 +151,7 @@ def accept_socket(blockingTimer = 8):
     global gTCPerrCnt
     global gTCPlastTime
     #
-    if ! check_tcp_error():
+    if not check_tcp_error():
         if gSocketConn != None:
             if (gTCPlastTime == 0) or (time.time() - gTCPlastTime > TCP_KEEP_TIME):
                 gSocketConn.close()
