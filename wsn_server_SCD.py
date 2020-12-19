@@ -32,7 +32,7 @@ import time
 TCP_HOST_NAME   = socket.gethostname()
 TCP_PORT        = 8088              # Default TCP Port Name
 TCP_PACKET_MAX  = 1024              # max TCP packet size
-TCP_KEEP_TIME   = 300.              # max time interval to keep same TCP port
+TCP_KEEP_TIME   = 60.               # max time interval to keep same TCP port
 TCP_ERR_CNT_MAX = 8                 # max unknown error count before reconnection
 #
 TCP_DEV_READY_MSG = 'DEV_READY'     # server message to check client ready
@@ -154,7 +154,11 @@ def accept_socket(blockingTimer = 8):
     if ( gSocketConn != None ) and ( (gTCPlastTime == 0) or (time.time() - gTCPlastTime > TCP_KEEP_TIME) ):
         gSocketConn.close()
         gSocketConn = gSocketAddr = None
-        print ("\n>--->\nTCP-S> expire connection ...", end = '', flush=True)
+        gSocketServer.close()
+        gSocketServer = None
+        print ("\n>--->\nTCP-S> expire connection =>", end = '', flush=True)
+        open_socket()
+        print ("reconnected\n<---<\n", flush=True)
     if gSocketConn == None:
         print ("\n>--->\nTCP-S> wait client; accepting => ", end = '', flush=True)
         try:
