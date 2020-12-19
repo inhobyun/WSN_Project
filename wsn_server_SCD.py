@@ -137,8 +137,9 @@ def check_tcp_error():
     if gTCPerrCnt > TCP_ERR_CNT_MAX:
         close_socket()
         open_socket()
+        return True
 
-    return
+    return False
 
 ##############################################
 # accept socket
@@ -150,15 +151,16 @@ def accept_socket(blockingTimer = 8):
     global gTCPerrCnt
     global gTCPlastTime
     #
-    check_tcp_error()
-    if ( gSocketConn != None ) and ( (gTCPlastTime == 0) or (time.time() - gTCPlastTime > TCP_KEEP_TIME) ):
-        gSocketConn.close()
-        gSocketConn = gSocketAddr = None
-        gSocketServer.close()
-        gSocketServer = None
-        print ("\n>--->\nTCP-S> expire connection =>", end = '', flush=True)
-        open_socket()
-        print ("reconnected\n<---<\n", flush=True)
+    if ! check_tcp_error():
+        if gSocketConn != None:
+            if (gTCPlastTime == 0) or (time.time() - gTCPlastTime > TCP_KEEP_TIME):
+                gSocketConn.close()
+                gSocketConn = gSocketAddr = None
+                gSocketServer.close()
+                gSocketServer = None
+                print ("\n>--->\nTCP-S> expire connection =>", end = '', flush=True)
+                open_socket()
+                print ("reconnected\n<---<\n", flush=True)
     if gSocketConn == None:
         print ("\n>--->\nTCP-S> wait client; accepting => ", end = '', flush=True)
         try:
@@ -391,7 +393,7 @@ def post_monStart():
     gSTElockFlag = True
 
     # send STE start & request
-    accept_socket()
+    ##accept_socket()
     if not gIsMonStarted: 
         time.sleep(0.2)
         write_to_socket(TCP_STE_START_MSG)
@@ -446,7 +448,7 @@ def post_monStop():
     global gBDTlockFlag
 
     # send STE stop
-    accept_socket()
+    ##accept_socket()
     if gIsMonStarted:
         time.sleep(0.2)
         write_to_socket(TCP_STE_STOP_MSG)
@@ -481,7 +483,7 @@ def post_STEandBDT():
         gBDTlockFlag = True    
 
     # send BDT run
-    accept_socket()
+    ##accept_socket()
     write_to_socket(TCP_BDT_RUN_MSG)
     time.sleep(10.0)
     # wait till completed
@@ -523,7 +525,7 @@ def post_BDTtoServer():
     gBDTtextList = []
     while True:
         # send BDT request
-        accept_socket()
+        ##accept_socket()
         time.sleep(0.1)
         write_to_socket(TCP_BDT_REQ_MSG)
         time.sleep(0.1)

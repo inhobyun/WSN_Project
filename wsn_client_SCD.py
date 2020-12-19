@@ -169,6 +169,7 @@ async def tcp_RX(loop):
         if gTCPrxMsg == '':
             gTCPrxErr += 1
             print('null received: %d times' % gTCPrxErr, flush=True)
+            time.sleep(1.)
         else:
             gTCPrxErr = 0
             print('"%r" received' % gTCPrxMsg, flush=True)
@@ -830,7 +831,7 @@ if  SCD_clear_memory(p) == None:
 #
 gIDLElastTime = time.time()
 loop = asyncio.get_event_loop()
-while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxErr < 10:
+while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxErr < 300:
     #
     # wait any message from server
     #
