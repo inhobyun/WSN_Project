@@ -141,11 +141,10 @@ async def http_TX_RX(tx_msg, loop):
     reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_HTTP_PORT)
     print('connected\n<---<\n', flush=True)
 
-    http_msg = 'GET /polling/%s HTTP/1.1[0m' % tx_msg
+    tx_data = '[37mGET /polling/%s HTTP/1.1[0m' % tx_msg
+    rx_msg = ''
 
     print('AIO-C> [HTTP TX] try => ', end = '', flush=True) 
-    tx_data = http_msg.encode()
-    rx_msg = ''
     try:        
         writer.write(tx_data)
         await asyncio.wait_for ( writer.drain(), timeout=3.0 )
