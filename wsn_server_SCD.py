@@ -32,7 +32,7 @@ import time
 TCP_HOST_NAME   = socket.gethostname()
 TCP_PORT        = 8088              # Default TCP Port Name
 TCP_PACKET_MAX  = 1024              # max TCP packet size
-TCP_KEEP_TIME   = 60.               # max time interval to keep same TCP port
+TCP_KEEP_TIME   = 86400.            # max time interval to keep same TCP port
 TCP_ERR_CNT_MAX = 8                 # max unknown error count before reconnection
 #
 TCP_DEV_READY_MSG = 'DEV_READY'     # server message to check client ready
