@@ -141,12 +141,14 @@ async def http_TX_RX(tx_msg, loop):
     reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_HTTP_PORT)
     print('connected\n<---<\n', flush=True)
 
+    http_msg = 'GET /polling/%s HTTP/1.1[0m' % tx_msg
+
     print('AIO-C> [HTTP TX] try => ', end = '', flush=True) 
-    tx_data = tx_msg.encode()
+    tx_data = http_msg.encode()
     rx_msg = ''
     try:        
         writer.write(tx_data)
-        await asyncio.wait_for ( gTCPwriter.drain(), timeout=10.0 )
+        await asyncio.wait_for ( writer.drain(), timeout=3.0 )
     except asyncio.TimeoutError:
         print('timeout !', flush=True)
         pass
@@ -156,24 +158,23 @@ async def http_TX_RX(tx_msg, loop):
     else:
         print('"%r" sent' % tx_msg, flush=True)
     #
-    rx_data = None
-    print('AIO-C> [HTTP RX] wait => ', end = '', flush=True)    
-    try:
-        rx_data = await asyncio.wait_for ( reader.read(TCP_PACKET_MAX), timeout=3.0 )
-    except asyncio.TimeoutError:
-        print('timeout', flush=True)
-        pass
-    except:
-        print('error !', flush=True)
-        gTCPwriter = gTCPreader = None
-        pass
-    else:
-        if rx_data != None:
-            rx_msg = rx_data.decode()
-        if rx_msg == '':
-            print('null received', flush=True)
+        rx_data = None
+        print('AIO-C> [HTTP RX] wait => ', end = '', flush=True)    
+        try:
+            rx_data = await asyncio.wait_for ( reader.read(TCP_PACKET_MAX), timeout=3.0 )
+        except asyncio.TimeoutError:
+            print('timeout', flush=True)
+            pass
+        except:
+            print('error !', flush=True)
+            pass
         else:
-            print('"%r" received' % rx_msg, flush=True)
+            if rx_data != None:
+                rx_msg = rx_data.decode()
+            if rx_msg == '':
+                print('null received', flush=True)
+            else:
+                print('"%r" received' % rx_msg, flush=True)
 
     writer.close()        
     return rx_msg
