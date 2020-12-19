@@ -13,6 +13,7 @@ from flask import Flask, redirect, request
 from jinja2 import Environment, PackageLoader, Markup, select_autoescape
 import json
 import numpy as np
+from markupsafe import escape
 import math
 ##import matplotlib.pyplot as plotter
 import socket
@@ -31,10 +32,10 @@ import time
 ##TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
 TCP_HOST_NAME   = socket.gethostname()
 TCP_PORT        = 8088              # Default TCP Port Name
-##TCP_HTTP_PORT = 5000              # origin flask WEB server port
-TCP_HTTP_PORT   = 8081              # WEB server port
+TCP_HTTP_PORT = 5000              # origin flask WEB server port
+##TCP_HTTP_PORT   = 8081              # WEB server port
 TCP_PACKET_MAX  = 1024              # max TCP packet size
-TCP_KEEP_TIME   = 86400.            # max time interval to keep same TCP port
+TCP_POLL_TIME   = 60.               # max time interval to poll TCP port
 TCP_ERR_CNT_MAX = 8                 # max unknown error count before reconnection
 #
 TCP_DEV_READY_MSG = 'DEV_READY'     # server message to check client ready
@@ -153,16 +154,7 @@ def accept_socket(blockingTimer = 8):
     global gTCPerrCnt
     global gTCPlastTime
     #
-    if not check_tcp_error():
-        if gSocketConn != None:
-            if (gTCPlastTime == 0) or (time.time() - gTCPlastTime > TCP_KEEP_TIME):
-                gSocketConn.close()
-                gSocketConn = gSocketAddr = None
-                gSocketServer.close()
-                gSocketServer = None
-                print ("\n>--->\nTCP-S> expire connection =>", end = '', flush=True)
-                open_socket()
-                print ("reconnected\n<---<\n", flush=True)
+    check_tcp_error():
     if gSocketConn == None:
         print ("\n>--->\nTCP-S> wait client; accepting => ", end = '', flush=True)
         try:

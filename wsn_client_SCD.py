@@ -106,10 +106,12 @@ gIDLEinterval = 60.   # time interval to make BLE traffic to keep connection
 ##TCP_HOST_NAME = "127.0.0.1"       # TEST Host Name
 ##TCP_HOST_NAME = "10.2.2.3"        # TEST Host Name
 ##TCP_HOST_NAME = "192.168.0.3"     # TEST Host Name
-TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
-TCP_PORT      = 8088              # Default TCP Port Name
-TCP_PACKET_MAX= 1024              # max TCP packet size
-TCP_KEEP_TIME = 86400.            # max time interval to keep same TCP port
+TCP_HOST_NAME   = "125.131.73.31"   # Default Host Name
+TCP_PORT        = 8088              # Default TCP Port Name
+TCP_HTTP_PORT   = 5000            # origin flask WEB server port
+##TCP_HTTP_PORT   = 8081              # WEB server port
+TCP_PACKET_MAX  = 1024              # max TCP packet size
+TCP_POLL_TIME   = 60.               # max time interval to poll TCP port
 #
 TCP_DEV_READY_MSG = 'DEV_READY'     # server message to check client ready
 TCP_DEV_CLOSE_MSG = 'DEV_CLOSE'     # server message to disconnect client
@@ -133,6 +135,53 @@ gTCPrxNull    = 0
 # handle to receive command message
 #############################################
 #
+async def http_TX_RX(tx_msg, loop):
+    #
+    print('\n>--->\nAIO-C> connecting http server to read ... ', end ='', flush=True)
+    reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_HTTP_PORT)
+    print('connected\n<---<\n', flush=True)
+
+    print('AIO-C> [HTTP TX] try => ', end = '', flush=True) 
+    tx_data = tx_msg.encode()
+    rx_msg = ''
+    try:        
+        writer.write(tx_data)
+        await asyncio.wait_for ( gTCPwriter.drain(), timeout=10.0 )
+    except asyncio.TimeoutError:
+        print('timeout !', flush=True)
+        pass
+    except:
+        print('error !', flush=True)
+        pass
+    else:
+        print('"%r" sent' % tx_msg, flush=True)
+    #
+    rx_data = None
+    print('AIO-C> [HTTP RX] wait => ', end = '', flush=True)    
+    try:
+        rx_data = await asyncio.wait_for ( reader.read(TCP_PACKET_MAX), timeout=3.0 )
+    except asyncio.TimeoutError:
+        print('timeout', flush=True)
+        pass
+    except:
+        print('error !', flush=True)
+        gTCPwriter = gTCPreader = None
+        pass
+    else:
+        if rx_data != None:
+            rx_msg = rx_data.decode()
+        if rx_msg == '':
+            print('null received', flush=True)
+        else:
+            print('"%r" received' % rx_msg, flush=True)
+
+    writer.close()        
+    return rx_msg
+
+#############################################
+# handle to receive command message
+#############################################
+#
 async def tcp_RX(loop):
     global gTCPlastTime
     global gTCPrxMsg
@@ -145,12 +194,6 @@ async def tcp_RX(loop):
         gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
         gTCPlastTime = time.time()
         print('connected\n<---<\n', flush=True)
-    elif ( gTCPlastTime == 0 ) or ( time.time() - gTCPlastTime > TCP_KEEP_TIME ):
-        gTCPwriter.close()
-        print('\n>--->\nAIO-C> rennecting server to read ... ', end ='', flush=True)
-        gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
-        gTCPlastTime = time.time()
-        print('rennected\n<---<\n', flush=True)
     #
     rx_data = None
     print('AIO-C> [RX] wait => ', end = '', flush=True)    
@@ -190,12 +233,6 @@ async def tcp_TX(tx_msg, loop):
         gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
         gTCPlastTime = time.time()
         print('connected\n<---<\n', flush=True)
-    elif ( gTCPlastTime == 0 ) or ( time.time() - gTCPlastTime > TCP_KEEP_TIME ):
-        gTCPwriter.close()
-        print('\n>--->\nAIO-C> rennecting server to read ... ', end ='', flush=True)
-        gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
-        gTCPlastTime = time.time()
-        print('rennected\n<---<\n', flush=True)
     #
     if tx_msg != None and tx_msg != '':
         print('AIO-C> [TX] try => ', end = '', flush=True)        
@@ -926,6 +963,11 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxNull < 300:
         except ConnectionResetError:
             print ("WSN-C> server connection is broken !", flush=True)
             break
+    #
+    # if last server communication is too long ago, polling
+    #
+    if t - gTCPlastTime > TCP_POLL_TIME:
+            loop.run_until_complete( http_TXRX(TCP_DEV_READY_MSG, loop) )        
 #
 #############################################
 
