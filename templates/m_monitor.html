@@ -12,8 +12,8 @@
         <label for="tm_interval">sec</label>
     </div><br>    
     <div style="text-align: right; padding-right:8px; padding-bottom:8px;">
-        <button class="button-l" id="btn_start" onclick="monBegin()"> Start </button><br><br>
-        <button class="button-l" id="btn_stop"  onclick="monStop()" disabled> Stop </button>
+        <button class="button-l" id="btn_start" onclick="mobBegin()"> Start </button><br><br>
+        <button class="button-l" id="btn_stop"  onclick="mobStop()" disabled> Stop </button>
     </div>
 {% endblock %}
 
@@ -131,20 +131,28 @@
             document.getElementById("status_" + i).innerHTML = data.status[i];
         }    
 
-        if (data.status[0] == 'VIBRATION') { col = 'blue'; } else { col = 'gray'; }
+        if (data.status[0] == 'UNKNOWN') {
+            col = "gray";
+        } else {
+            if (data.status[0] == 'VIBRATION') { col = 'blue'; } else { col = 'black'; }
+        }    
         document.getElementById("status_0").style.color = col;
-        if (data.status[1] == 'ABNORMAL') { col = 'red'; } else { col = 'gray'; }
+        if (data.status[1] == 'UNKNOWN') {
+            col = "gray";
+        } else {
+            if (data.status[1] == 'ABNORMAL') { col = 'red'; } else { col = 'black'; }
+        }    
         document.getElementById("status_1").style.color = col;
     }
 
-    function monBegin() {
+    function mobBegin() {
         // control UI before function run
         disableAllMenus();           
         document.getElementById("btn_start").disabled = true;
-        monStart(0);
+        mobStart(0);
     }
 
-    function monStart(value) {
+    function mobStart(value) {
         const interval = document.getElementById('tm_interval').value;
         axios.post('/post_monStart', {
             value: value,
@@ -153,7 +161,7 @@
             //console.log(data);
             dispData(data);
             if (data.timer == 'on') {
-                tid = setTimeout(monStart, Number(interval)*1000, 1);
+                tid = setTimeout(mobStart, Number(interval)*1000, 1);
                 document.getElementById("btn_stop" ).disabled = false;
             } else {
                 enableAllMenus();           
@@ -163,7 +171,7 @@
         });
     }
     
-    function monStop() {
+    function mobStop() {
         // control UI before function run
         disableAllMenus();           
         document.getElementById("btn_start").disabled = false;
