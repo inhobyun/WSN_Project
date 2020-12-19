@@ -56,8 +56,8 @@ WSN_STAMP_FREQ    = "accelometer ODR"
 gSocketServer   = None
 gSocketConn     = None
 gSocketAddr     = None
-gTcpErrCnt      = 0
-gTcpLastTime    = 0
+gTCPerrCnt      = 0
+gTCPlastTime    = 0
 #
 gBDTtextList    = []
 #
@@ -77,8 +77,8 @@ def open_socket(clientNum = 1):
     global TCP_HOST_NAME
     global TCP_PORT
     global gSocketServer
-    global gTcpErrCnt
-    global gTcpLastTime
+    global gTCPerrCnt
+    global gTCPlastTime
 
     #
     if len(sys.argv) > 1:
@@ -99,8 +99,8 @@ def open_socket(clientNum = 1):
     print ("TCP-S> binded...", flush=True)    
     gSocketServer.listen(clientNum)
     print ("TCP-S> listening...", flush=True) 
-    gTcpErrCnt = 0
-    gTcpLastTime = time.time()
+    gTCPerrCnt = 0
+    gTCPlastTime = time.time()
     #
     return True 
 
@@ -111,14 +111,14 @@ def close_socket():
     global gSocketServer
     global gSocketConn
     global gSocketAddr
-    global gTcpErrCnt
-    global gTcpLastTime
+    global gTCPerrCnt
+    global gTCPlastTime
     #
     if gSocketConn != None:
         print ("TCP-S> close accepted connection", flush=True)
         gSocketConn.close()
         gSocketConn = gSocketAddr = None
-        gTcpLastTime = gTcpErrCnt = 0
+        gTCPlastTime = gTCPerrCnt = 0
     #
     if gSocketServer != None:
         print ("TCP-S> close socket", flush=True)
@@ -131,9 +131,9 @@ def close_socket():
 # check TCP error
 #
 def check_tcp_error():
-    global gTcpErrCnt
+    global gTCPerrCnt
     #
-    if gTcpErrCnt > TCP_ERR_CNT_MAX:
+    if gTCPerrCnt > TCP_ERR_CNT_MAX:
         close_socket()
         open_socket()
 
@@ -146,11 +146,11 @@ def accept_socket(blockingTimer = 8):
     global gSocketServer
     global gSocketConn
     global gSocketAddr
-    global gTcpErrCnt
-    global gTcpLastTime
+    global gTCPerrCnt
+    global gTCPlastTime
     #
     check_tcp_error()
-    if ( gSocketConn != None ) and ( (gTcpLastTime == 0) or (gTcpLastTime - time.time() > TCP_KEEP_TIME) ):
+    if ( gSocketConn != None ) and ( (gTCPlastTime == 0) or (gTCPlastTime - time.time() > TCP_KEEP_TIME) ):
         gSocketConn.close()
         gSocketConn = gSocketAddr = None
         print ("\n>--->\nTCP-S> expire connection ...", end = '', flush=True)
@@ -164,7 +164,7 @@ def accept_socket(blockingTimer = 8):
             gSocketConn = gSocketAddr = None
             return False         
         print ("accepted port# [", gSocketAddr, "]\n<---<\n", flush=True)
-    gTcpLastTime = time.time()
+    gTCPlastTime = time.time()
     return True    
 
 ##############################################
@@ -173,8 +173,8 @@ def accept_socket(blockingTimer = 8):
 def read_from_socket(blockingTimer = 8):
     global gSocketServer
     global gSocketConn
-    global gTcpErrCnt
-    global gTcpLastTime
+    global gTCPerrCnt
+    global gTCPlastTime
     #
     accept_socket(3)
     print ("\nTCP-S> [RX] wait => ", end = '', flush=True)
@@ -182,11 +182,11 @@ def read_from_socket(blockingTimer = 8):
     try:
         gSocketServer.setblocking(blockingTimer)
         data = gSocketConn.recv(TCP_PACKET_MAX)
-        gTcpLastTime = time.time()
+        gTCPlastTime = time.time()
     except TimeoutError:
         print ("timeout !", flush=True)
     except:
-        gTcpErrCnt += 1
+        gTCPerrCnt += 1
         print ("error !", flush=True)
     else:
         rx_msg = data.decode()
@@ -206,16 +206,16 @@ def read_from_socket(blockingTimer = 8):
 def write_to_socket(tx_msg):
     global gSocketServer
     global gSocketConn
-    global gTcpErrCnt
-    global gTcpLastTime
+    global gTCPerrCnt
+    global gTCPlastTime
     #
     accept_socket(3)
     print ("\nTCP-S> [TX] try => ", end = '', flush=True)
     try:
         gSocketConn.send(tx_msg.encode())
-        gTcpLastTime = time.time()
+        gTCPlastTime = time.time()
     except:
-        gTcpErrCnt += 1
+        gTCPerrCnt += 1
         print ("error !", flush=True)
     else:
         print ('"%r" sent' % tx_msg, flush=True)

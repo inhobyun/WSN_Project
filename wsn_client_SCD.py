@@ -152,8 +152,8 @@ async def tcp_RX(loop):
     rx_data = None
     print('AIO-C> [RX] wait => ', end = '', flush=True)    
     try:
-        rx_data = await asyncio.wait_for ( gTCPreader.read(TCP_PACKET_MAX), timeout=10.0 )
         gTCPlastTime = time.time()
+        rx_data = await asyncio.wait_for ( gTCPreader.read(TCP_PACKET_MAX), timeout=10.0 )
     except asyncio.TimeoutError:
         print('timeout', flush=True)
         pass
@@ -195,9 +195,9 @@ async def tcp_TX(tx_msg, loop):
         print('AIO-C> [TX] try => ', end = '', flush=True)        
         tx_data = tx_msg.encode()
         try:
+            gTCPlastTime = time.time()        
             gTCPwriter.write(tx_data)
             await asyncio.wait_for ( gTCPwriter.drain(), timeout=10.0 )
-            gTCPlastTime = time.time()        
         except asyncio.TimeoutError:
             print('timeout !', flush=True)
         except:
