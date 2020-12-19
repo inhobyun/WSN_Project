@@ -12,8 +12,9 @@
         <label for="tm_interval">sec</label>
     </div><br>    
     <div style="text-align: right; padding-right:8px; padding-bottom:8px;">
-        <button class="button-l" id="btn_start" onclick="mobBegin()"> Start </button><br><br>
-        <button class="button-l" id="btn_stop"  onclick="mobStop()" disabled> Stop </button>
+        <button class="button-l" id="btn_start" onclick="monBegin()"> Start </button>
+        <br><br>
+        <button class="button-l" id="btn_stop"  onclick="monStop()" disabled> Stop </button>
     </div>
 {% endblock %}
 
@@ -145,14 +146,14 @@
         document.getElementById("status_1").style.color = col;
     }
 
-    function mobBegin() {
+    function monBegin() {
         // control UI before function run
         disableAllMenus();           
         document.getElementById("btn_start").disabled = true;
         mobStart(0);
     }
 
-    function mobStart(value) {
+    function monStart(value) {
         const interval = document.getElementById('tm_interval').value;
         axios.post('/post_monStart', {
             value: value,
@@ -161,7 +162,7 @@
             //console.log(data);
             dispData(data);
             if (data.timer == 'on') {
-                tid = setTimeout(mobStart, Number(interval)*1000, 1);
+                tid = setTimeout(monStart, Number(interval)*1000, 1);
                 document.getElementById("btn_stop" ).disabled = false;
             } else {
                 enableAllMenus();           
@@ -171,7 +172,7 @@
         });
     }
     
-    function mobStop() {
+    function monStop() {
         // control UI before function run
         disableAllMenus();           
         document.getElementById("btn_start").disabled = false;
