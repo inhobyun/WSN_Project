@@ -34,7 +34,7 @@ function startSTEandBDT() {
         //const value = document.getElementById('???').value;
 
         //control UI before function run
-        disableAllMenus();
+        disableAllMenus('N');
         document.getElementById("btn_start_1").disabled = true;
         // display pre-messages
         document.getElementById("inf_message").innerHTML += "▶ run STE(Short Time Experiment), then BDT(Block Data Transfer): SENSOR ➜ EDGE-DEVICE<br>";
@@ -49,7 +49,7 @@ function startSTEandBDT() {
             document.getElementById("inf_message").innerHTML += "__✔ completed: " + data.msg_00 + "<br>";
             // control UI after function run
             document.getElementById("btn_start_2" ).disabled = false;
-            enableAllMenus();
+            enableAllMenus('N');
         }).catch(function (error) {
             // display error-message
             document.getElementById("err_message").innerHTML = "<br>❗ Error occurred on submit: " + error;
@@ -61,7 +61,7 @@ function startSTEandBDT() {
         //const value = document.getElementById('???').value;
 
         //control UI before function run
-        disableAllMenus();
+        disableAllMenus('N');
         document.getElementById("btn_start_2").disabled = true;
         // display pre-messages
         document.getElementById("inf_message").innerHTML += "▶ run BDT(Block Data Transfer): EDGE-DEVICE ➜ SERVER<br>";
@@ -76,7 +76,7 @@ function startSTEandBDT() {
             document.getElementById("inf_message").innerHTML += "__✔ completed: " + data.msg_00 + "<br>";
             // control UI after function run
             document.getElementById("btn_start_3" ).disabled = false;    
-            enableAllMenus();
+            enableAllMenus('N');
         }).catch(function (error) {
             // display error-message
             document.getElementById("err_message").innerHTML = "<br>❗ Error occurred on submit: " + error;
@@ -88,7 +88,7 @@ function startSTEandBDT() {
         //const value = document.getElementById('???').value;
 
         //control UI before function run
-        disableAllMenus();
+        disableAllMenus('N');
         document.getElementById("btn_start_3").disabled = true;
         // display pre-messages
         document.getElementById("inf_message").innerHTML += "▶ save data to \".CSV\" formated file<br>";
@@ -102,7 +102,7 @@ function startSTEandBDT() {
             document.getElementById("inf_message").innerHTML += "__✔ completed: " + data.msg_00;
             document.getElementById("fin_message").innerHTML += "🙂 all done, congratuation !";
             // control UI after function run
-            enableAllMenus();
+            enableAllMenus('N');
         }).catch(function (error) {
             // display error-message
             document.getElementById("err_message").innerHTML = "<br>❗ Error occurred on submit: " + error;
@@ -110,5 +110,7 @@ function startSTEandBDT() {
     }    
 
 </script>
+
+<script type="text/javascript" src="/static/js/misc.js"></script>
 
 {% endblock %}

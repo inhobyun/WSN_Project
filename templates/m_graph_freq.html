@@ -8,7 +8,7 @@
     <div style="text-align:center;"><label><b>Graph X & Y Axis Setting</b></label></div>
     <br> 
     <div style="text-align:right;">
-        <button class="button-l" id="btn_draw" onclick="dispGraph('blue')">Draw Graph</button>
+        <button class="button-l" id="btn_draw" onclick="dispFreqGraph('blue')">Draw Graph</button>
     </div>
     <br>
     <div style="text-align:left;">
@@ -73,7 +73,7 @@
     </div>
 
     <script>
-        function dispGraph(color_val) {
+        function dispFreqGraph(color_val) {
             document.getElementById("btn_draw").disabled = true;
             //
             // add drawing option hera afterward
@@ -98,16 +98,9 @@
             }).catch(function (error) {
                 alert('Error occurred on submit: ' + error);
             });
-        }
-        
-        function clearScale() {
-            if ( ! document.getElementById("scale_manu").checked ) {
-                document.getElementById("y_min").value = '';
-                document.getElementById("y_max").value = '';
-                document.getElementById("x_min").value = '';
-                document.getElementById("x_max").value = '';
-            }
         }    
     </script>
-    
+
+    <script type="text/javascript" src="/static/js/drawing.js"></script>
+
 {% endblock %}

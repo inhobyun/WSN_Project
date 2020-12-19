@@ -8,7 +8,7 @@
     <div style="text-align:center;"><label><b>Graph X & Y Axis Setting</b></label></div>
     <br> 
     <div style="text-align:right;">
-        <button class="button-l" id="btn_draw" onclick="dispGraph('Green')">Draw Graph</button>
+        <button class="button-l" id="btn_draw" onclick="dispTimeGraph('Green')">Draw Graph</button>
     </div>
     <br>
     <div style="text-align:left;">
@@ -80,56 +80,39 @@
 </div>
 
 <script>
-    function dispGraph(color_val) {
-            document.getElementById("btn_draw").disabled = true;
-            // drawing option
-            var r_btn = document.getElementsByName("draw");
-            var i, value;
-            for (i = 0; i < r_btn.length; i++) {
-                if ( r_btn[i].checked ) {
-                    value = r_btn[i].value;
-                }
-            }    
-            axios.post('/post_graphTime', {
-                value: value,
-            }).then(response => {
-                const data = response.data;
-                // drawing
-                drawGraph(data, color_val,
-                    document.getElementById("y_min"),
-                    document.getElementById("y_max"),
-                    document.getElementById("x_min"),
-                    document.getElementById("x_max")
-                );
-                document.getElementById("time_stamp").innerHTML = data.t
-                document.getElementById("freq_stamp").innerHTML = data.f
-                document.getElementById("mode_stamp").innerHTML = data.m
-                document.getElementById("btn_draw").disabled = false;
-                document.getElementById("scale_manu").disabled = false;
-                document.getElementById("scale_manu").checked = true;
-            }).catch(function (error) {
-                alert('Error occurred on submit: ' + error);
-            });            
-        }
-
-        function clearScale() {
-            if ( ! document.getElementById("scale_manu").checked ) {
-                document.getElementById("y_min").value = '';
-                document.getElementById("y_max").value = '';
-                document.getElementById("x_min").value = '';
-                document.getElementById("x_max").value = '';
+    function dispTimeGraph(color_val) {
+        document.getElementById("btn_draw").disabled = true;
+        // drawing option
+        var r_btn = document.getElementsByName("draw");
+        var i, value;
+        for (i = 0; i < r_btn.length; i++) {
+            if ( r_btn[i].checked ) {
+                value = r_btn[i].value;
             }
         }    
-
-        function setAutoScale() {
-            document.getElementById("scale_auto").checked  = true
-            document.getElementById("scale_manu").disabled  = true   
-            document.getElementById("y_min").value = '';
-            document.getElementById("y_max").value = '';
-            document.getElementById("x_min").value = '';
-            document.getElementById("x_max").value = '';
-        }    
-
+        axios.post('/post_graphTime', {
+            value: value,
+        }).then(response => {
+            const data = response.data;
+            // drawing
+            drawGraph(data, color_val,
+                document.getElementById("y_min"),
+                document.getElementById("y_max"),
+                document.getElementById("x_min"),
+                document.getElementById("x_max")
+            );
+            document.getElementById("time_stamp").innerHTML = data.t
+            document.getElementById("freq_stamp").innerHTML = data.f
+            document.getElementById("mode_stamp").innerHTML = data.m
+            document.getElementById("btn_draw").disabled = false;
+            document.getElementById("scale_manu").disabled = false;
+            document.getElementById("scale_manu").checked = true;
+        }).catch(function (error) {
+            alert('Error occurred on submit: ' + error);
+        });            
+    }
 </script>    
+
+<script type="text/javascript" src="/static/js/drawing.js"></script>
 
 {% endblock %}
