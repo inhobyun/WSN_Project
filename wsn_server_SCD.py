@@ -390,6 +390,7 @@ def post_monStart():
         from_client = None
     else:    
         gSTElockFlag = True
+        time.sleep(0.7)
         write_to_socket(TCP_STE_REQ_MSG)
         time.sleep(0.3)
         from_client = read_from_socket(blockingTimer = 16)
