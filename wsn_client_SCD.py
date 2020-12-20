@@ -890,7 +890,7 @@ if  SCD_clear_memory(p) == None:
 #
 gIDLElastTime = time.time()
 loop = asyncio.get_event_loop()
-while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxNull < 300:
+while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxNull < 8:
     #
     # wait any message from server
     #

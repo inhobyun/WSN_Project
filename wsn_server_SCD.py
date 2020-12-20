@@ -725,6 +725,9 @@ def get_polling(message):
     elif msg == TCP_STE_STOP_MSG:    
         write_to_socket(msg)
         ret_msg = 'sent: ' + msg + ' at ' + time_stamp() + ' to WSN client'
+    elif msg == TCP_DEV_CLOSE_MSG:    
+        write_to_socket(msg)
+        ret_msg = 'sent: ' + msg + ' at ' + time_stamp() + ' to WSN client'
     else:    
         ret_msg = 'received: ' + msg + ' at ' + time_stamp()
     return ret_msg
