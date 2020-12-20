@@ -731,13 +731,15 @@ def get_polling(message):
 
     msg = escape(message)
     ret_msg = '' 
+    print('WSN-S> "%r" reeived from WSN client' % msg, flush=True)
     if msg == TCP_DEV_READY_MSG:
-        write_to_socket(TCP_DEV_READY_MSG)
+        write_to_socket(msg)
+        ret_msg = 'sent: ' + msg + ' at ' + time_stamp() + ' to WSN client'
+    elif msg == TCP_STE_STOP_MSG:    
+        write_to_socket(msg)
         ret_msg = 'sent: ' + msg + ' at ' + time_stamp() + ' to WSN client'
     else:    
-        print('WSN-S> "%r" reeived ' % msg, flush=True)
         ret_msg = 'received: ' + msg + ' at ' + time_stamp()
-
     return ret_msg
 
 #############################################
