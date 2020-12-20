@@ -24,6 +24,7 @@ import socket
 import struct
 import sys
 import time
+from urllib import request, parse
 
 #############################################
 # target definitions to interface BOSCH SCD
@@ -132,9 +133,19 @@ gTCPtxMsg    = None
 gTCPrxNull    = 0
 
 #############################################
-# handle to receive command message
+# polling flask server via HTTP
 #############################################
 #
+def http_polling(pol_msg = TCP_DEV_READY_MSG):
+    #
+    print('\n>--->\nWSN> polling try => ', end='', flush=True)
+    url_str = 'http://%s:%s/get_polling/%s' % (TCP_HOST, TCP_HTTP_PORT, pol_msg) 
+    f = urllib.request.urlopen(url_str)
+    rtn_str = f.read().decode()
+    f.close()
+    print('"%r" received\n<---<\n' % rtn_str)
+    return rtn_str
+'''
 async def http_TX_RX(tx_msg, loop):
     #
     print('\n>--->\nAIO-C> connecting http server to read ... ', end ='', flush=True)
@@ -142,7 +153,7 @@ async def http_TX_RX(tx_msg, loop):
     print('connected\n<---<\n', flush=True)
 
     # '[37mGET /polling/%s HTTP/1.1[0m'
-    tx_data = ('GET /polling/%s HTTP/1.1' % tx_msg).encode('ascii')
+    tx_data = ('%s:%s/get_polling/%s HTTP/1.1' % tx_msg).encode('ascii')
     rx_msg = ''
 
     print('AIO-C> [HTTP TX] try => ', end = '', flush=True) 
@@ -178,7 +189,7 @@ async def http_TX_RX(tx_msg, loop):
 
     writer.close()        
     return rx_msg
-
+'''
 #############################################
 # handle to receive command message
 #############################################
@@ -968,7 +979,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxNull < 300:
     # if last server communication is too long ago, polling
     #
     if t - gTCPlastTime > TCP_POLL_TIME:
-            loop.run_until_complete( http_TX_RX(TCP_DEV_READY_MSG, loop) )        
+            http_polling()        
 #
 #############################################
 
