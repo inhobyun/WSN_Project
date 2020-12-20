@@ -378,9 +378,11 @@ def post_monStart():
     # check STE, BDT lock flag
     if (value==0 and  gSTElockFlag) or gBDTlockFlag:
         rows = {'row' : [time_stamp(),'*','*','*','*','*','*','*','*','*','*','*'],
-                'status' : ['[monitoring locked]', '[by other user]'],
+                'status' : ['[locked]', '[by other user]'],
                 'timer' : 'off'
-               }               
+               }
+        write_to_socket(TCP_STE_STOP_MSG)
+        gSTElockFlag = False                     
         return json.dumps(rows)   
 
     # send STE start & request
