@@ -624,8 +624,7 @@ def SCD_clear_memory( p ):
     ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
     print ("SCD> Flash memory remain is [%s] MAX:0b0000" % ret_val[31:34].hex(), flush=True)
     if (struct.unpack('i', ret_val[31:35]))[0] < SCD_MAX_FLASH:  
-        print ("SCD> => flash memory is not empty ... cleanning-up flash memory", flush=True)
-        print ("SCD> Erase flash wait for seconds ... should reconnect device", flush=True)
+        print ("SCD> => flash memory is not empty ... wait seconds to clean-up", flush=True)
         p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x30' ) # erase sensor data
         p.disconnect()
         time.sleep(10.)
@@ -647,7 +646,7 @@ def SCD_run_STE_for_idling( p ):
     SCD_set_STE_config(p, False)
     rolling_status_backup = gSTEisRolling
     SCD_toggle_STE_rolling(p, True, True)
-    # take rolling time ( added more overhead time)
+    # take rolling time 
     tm = time.time()
     while time.time() - tm <= 0.2:
         wait_flag = p.waitForNotifications(0.2)
@@ -674,7 +673,7 @@ def SCD_run_STE_and_BDT( p ):
     p.setDelegate( NotifyDelegate(p) )
     SCD_set_STE_config(p, True, True)
     SCD_toggle_STE_rolling(p, True, True)
-    # take rolling time ( added more overhead time)
+    # take rolling time
     tm = time.time()
     while time.time() - tm <= STE_RUN_TIME:
         wait_flag = p.waitForNotifications(0.33)
@@ -913,7 +912,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxNull < 300:
         #
         if gTCPrxMsg == TCP_DEV_READY_MSG:
             # start STE rolling w/o memory writing
-            print ("WSN-C> got [%s]..." % TCP_DEV_READY_MSG, flush=True)
+            print ("WSN-C> got polling [%s]..." % TCP_DEV_READY_MSG, flush=True)
             # polling processing here
         elif gTCPrxMsg == TCP_STE_START_MSG:
             # start STE rolling w/o memory writing
@@ -925,7 +924,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxNull < 300:
         elif gTCPrxMsg == TCP_STE_REQ_MSG:
             # request STE data
             if gSTEisRolling:
-                print ("WSN-C> getting STE data ...", flush=True)
+                print ("WSN-C> handover STE data ...", flush=True)
                 # if not enable STE notification
                 gSTElastData = p.readCharacteristic(SCD_STE_RESULT_HND)
                 gSTElastTime = time.time()
@@ -961,13 +960,13 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxNull < 300:
             SCD_toggle_STE_rolling (p, False, False)
             SCD_print_STE_status()
             ## gIDLElastTime = time.time()
-        else:
-            # invalid message
-            print ("WSN-C> invalid [RX] message !", flush=True)    
-        if gTCPrxMsg == TCP_DEV_CLOSE_MSG:
+        elif gTCPrxMsg == TCP_DEV_CLOSE_MSG:
             # exit from loop
             print ("WSN-C> close device ...", flush=True)
             break    
+        else:
+            # invalid message
+            print ("WSN-C> invalid [RX] message !", flush=True)    
     #
     # idling check
     #

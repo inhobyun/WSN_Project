@@ -177,7 +177,7 @@ def read_from_socket(blockingTimer = 8):
     global gTCPlastTime
     #
     accept_socket(3)
-    print ("\nTCP-S> [RX] wait => ", end = '', flush=True)
+    print ("TCP-S> [RX] wait => ", end = '', flush=True)
     rx_msg = ''
     try:
         gSocketServer.setblocking(blockingTimer)
@@ -210,14 +210,14 @@ def write_to_socket(tx_msg):
     global gTCPlastTime
     #
     accept_socket(3)
-    print ("\nTCP-S> [TX] try => ", end = '', flush=True)
+    print ("TCP-S> [TX] try => ", end = '', flush=True)
     try:
         gSocketConn.send(tx_msg.encode())
     except:
         gTCPerrCnt += 1
         print ("error !", flush=True)
     else:
-        print ('"%r" sent' % tx_msg, flush=True)
+        print ('"%r" sent to WSN server' % tx_msg, flush=True)
         gTCPlastTime = time.time()
     #    
     return
@@ -265,7 +265,6 @@ env = Environment(
 #
 @app.route('/')
 def root():
-    check_tcp_error()
     template = env.get_template('main.html')
     return template.render()
 
@@ -274,7 +273,6 @@ def root():
 #
 @app.route('/m')
 def mroot():
-    check_tcp_error()
     template = env.get_template('mmain.html')
     return template.render()    
 
@@ -283,7 +281,6 @@ def mroot():
 #
 @app.route('/m_Ooops')
 def Ooops():
-    check_tcp_error()
     template = env.get_template('m_Ooops.html')
     return template.render()
 
@@ -292,7 +289,6 @@ def Ooops():
 #
 @app.route('/m_mobile')
 def mobile():
-    check_tcp_error()
     template = env.get_template('m_mobile.html')
     return template.render()
 
@@ -301,7 +297,6 @@ def mobile():
 #
 @app.route('/m_monitor')
 def monitor():
-    check_tcp_error()
     template = env.get_template('m_monitor.html')
     return template.render()
 
@@ -310,7 +305,6 @@ def monitor():
 #
 @app.route('/m_acquisition')
 def acquisition():
-    check_tcp_error()
     template = env.get_template('m_acquisition.html')
     return template.render()
 
@@ -319,7 +313,6 @@ def acquisition():
 #
 @app.route('/m_graph_time')
 def graph_time():
-    check_tcp_error()
     template = env.get_template('m_graph_time.html')
     return template.render()
 
@@ -328,7 +321,6 @@ def graph_time():
 #
 @app.route('/m_graph_freq')
 def graph_freq():
-    check_tcp_error()
     template = env.get_template('m_graph_freq.html')
     return template.render()
 
@@ -337,7 +329,6 @@ def graph_freq():
 #
 @app.route('/m_intro_1')
 def intro_1():
-    check_tcp_error()
     template = env.get_template('m_intro_1.html')
     return template.render()
 
@@ -346,7 +337,6 @@ def intro_1():
 #
 @app.route('/m_intro_2')
 def intro_2():
-    check_tcp_error()
     template = env.get_template('m_intro_2.html')
     return template.render()
 
@@ -355,7 +345,6 @@ def intro_2():
 #
 @app.route('/m_intro_0')
 def intro_0():
-    check_tcp_error()
     template = env.get_template('m_intro_0.html')
     return template.render()
 
@@ -386,16 +375,13 @@ def post_monStart():
         return json.dumps(rows)   
 
     # send STE start & request
-    ##accept_socket()
     if value==0: 
         write_to_socket(TCP_STE_START_MSG)
         from_client = None
     else:    
         gSTElockFlag = True
-        time.sleep(0.7)
         write_to_socket(TCP_STE_REQ_MSG)
-        time.sleep(0.3)
-        from_client = read_from_socket(blockingTimer = 16)
+        from_client = read_from_socket(blockingTimer = 20)
     # get the data to post
     if from_client != None:
         from_client = from_client.replace(')','')
@@ -437,7 +423,6 @@ def post_monStop():
     global gSTElockFlag
 
     # send STE stop
-    ##accept_socket()
     write_to_socket(TCP_STE_STOP_MSG)
     gSTElockFlag = False
 
@@ -468,7 +453,6 @@ def post_STEandBDT():
         gBDTlockFlag = True    
 
     # send BDT run
-    ##accept_socket()
     write_to_socket(TCP_BDT_RUN_MSG)
     time.sleep(10.0)
     # wait till completed
