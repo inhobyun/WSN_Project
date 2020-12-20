@@ -138,9 +138,9 @@ gTCPrxNull    = 0
 #
 def http_polling(pol_msg = TCP_DEV_READY_MSG):
     #
-    print('\n>--->\nWSN> polling try => ', end='', flush=True)
-    url_str = 'http://%s:%s/get_polling/%s' % (TCP_HOST, TCP_HTTP_PORT, pol_msg) 
-    f = urllib.request.urlopen(url_str)
+    print('\n>--->\nWSN-C> HTTP polling try => ', end='', flush=True)
+    url_str = 'http://%s:%s/get_polling/%s' % (TCP_HOST_NAME, TCP_HTTP_PORT, pol_msg) 
+    f = request.urlopen(url_str)
     rtn_str = f.read().decode()
     f.close()
     print('"%r" received\n<---<\n' % rtn_str)
