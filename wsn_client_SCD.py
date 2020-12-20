@@ -139,11 +139,17 @@ gTCPrxNull    = 0
 def http_polling(pol_msg = TCP_DEV_READY_MSG):
     #
     print('\n>--->\nWSN-C> HTTP polling try => ', end='', flush=True)
-    url_str = 'http://%s:%s/get_polling/%s' % (TCP_HOST_NAME, TCP_HTTP_PORT, pol_msg) 
-    f = request.urlopen(url_str)
-    rtn_str = f.read().decode()
-    f.close()
-    print('"%r" received\n<---<\n' % rtn_str)
+    url_str = 'http://%s:%s/get_polling/%s' % (TCP_HOST_NAME, TCP_HTTP_PORT, pol_msg)
+    rtn_str = ''
+    try: 
+        f = request.urlopen(url_str)
+        rtn_str = f.read().decode()
+        f.close()
+    except:
+        print('error !\n<---<\n')
+    else:
+        print('"%r" received\n<---<\n' % rtn_str)
+    
     return rtn_str
 '''
 async def http_TX_RX(tx_msg, loop):
@@ -274,7 +280,7 @@ async def tcp_TX(tx_msg, loop):
 #############################################
 # STE(Short Time Experiment) mode configuration (35 bytes) 
 #
-def SCD_set_STE_config( p, is_writing = False ):
+def SCD_set_STE_config( p, is_writing = False, read_n_disp = False ):
     global gSTEcfgMode
     #
     if p == None:
@@ -320,8 +326,9 @@ def SCD_set_STE_config( p, is_writing = False ):
     #
     p.writeCharacteristic( SCD_STE_CONFIG_HND, gSTEcfgMode )
     time.sleep(.3)
-    ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
-    print ("SCD> STE config. get\n[%s](%d)" % (hex_str(ret_val), len(ret_val)), flush=True)
+    if read_n_disp:
+        ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
+        print ("SCD> STE config. get\n[%s](%d)" % (hex_str(ret_val), len(ret_val)), flush=True)
     #
     return
 
@@ -648,7 +655,7 @@ def SCD_run_STE_for_idling( p ):
             continue
     # stop STE
     SCD_toggle_STE_rolling(p, rolling_status_backup, False) 
-    SCD_print_STE_status()
+    ##SCD_print_STE_status()
     return
 
 #############################################
@@ -665,7 +672,7 @@ def SCD_run_STE_and_BDT( p ):
     # start STE w/ memory writing
     print ("SCD> Recording STE starting ...", flush=True)
     p.setDelegate( NotifyDelegate(p) )
-    SCD_set_STE_config(p, True)
+    SCD_set_STE_config(p, True, True)
     SCD_toggle_STE_rolling(p, True, True)
     # take rolling time ( added more overhead time)
     tm = time.time()
@@ -865,7 +872,7 @@ p = SCD_scan_and_connect(True)
 #
 # set STE configuration
 #
-SCD_set_STE_config(p, False)
+SCD_set_STE_config(p, False, True)
 #
 # read Device Info. such as Name, Manufacurer Name, etc.
 #
@@ -888,7 +895,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxNull < 300:
     #
     # wait any message from server
     #
-    print ("\nWSN-C> keep running until [%r] message from server ..." % TCP_DEV_CLOSE_MSG, flush=True)
+    print ("\nWSN-C> keep running until [%r] from server ..." % TCP_DEV_CLOSE_MSG, flush=True)
     gTCPtxMsg = gTCPrxMsg = None
     try:
         loop.run_until_complete( tcp_RX(loop) )
