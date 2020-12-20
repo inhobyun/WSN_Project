@@ -6,7 +6,7 @@ by Inho Byun, Researcher/KAIST
                     started 2020-10-01
                     updated 2020-12-09; monitoring, graph drawing working
                     updated 2020-12-10; acquisition
-                    updated 2020-12-19; mobile UI, multi-monitoring protection, connection renewal
+                    updated 2020-12-20; mobile UI, multi-monitoring protection, polling
 """
 import datetime
 from flask import Flask, redirect, request
@@ -65,8 +65,7 @@ gTCPlastTime    = 0.
 #
 gBDTtextList    = []
 #
-gIsMonStarted   = False
-gSTElockFlag    = False # not used; always False
+gSTElockFlag    = False 
 gBDTlockFlag    = False
 
 #############################################
@@ -373,32 +372,27 @@ def post_monStart():
     data = json.loads(request.data)
     value = data['value']
     #
-    global gIsMonStarted
     global gSTElockFlag
     global gBDTlockFlag
 
     # check STE, BDT lock flag
     if (value==0 and  gSTElockFlag) or gBDTlockFlag:
         rows = {'row' : [time_stamp(),'*','*','*','*','*','*','*','*','*','*','*'],
-                'status' : ['[monitoring runs]', '[by other user]'],
+                'status' : ['[monitoring locked]', '[by other user]'],
                 'timer' : 'off'
                }               
         return json.dumps(rows)   
-    gSTElockFlag = True
 
     # send STE start & request
     ##accept_socket()
-    if not gIsMonStarted: 
-        time.sleep(0.2)
+    if value==0: 
         write_to_socket(TCP_STE_START_MSG)
         from_client = None
-        gIsMonStarted = True
     else:    
-        time.sleep(0.2)
+        gSTElockFlag = True
         write_to_socket(TCP_STE_REQ_MSG)
-        time.sleep(0.2)
+        time.sleep(0.3)
         from_client = read_from_socket(blockingTimer = 16)
-        time.sleep(0.2)
     # get the data to post
     if from_client != None:
         from_client = from_client.replace(')','')
@@ -437,17 +431,12 @@ def post_monStop():
     #data = json.loads(request.data)
     #value = data['value']
     #
-    global gIsMonStarted
     global gSTElockFlag
-    global gBDTlockFlag
 
     # send STE stop
     ##accept_socket()
-    if gIsMonStarted:
-        time.sleep(0.2)
-        write_to_socket(TCP_STE_STOP_MSG)
-        gIsMonStarted = False # release STE lock flag
-        gSTElockFlag = False
+    write_to_socket(TCP_STE_STOP_MSG)
+    gSTElockFlag = False
 
     rows = {'row' : [time_stamp(),'*','*','*','*','*','*','*','*','*','*','*'],
             'status' : ['---', '---'],
@@ -463,7 +452,6 @@ def post_STEandBDT():
     #data = json.loads(request.data)
     #value = data['value']
     #
-    global gIsMonStarted
     global gSTElockFlag
     global gBDTlockFlag
     global gBDTtextList
@@ -502,7 +490,6 @@ def post_BDTtoServer():
     #data = json.loads(request.data)
     #value = data['value']
     #
-    global gIsMonStarted
     global gSTElockFlag
     global gBDTlockFlag
     global gBDTtextList
@@ -549,7 +536,6 @@ def post_BDTtoFile():
     #data = json.loads(request.data)
     #value = data['value']
     #
-    global gIsMonStarted
     global gSTElockFlag
     global gBDTlockFlag
     global gBDTtextList
