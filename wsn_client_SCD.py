@@ -109,10 +109,10 @@ gIDLEinterval = 60.   # time interval to make BLE traffic to keep connection
 ##TCP_HOST_NAME = "192.168.0.3"     # TEST Host Name
 TCP_HOST_NAME   = "125.131.73.31"   # Default Host Name
 TCP_PORT        = 8088              # Default TCP Port Name
-TCP_HTTP_PORT   = 5000            # origin flask WEB server port
-##TCP_HTTP_PORT   = 8081              # WEB server port
+##TCP_HTTP_PORT   = 5000            # origin flask WEB server port
+TCP_HTTP_PORT   = 8081              # WEB server http port
 TCP_PACKET_MAX  = 1024              # max TCP packet size
-TCP_POLL_TIME   = 60.               # max time interval to poll TCP port
+TCP_POLL_TIME   = 300.              # max time interval to poll TCP port
 #
 TCP_DEV_READY_MSG = 'DEV_READY'     # server message to check client ready
 TCP_DEV_CLOSE_MSG = 'DEV_CLOSE'     # server message to disconnect client
@@ -852,8 +852,12 @@ if len(sys.argv) > 1:
     print ("WSN-C> take 1'st argument as Host IP address (default: '%s')" % TCP_HOST_NAME, flush=True)
     TCP_HOST_NAME = sys.argv[1]
 if len(sys.argv) > 2:
-    print ("WSN-C> take 2'nd argument as port# (default: '%d')" % TCP_PORT, flush=True)
+    print ("WSN-C> take 2'nd argument as tcp port# (default: '%d')" % TCP_PORT, flush=True)
     TCP_PORT = int(sys.argv[2])
+if len(sys.argv) > 3:
+    print ("WSN-C> take 3'rd argument as http port# (default: '%d')" % TCP_HTTP_PORT, flush=True)
+    TCP_PORT = int(sys.argv[3])
+
 #
 # scan and connect SCD
 #
@@ -903,9 +907,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxNull < 300:
         if gTCPrxMsg == TCP_DEV_READY_MSG:
             # start STE rolling w/o memory writing
             print ("WSN-C> got [%s]..." % TCP_DEV_READY_MSG, flush=True)
-            #
             # polling processing here
-            #
         elif gTCPrxMsg == TCP_STE_START_MSG:
             # start STE rolling w/o memory writing
             print ("WSN-C> start STE rolling...", flush=True)
@@ -976,7 +978,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxNull < 300:
             print ("WSN-C> server connection is broken !", flush=True)
             break
     #
-    # if last server communication is too long ago, polling
+    # if last server communication time is longer than poll time, polling via http
     #
     if t - gTCPlastTime > TCP_POLL_TIME:
             http_polling()        
