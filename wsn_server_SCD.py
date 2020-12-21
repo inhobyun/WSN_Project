@@ -549,7 +549,7 @@ def post_BDTtoFile():
     fname  = WSN_LOG_FILE_PREFIX
     fname += '_' + datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d%H%M%S')
     fname += '_' + fmark
-    fname += WSN_LOG_FILE_PREFIX
+    fname += WSN_LOG_FILE_SUFFIX
     f = open(fname, "w")
     for idx in range(n):
         f.write(gBDTtextList[idx])
