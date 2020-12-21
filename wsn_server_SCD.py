@@ -455,10 +455,10 @@ def post_STEandBDT():
     # send BDT run
     write_to_socket(TCP_BDT_RUN_MSG)
     time.sleep(10.0)
-    # wait till completed
-    write_to_socket(TCP_DEV_READY_MSG)
+    # wait till echo-back
+    write_to_socket(TCP_BDT_END_MSG)
     from_client = ''
-    while from_client == '':
+    while from_client != TCP_BDT_REQ_MSG:
         from_client = read_from_socket(blockingTimer = 8)
     #
     msgs = {'msg_00' : time_stamp()

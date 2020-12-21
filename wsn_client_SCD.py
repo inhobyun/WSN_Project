@@ -912,8 +912,12 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxNull < 8:
         #
         if gTCPrxMsg == TCP_DEV_READY_MSG:
             # start STE rolling w/o memory writing
-            print ("WSN-C> got polling [%s]..." % TCP_DEV_READY_MSG, flush=True)
-            # polling processing here
+            print ("WSN-C> got polling [%s], no echo-back..." % TCP_DEV_READY_MSG, flush=True)
+            # polling reponse here
+        elif gTCPrxMsg == TCP_BDT_END_MSG:
+            # start STE rolling w/o memory writing
+            print ("WSN-C> got polling [%s], echo-back..." % TCP_BDT_END_MSG, flush=True)
+            gTCPtxMsg = TCP_BDT_END_MSG
         elif gTCPrxMsg == TCP_STE_START_MSG:
             # start STE rolling w/o memory writing
             print ("WSN-C> start STE rolling...", flush=True)
