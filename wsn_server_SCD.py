@@ -558,10 +558,12 @@ def post_BDTtoFile():
 def post_graphTime():
     data = json.loads(request.data)
     value = data['value']
-
+    fname = data['fname']
+    if fname == '':
+        fname = WSN_LOG_FILE_NAME
     # read sensor data from file    
-    f = open(WSN_LOG_FILE_NAME, "r")
-    print("WSN-S> open sensor data log file: %s" % WSN_LOG_FILE_NAME, flush=True)
+    f = open(fname, "r")
+    print("WSN-S> open sensor data log file: %s" % fname, flush=True)
     # check 4 header lines
     row = f.readline()
     time_stamp = stamp_heder(row,WSN_STAMP_TIME)
@@ -628,12 +630,13 @@ def post_graphTime():
 #
 @app.route('/post_graphFreq', methods=['POST'])
 def post_graphFreq():
-    #data = json.loads(request.data)
-    #value = data['value']
-
+    data = json.loads(request.data)
+    fname = data['fname']
+    if fname == '':
+        fname = WSN_LOG_FILE_NAME
     # read sensor data from file    
-    f = open(WSN_LOG_FILE_NAME, "r")
-    print("WSN-S> open sensor data log file: %s" % WSN_LOG_FILE_NAME, flush=True)
+    f = open(fname, "r")
+    print("WSN-S> open sensor data log file: %s" % fname, flush=True)
     # check 4 header lines
     row = f.readline()
     time_stamp = stamp_heder(row,WSN_STAMP_TIME)

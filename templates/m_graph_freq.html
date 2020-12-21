@@ -52,6 +52,27 @@
         <input type="radio" id="draw_s" name="draw" value="Sum(X,Y,Z)" checked>
         <label for="draw">Fourier Transform</label><br>
     </div>    
+    <br><br><br><br>
+    <form>
+        <div class="upload-btn-wrapper">
+            <button class="btnr" title="my select">Select</button>
+            <span>file to read</span>
+            <input type="file" id="file_select" name="file_select" accept=".csv" value="./" title="my select"/>
+        </div>
+    </form>
+    <div style="text-align:right; font-size:10px;">
+        <label for="file_name">: </label>
+        <input type="text" id="file_name"/>
+    </div>
+    <script>
+        document.getElementById("file_name").value = "SCD_BDT_Data_log.csv"
+        const inputElement = document.getElementById("file_select");
+        inputElement.addEventListener("change", handleFiles, false);
+        function handleFiles() {
+            document.getElementById("file_name").value = this.files[0].name
+        }
+    </script> 
+
 {% endblock %}
 
 {% block right %}
@@ -76,10 +97,12 @@
         function dispFreqGraph(color_val) {
             document.getElementById("btn_draw").disabled = true;
             //
-            // add drawing option hera afterward
+            // add drawing option value hera afterward
             //
+            const fname = document.getElementById("file_name").value; 
             axios.post('/post_graphFreq', {
                 // value: value
+                fname: fname,
             }).then(response => {
                 const data = response.data;
                 // drawing

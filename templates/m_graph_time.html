@@ -58,6 +58,26 @@
         <input type="radio" id="draw_z" name="draw" onchange="setAutoScale()" value="Z only">
         <label for="draw">Z direction only</label>
     </div>
+    <br>
+    <form>
+        <div class="upload-btn-wrapper">
+            <button class="btnr" title="my select">Select</button>
+            <span>file to read</span>
+            <input type="file" id="file_select" name="file_select" accept=".csv" value="./" title="my select"/>
+        </div>
+    </form>
+    <div style="text-align:right; font-size:10px;">
+        <label for="file_name">: </label>
+        <input type="text" id="file_name"/>
+    </div>
+    <script>
+        document.getElementById("file_name").value = "SCD_BDT_Data_log.csv"
+        const inputElement = document.getElementById("file_select");
+        inputElement.addEventListener("change", handleFiles, false);
+        function handleFiles() {
+            document.getElementById("file_name").value = this.files[0].name
+        }
+    </script>    
                                                        
 {% endblock %}
 
@@ -84,14 +104,17 @@
         document.getElementById("btn_draw").disabled = true;
         // drawing option
         var r_btn = document.getElementsByName("draw");
-        var i, value;
+        var i;
+        var value;        
         for (i = 0; i < r_btn.length; i++) {
             if ( r_btn[i].checked ) {
                 value = r_btn[i].value;
             }
-        }    
+        }
+        const fname = document.getElementById("file_name").value;     
         axios.post('/post_graphTime', {
             value: value,
+            fname: fname,
         }).then(response => {
             const data = response.data;
             // drawing
@@ -101,9 +124,9 @@
                 document.getElementById("x_min"),
                 document.getElementById("x_max")
             );
-            document.getElementById("time_stamp").innerHTML = data.t
-            document.getElementById("freq_stamp").innerHTML = data.f
-            document.getElementById("mode_stamp").innerHTML = data.m
+            document.getElementById("time_stamp").innerHTML = data.t;
+            document.getElementById("freq_stamp").innerHTML = data.f;
+            document.getElementById("mode_stamp").innerHTML = data.m;
             document.getElementById("btn_draw").disabled = false;
             document.getElementById("scale_manu").disabled = false;
             document.getElementById("scale_manu").checked = true;
