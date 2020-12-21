@@ -7,6 +7,7 @@ by Inho Byun, Researcher/KAIST
                     updated 2020-12-09; monitoring, graph drawing working
                     updated 2020-12-10; acquisition
                     updated 2020-12-20; mobile UI, multi-monitoring protection, polling
+                    updated 2020-12-22; data log file name
 """
 import datetime
 from flask import Flask, redirect, request
@@ -50,10 +51,13 @@ TCP_BDT_END_MSG   = 'BDT_END'       # client message to inform BDT data transfer
 # Some constant parameters
 #
 ACCEPT_WAIT_TIME  = 11100           # 3 hrs 5 min.; time period to wait client connection
-WSN_LOG_FILE_NAME = "SCD_BDT_Data_log.csv" 
-WSN_STAMP_TIME    = "server time"
-WSN_STAMP_DELAY   = "delay time"
-WSN_STAMP_FREQ    = "accelometer ODR"
+#
+WSN_LOG_FILE_NAME   = "WSN_Data_log.csv"
+WSN_LOG_FILE_PREFIX = "WSN_Data_log"
+WSN_LOG_FILE_SUFFIX = ".csv"
+WSN_STAMP_TIME      = "server time"
+WSN_STAMP_DELAY     = "delay time"
+WSN_STAMP_FREQ      = "accelometer ODR"
 #
 # global variables
 #
@@ -446,11 +450,10 @@ def post_STEandBDT():
 
     # check BDT lock flag
     if gBDTlockFlag or gSTElockFlag:
-        msgs = {'msg_00' : "somebody is running BDT or STE"
+        msgs = {'msg_00' : "somebody is running BDT or STE",
+                'msg_01' : 'N'
            }
         return json.dumps(msgs)
-    else:    
-        gBDTlockFlag = True    
 
     # send BDT run
     write_to_socket(TCP_BDT_RUN_MSG)
@@ -461,7 +464,8 @@ def post_STEandBDT():
     while from_client != TCP_BDT_END_MSG:
         from_client = read_from_socket(blockingTimer = 8)
     #
-    msgs = {'msg_00' : time_stamp()
+    msgs = {'msg_00' : time_stamp(),
+            'msg_01' : 'Y'
            }
 
     # release BDT lock flag
@@ -483,7 +487,8 @@ def post_BDTtoServer():
 
     # check BDT lock flag
     if gBDTlockFlag or gSTElockFlag:
-        msgs = {'msg_00' : "somebody is running BDT or STE"
+        msgs = {'msg_00' : "somebody is running BDT or STE",
+                'msg_01' : 'N'
            }
         return json.dumps(msgs)
     else:    
@@ -507,7 +512,8 @@ def post_BDTtoServer():
             gBDTtextList.append(from_client)
             break
     #
-    msgs = {'msg_00' : time_stamp()
+    msgs = {'msg_00' : time_stamp(),
+            'msg_01' : 'Y'
            }
 
     # release BDT lock flag
@@ -520,8 +526,8 @@ def post_BDTtoServer():
 #
 @app.route('/post_BDTtoFile', methods=['POST'])
 def post_BDTtoFile():
-    #data = json.loads(request.data)
-    #value = data['value']
+    data = json.loads(request.data)
+    value = data['value']
     #
     global gSTElockFlag
     global gBDTlockFlag
@@ -529,7 +535,8 @@ def post_BDTtoFile():
 
     # check BDT lock flag
     if gBDTlockFlag or gSTElockFlag:
-        msgs = {'msg_00' : "somebody is running BDT or STE"
+        msgs = {'msg_00' : "somebody is running BDT or STE",
+                'msg_01' : 'N'
            }
         return json.dumps(msgs)
     else:    
@@ -538,12 +545,18 @@ def post_BDTtoFile():
     # write to file
     idx = 0
     n = len(gBDTtextList)
-    f = open(WSN_LOG_FILE_NAME, "w")
+    fmark = value.strip().replace(' ', '_')
+    fname  = WSN_LOG_FILE_PREFIX
+    fname += '_' + (datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d%H%M%S')
+    fname += '_' + fmark
+    fname += WSN_LOG_FILE_PREFIX
+    f = open(fname, "w")
     for idx in range(n):
         f.write(gBDTtextList[idx])
     f.close()
     #
-    msgs = {'msg_00' : time_stamp()
+    msgs = {'msg_00' : time_stamp() + ' "' + fname + '" was created',
+            'msg_01' : 'Y'
            }
 
     # release BDT lock flag

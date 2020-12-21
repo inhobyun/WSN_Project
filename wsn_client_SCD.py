@@ -16,6 +16,7 @@ by Inho Byun, Researcher/KAIST
                     updated 2020-12-08; comm protocol, BLE scan updated
                     updated 2020-12-10; acquisition
                     updated 2020-12-20; polling
+                    updated 2020-12-22; data log file name
 """
 import asyncio
 from bluepy.btle import Scanner, DefaultDelegate, UUID, Peripheral
@@ -130,7 +131,7 @@ gTCPreader   = None
 gTCPwriter   = None
 gTCPrxMsg    = None
 gTCPtxMsg    = None
-gTCPrxNull    = 0
+gTCPrxNull   = 0
 
 #############################################
 # polling flask server via HTTP

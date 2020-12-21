@@ -18,6 +18,12 @@
         <label for="btn_start_3">Data save to *.csv file</label>
         <button class="button-l" id="btn_start_3" name="btn_start_3" onclick="startBDTtoFile()"   disabled> Run... </button>
     </div>
+    <div style="text-align: left">
+        <label for="file_mark">Input text to mark log file name: </label>
+    </div>
+    <div style="text-align: right">
+        <input class="text" id="file_mark" name="file_mark" value=""/>
+    </div>
 {% endblock %}
 
 {% block right %}
@@ -48,8 +54,12 @@
             document.getElementById("err_message").innerHTML  = ''
             document.getElementById("inf_message").innerHTML += "__✔ completed: " + data.msg_00 + "<br>";
             // control UI after function run
-            document.getElementById("btn_start_2" ).disabled = false;
-            enableAllMenus('N');
+            if ( data.msg_01 == 'Y' ) {
+                document.getElementById("btn_start_2" ).disabled = false;
+            } else {
+                document.getElementById("fin_message").innerHTML += "😅 Hmm... try later !";
+                enableAllMenus('N');
+            }            
         }).catch(function (error) {
             // display error-message
             document.getElementById("err_message").innerHTML = "<br>❗ Error occurred on submit: " + error;
@@ -75,8 +85,12 @@
             document.getElementById("err_message").innerHTML  = ''
             document.getElementById("inf_message").innerHTML += "__✔ completed: " + data.msg_00 + "<br>";
             // control UI after function run
-            document.getElementById("btn_start_3" ).disabled = false;    
-            enableAllMenus('N');
+            if ( data.msg_01 == 'Y' ) {
+                document.getElementById("btn_start_3" ).disabled = false;
+            } else {
+                document.getElementById("fin_message").innerHTML += "😅 Hmm... try later !";
+                enableAllMenus('N');
+            }            
         }).catch(function (error) {
             // display error-message
             document.getElementById("err_message").innerHTML = "<br>❗ Error occurred on submit: " + error;
@@ -85,7 +99,7 @@
 
     function startBDTtoFile() {
         // get value from UI
-        //const value = document.getElementById('???').value;
+        const value = document.getElementById('file_mark').value;
 
         //control UI before function run
         disableAllMenus('N');
@@ -94,13 +108,17 @@
         document.getElementById("inf_message").innerHTML += "▶ save data to \".CSV\" formated file<br>";
         // run flask function
         axios.post('/post_BDTtoFile', {
-            //value: Number(value),
+            value: value,
         }).then(response => {
             const data = response.data;
             // display post-message
             document.getElementById("err_message").innerHTML  = ''
             document.getElementById("inf_message").innerHTML += "__✔ completed: " + data.msg_00;
-            document.getElementById("fin_message").innerHTML += "🙂 all done, congratuation !";
+            if ( data.msg_01 == 'Y' ) {
+                document.getElementById("fin_message").innerHTML += "😄 all done, congratuation !";
+            } else {
+                document.getElementById("fin_message").innerHTML += "😅 Hmm... try later !";
+            }    
             // control UI after function run
             enableAllMenus('N');
         }).catch(function (error) {
