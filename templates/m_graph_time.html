@@ -59,83 +59,95 @@
         <label for="draw">Z direction only</label>
     </div>
     <br>
-    <form>
-        <div class="upload-btn-wrapper">
-            <button class="btnr" title="my select">Select</button>
-            <span>file to read</span>
-            <input type="file" id="file_select" name="file_select" accept=".csv" value="./" title="my select"/>
-        </div>
-    </form>
-    <div style="text-align:right; font-size:10px;">
-        <label for="file_name">: </label>
-        <input type="text" id="file_name"/>
+    <div>
+        <button class="button-l" id="btn_log"  onclick="logList()">Update log list</button>
     </div>
-    <script>
-        document.getElementById("file_name").value = "WSN_Data_log.csv"
-        const inputElement = document.getElementById("file_select");
-        inputElement.addEventListener("change", handleFiles, false);
-        function handleFiles() {
-            document.getElementById("file_name").value = this.files[0].name
-        }
-    </script>    
+    <div style="width:100%; padding-top:8px;">    
+        <select id="log_list" name="log_list" size="5" style="width:100%;">
+        </select>            
+    </div>
                                                        
 {% endblock %}
 
 {% block right %}
 
-<div style="text-align:left"><b>Accelerometer Sensor Data - Time Series Graph</b></div>
-<div style="text-align:left">
-    <label id="time_label"></label>Measured Time : </label>
-    <label id="time_stamp" style="font-weight:bold; color:blueviolet;"></label>
-    
-    <label id="freq_label"></label>, Frequency : </label>
-    <label id="freq_stamp" style="font-weight:bold; color:blueviolet;"></label>
-    
-    <label id="mode_label"></label>, Draw Mode : </label>
-    <label id="mode_stamp" style="font-weight:bold; color:blueviolet;"></label>
-</div> 
+    <div style="text-align:left"><b>Accelerometer Sensor Data - Time Series Graph</b></div>
+    <div style="text-align:left">
+        <label id="time_label"></label>Measured Time : </label>
+        <label id="time_stamp" style="font-weight:bold; color:blueviolet;"></label>
+        
+        <label id="freq_label"></label>, Frequency : </label>
+        <label id="freq_stamp" style="font-weight:bold; color:blueviolet;"></label>
+        
+        <label id="mode_label"></label>, Draw Mode : </label>
+        <label id="mode_stamp" style="font-weight:bold; color:blueviolet;"></label>
+    </div> 
 
-<div class="form">
-    <div id="chart-box"></div>
-</div>
+    <div class="form">
+        <div id="chart-box"></div>
+    </div>
 
-<script>
-    function dispTimeGraph(color_val) {
-        document.getElementById("btn_draw").disabled = true;
-        // drawing option
-        var r_btn = document.getElementsByName("draw");
-        var i;
-        var value;        
-        for (i = 0; i < r_btn.length; i++) {
-            if ( r_btn[i].checked ) {
-                value = r_btn[i].value;
-            }
+    <script>
+        function logList() {
+            var i, n;
+            const select_btn = document.getElementById("btn_log");
+            const select_box = document.getElementById("log_list");
+            const select_nam = document.getElementById("file_name");
+            axios.post('/post_logList', {
+                // value: value,
+            }).then(response => {
+                const data = response.data;
+                // add option           
+                const cnt = data.rows.length;
+                for (i = 0; i < cnt; i++) { 
+                    let opt = document.createElement('option');
+                    opt.text = data.rows[i]
+                    select_box.add(opt);
+                }           
+                select_btn.innerHTML = 'Select log';
+                select_btn.disabled = true
+                
+            }).catch(function (error) {
+                alert('Error occurred on submit: ' + error);
+            });            
         }
-        const fname = document.getElementById("file_name").value;     
-        axios.post('/post_graphTime', {
-            value: value,
-            fname: fname,
-        }).then(response => {
-            const data = response.data;
-            // drawing
-            drawGraph(data, color_val,
-                document.getElementById("y_min"),
-                document.getElementById("y_max"),
-                document.getElementById("x_min"),
-                document.getElementById("x_max")
-            );
-            document.getElementById("time_stamp").innerHTML = data.t;
-            document.getElementById("freq_stamp").innerHTML = data.f;
-            document.getElementById("mode_stamp").innerHTML = data.m;
-            document.getElementById("btn_draw").disabled = false;
-            document.getElementById("scale_manu").disabled = false;
-            document.getElementById("scale_manu").checked = true;
-        }).catch(function (error) {
-            alert('Error occurred on submit: ' + error);
-        });            
-    }
-</script>    
 
-<script type="text/javascript" src="/static/js/drawing.js"></script>
+        function dispTimeGraph(color_val) {
+            document.getElementById("btn_draw").disabled = true;
+            // drawing option
+            var r_btn = document.getElementsByName("draw");
+            var i;
+            var value;        
+            for (i = 0; i < r_btn.length; i++) {
+                if ( r_btn[i].checked ) {
+                    value = r_btn[i].value;
+                }
+            }
+            const fname = document.getElementById("log_list").value;     
+            axios.post('/post_graphTime', {
+                value: value,
+                fname: fname,
+            }).then(response => {
+                const data = response.data;
+                // drawing
+                drawGraph(data, color_val,
+                    document.getElementById("y_min"),
+                    document.getElementById("y_max"),
+                    document.getElementById("x_min"),
+                    document.getElementById("x_max")
+                );
+                document.getElementById("time_stamp").innerHTML = data.t;
+                document.getElementById("freq_stamp").innerHTML = data.f;
+                document.getElementById("mode_stamp").innerHTML = data.m;
+                document.getElementById("btn_draw").disabled = false;
+                document.getElementById("scale_manu").disabled = false;
+                document.getElementById("scale_manu").checked = true;
+            }).catch(function (error) {
+                alert('Error occurred on submit: ' + error);
+            });            
+        }
+    </script>    
+
+    <script type="text/javascript" src="/static/js/drawing.js"></script>
 
 {% endblock %}

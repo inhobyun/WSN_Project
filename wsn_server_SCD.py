@@ -17,6 +17,7 @@ import numpy as np
 from markupsafe import escape
 import math
 ##import matplotlib.pyplot as plotter
+import os, fnmatch
 import socket
 import sys
 import time
@@ -747,6 +748,24 @@ def get_polling(message):
     else:    
         ret_msg = 'received: ' + msg + ' at ' + time_stamp()
     return ret_msg
+
+#############################################
+#
+# log file listing
+@app.route('/post_logList', methods=['POST'])
+def post_logList():
+    #data = json.loads(request.data)
+    #value = data['value']
+    #
+    rows = []
+    listOfFiles = os.listdir('.')
+    pattern = "*" + WSN_LOG_FILE_SUFFIX
+    for entry in listOfFiles:
+        if fnmatch.fnmatch(entry, pattern):
+                rows.append(entry)
+    print('WSN-S> "%d" log files: ' % (len(rows)), rows, flush=True)                       
+
+    return json.dumps({'rows' : rows})
 
 #############################################
 #############################################

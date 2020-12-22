@@ -1,4 +1,4 @@
-    
+
 function drawGraph(data, color_val, y_min_id, y_max_id, x_min_id, x_max_id) {
     // Clear the chart box.
     document.getElementById('chart-box').innerHTML = '';    
