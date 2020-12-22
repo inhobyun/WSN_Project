@@ -53,6 +53,7 @@ TCP_BDT_END_MSG   = 'BDT_END'       # client message to inform BDT data transfer
 #
 ACCEPT_WAIT_TIME  = 11100           # 3 hrs 5 min.; time period to wait client connection
 #
+WSN_LOG_FILE_PATH   = "./static/log"
 WSN_LOG_FILE_NAME   = "WSN_Data_log.csv"
 WSN_LOG_FILE_PREFIX = "WSN_Data_log"
 WSN_LOG_FILE_SUFFIX = ".csv"
@@ -547,7 +548,8 @@ def post_BDTtoFile():
     idx = 0
     n = len(gBDTtextList)
     fmark = value.strip().replace(' ', '_')
-    fname  = WSN_LOG_FILE_PREFIX
+    fname  = WSN_LOG_FILE_PATH
+    fname += '/' + WSN_LOG_FILE_PREFIX
     fname += '_' + datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d%H%M%S')
     fname += '_' + fmark
     fname += WSN_LOG_FILE_SUFFIX
@@ -575,6 +577,8 @@ def post_graphTime():
     fname = data['fname']
     if fname == '':
         fname = WSN_LOG_FILE_NAME
+    else:
+        fname = WSN_LOG_FILE_PATH + '/' + fname    
     # read sensor data from file    
     f = open(fname, "r")
     print("WSN-S> open sensor data log file: %s" % fname, flush=True)
@@ -648,6 +652,8 @@ def post_graphFreq():
     fname = data['fname']
     if fname == '':
         fname = WSN_LOG_FILE_NAME
+    else:
+        fname = WSN_LOG_FILE_PATH + '/' + fname    
     # read sensor data from file    
     f = open(fname, "r")
     print("WSN-S> open sensor data log file: %s" % fname, flush=True)
@@ -758,7 +764,7 @@ def post_logList():
     #value = data['value']
     #
     rows = []
-    listOfFiles = os.listdir('.')
+    listOfFiles = os.listdir(WSN_LOG_FILE_PATH + '/')
     pattern = "*" + WSN_LOG_FILE_SUFFIX
     for entry in listOfFiles:
         if fnmatch.fnmatch(entry, pattern):
