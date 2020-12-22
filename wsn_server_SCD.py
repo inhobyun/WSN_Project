@@ -769,7 +769,7 @@ def post_logList():
     for entry in listOfFiles:
         if fnmatch.fnmatch(entry, pattern):
                 rows.append(entry)
-    print('WSN-S> "%d" log files: ' % (len(rows)), rows, flush=True)                       
+    print('WSN-S> "%d" log files listed ' % len(rows), flush=True)                       
 
     return json.dumps({'rows' : rows})
 
