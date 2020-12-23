@@ -1,6 +1,6 @@
 /* The grid container */
 
-#grid-container {
+.grid-container {
     display: grid;
     grid-template-columns: 280px, auto;
     grid-template-areas: 
@@ -10,7 +10,9 @@
         'foot     foot     foot';
 } 
 
-.top, .top-left,.top-right {
+.top,
+.top-left,
+.top-right {
     padding-top: 6px;
     padding-bottom: 6px;
     padding-left: 6px;
@@ -28,7 +30,8 @@
 
 /* Style the menu */
 
-.top-left, .top-right {
+.top-left,
+.top-right {
     background-color: #666;
     color: white;
 }
