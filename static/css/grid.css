@@ -2,7 +2,7 @@
 
 .grid-container {
     display: grid;
-    grid-template-columns: 280px auto; /* fixed size - would be removed */
+    grid-template-columns: 280px, auto;
     grid-template-areas: 
         'top      top      top'
         'top-left top-left top-right' 

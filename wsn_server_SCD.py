@@ -787,7 +787,7 @@ if __name__ == '__main__':
             #
             # wait client connection (normally not used, only in case of test, )
             #
-            ## accept_socket(ACCEPT_WAIT_TIME)
+            accept_socket(ACCEPT_WAIT_TIME)
             #
             # flask web server running
             #

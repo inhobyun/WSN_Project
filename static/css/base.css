@@ -33,10 +33,8 @@ body {
     .button-h {
         display: none;
     }
-    table {
-        width: 86%
-    }
 }
+
 @media (min-width: 480px) and (max-width: 640px) {
     * {
         font-size: 12px;
@@ -47,11 +45,11 @@ body {
     label.status {
         font-size: 14px;
     }    
-    table {
-        width: 98%
-    }
     .button-h {
         display: none;
     }
+    table {
+        width: 98%;
+    } 
 }
 

@@ -31,46 +31,49 @@
                     select_box.add(opt);
                 }           
                 select_btn.innerHTML = 'Select log';
-                select_btn.disabled = true
-                
+                select_btn.disabled = true                
             }).catch(function (error) {
                 alert('Error occurred on submit: ' + error);
             });            
         }
 
         function dispTimeGraph(color_val) {
-            document.getElementById("btn_draw").disabled = true;
-            // drawing option
-            var r_btn = document.getElementsByName("draw");
-            var i;
-            var value;        
-            for (i = 0; i < r_btn.length; i++) {
-                if ( r_btn[i].checked ) {
-                    value = r_btn[i].value;
-                }
-            }
             const fname = document.getElementById("log_list").value;     
-            axios.post('/post_graphTime', {
-                value: value,
-                fname: fname,
-            }).then(response => {
-                const data = response.data;
-                // drawing
-                drawGraph(data, color_val,
-                    document.getElementById("y_min"),
-                    document.getElementById("y_max"),
-                    document.getElementById("x_min"),
-                    document.getElementById("x_max")
-                );
-                document.getElementById("time_stamp").innerHTML = data.t;
-                document.getElementById("freq_stamp").innerHTML = data.f;
-                document.getElementById("mode_stamp").innerHTML = data.m;
-                document.getElementById("btn_draw").disabled = false;
-                document.getElementById("scale_manu").disabled = false;
-                document.getElementById("scale_manu").checked = true;
-            }).catch(function (error) {
-                alert('Error occurred on submit: ' + error);
-            });            
+            if (fname == "") {
+                alert("Please select log followed by updating log list !")
+            } else {
+                document.getElementById("btn_draw").disabled = true;
+                // drawing option
+                var r_btn = document.getElementsByName("draw");
+                var i;
+                var value;        
+                for (i = 0; i < r_btn.length; i++) {
+                    if ( r_btn[i].checked ) {
+                        value = r_btn[i].value;
+                    }
+                }
+                axios.post('/post_graphTime', {
+                    value: value,
+                    fname: fname,
+                }).then(response => {
+                    const data = response.data;
+                    // drawing
+                    drawGraph(data, color_val,
+                        document.getElementById("y_min"),
+                        document.getElementById("y_max"),
+                        document.getElementById("x_min"),
+                        document.getElementById("x_max")
+                    );
+                    document.getElementById("time_stamp").innerHTML = data.t;
+                    document.getElementById("freq_stamp").innerHTML = data.f;
+                    document.getElementById("mode_stamp").innerHTML = data.m;
+                    document.getElementById("btn_draw").disabled = false;
+                    document.getElementById("scale_manu").disabled = false;
+                    document.getElementById("scale_manu").checked = true;
+                }).catch(function (error) {
+                    alert('Error occurred on submit: ' + error);
+                });
+            }    
         }
     </script>
 {% endblock %}
@@ -134,7 +137,7 @@
         <button class="button-l" id="btn_log"  onclick="logList()">Update log list</button>
     </div>
     <div style="width:100%; padding-top:8px;">    
-        <select id="log_list" name="log_list" size="10" style="width:100%;">
+        <select id="log_list" name="log_list" size="10" style="width:100%;" onchange="setAutoScale()">
         </select>            
     </div>
                                                        

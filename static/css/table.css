@@ -1,9 +1,9 @@
 /* Style the table */
 
 table {
-    width: 60%;
     text-align: left;
-    table-layout: auto;
+    table-layout: fixed;
+    /* width: 60% */
 }
 
 table,
@@ -24,18 +24,22 @@ th {
 }
 
 td {
+    height: 48px;
     text-align: right;
 }
 
 td.col_00 {
+    width: 240px;
     background-color: #999;
 }
 
 td.col_01 {
+    width: 120px;
     font-weight: bold;
 }
 
 td.col_02 {
+    width: 180px;
     text-align: left;
     color: #444;
 }
