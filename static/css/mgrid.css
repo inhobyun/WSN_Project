@@ -1,0 +1,80 @@
+/* style the grid */
+
+/*
+.grid-container {
+    display: grid;
+    width: 600px;
+    grid-template-columns: 150px auto;
+    grid-template-areas: 
+        'top      top      top      top'
+        'top-left top-left top-left top-right' 
+        'left     righ     right    right' 
+        'foot     foot     foot     foot';
+}
+*/ 
+
+.top,
+.top-left,
+.top-right {
+    height: 50px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 6px;
+    padding-right: 6px;       
+}
+
+.top {
+    grid-area: top;
+    background-color: #999;
+    color: black;
+    text-align: center;
+}
+
+.top-left,
+.top-right {
+    background-color: #666;
+    color: white;
+}
+
+.top-left {
+    grid-area: top-left;
+    text-align: left;
+}
+
+.top-right {
+    grid-area: top-right;
+    text-align: right;
+}
+
+.left,
+.right {
+    /* height: 900px; /* fixed size - would be removed */
+    padding-top: 4px;
+    padding-bottom: 4px;
+    padding-left: 4px;
+    padding-right: 4px;
+}
+
+/* Style the left column */
+.left {
+    grid-area: left;
+    text-align: center;
+    background-color: #aaa;
+}
+
+/* Style the right column */
+.right {
+    grid-area: right;
+    text-align: left;
+    background-color: white;
+}
+
+/* Style the footer */
+.foot {
+    grid-area: foot;
+    background-color: #999;
+    color: white;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    text-align: center;
+}

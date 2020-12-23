@@ -1,24 +1,26 @@
+<!--
+    html for Sensor Data Minitoring & Analysis System(WSN application)
+-->
 <!DOCTYPE html>
 <html>
-
 <head>
-
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="icon" href="/static/images/logo.png">
-    <!--
-    <script type="text/javascript" src="/static/js/???"></script>
-    <link href="css/selectbox.css" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/styles/index.css">
-    <link rel="stylesheet" href="/assets/styles/header.css">
-    <link rel="stylesheet" href="/assets/styles/screen.css">
-    <link rel="stylesheet" href="/assets/styles/footer.css">
-    -->
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/grid.css">
+    <link rel="stylesheet" href="/static/css/table.css">
+    <link rel="stylesheet" href="/static/css/form.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     {% block head %}
+    <!--
+        put js here !!!
+    -->
     {% endblock %}
     <title>Sensor Data Monitoring & Aanalysis</title>
+<<<<<<< Updated upstream
 
     <style>
 
@@ -305,45 +307,50 @@
     
     </style>
 
+=======
+>>>>>>> Stashed changes
 </head>
 
 <body>
-
-    {% block body %}
-    {% endblock %}
-
     <div class="grid-container">
+        <!-- application header -->
         <div class="top">
             <b>【Sensor Data Monitoring & Analysis】</b> prototype β version
         </div>      
+        <!-- menu buttons left side -->
         <div class="top-left">
-            <button class="button-r"   id="btn_ihome" onclick="window.location.href='/'"             ><i class="fa fa-home"></i></button>
-            <button class="button-r"   id="btn_confi" onclick="window.location.href='/m_Ooops'"      ><b>Configuration       </b></button>
-            <button class="button-r"   id="btn_monit" onclick="window.location.href='/m_monitor'"    ><b>Monitoring          </b></button>
+            <button class="button-r" id="btn_ihome" onclick="window.location.href='/'"             ><i class="fa fa-home"></i></button>
+            <button class="button-r" id="btn_confi" onclick="window.location.href='/m_Ooops'"      ><b>Configuration       </b></button>
+            <button class="button-r" id="btn_monit" onclick="window.location.href='/m_monitor'"    ><b>Monitoring          </b></button>
             <button class="button-h" id="btn_acqui" onclick="window.location.href='/m_acquisition'"><b>Data Acqusition     </b></button>
             <button class="button-h" id="btn_gtime" onclick="window.location.href='/m_graph_time'" ><b>Analysis - Time     </b></button>
             <button class="button-h" id="btn_gfreq" onclick="window.location.href='/m_graph_freq'" ><b>Analysis - Frequency</b></button>
         </div>
+        <!-- menu buttons right side -->
         <div class="top-right">
             <button class="button-r" id="btn_about" onclick="window.location.href='/m_intro_1'"><i class="fa fa-info-circle"></i></button>
         </div>
-    
+        <!-- application area left side -->   
         <div class="left">
             {% block left %}
             {% endblock %}
         </div>       
+        <!-- application area right side -->   
         <div class="right">
             {% block right %}
             {% endblock %}
         </div>
+        <!-- application footer -->
         <div class="foot">
             {% block foot %}
             {% endblock %}
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="https://d3js.org/d3.v4.js"></script>
-
+    {% block body_bottom %}
+    <!--
+        if any html, put those here !!!
+    -->
+    {% endblock %}
 </body>
 </html>

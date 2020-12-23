@@ -1,8 +1,16 @@
+<!--
+    html for Sensor Data Minitoring & Analysis System(WSN application)
+-->
 {% extends "m_base.html" %}
 
+{% block head %}
+{% endblock %}
 
 {% block foot %}
-    <div>Select the sensor mode</div>
+    <div><b>Select the sensor mode</b></div>
+{% endblock %}
+
+{% block body_bottom %}
 {% endblock %}
 
 {% block left %}
@@ -56,7 +64,6 @@
         document.getElementById("ligh_on").checked = true;
         document.getElementById("magn_on").checked = true;
     </script>    
-
 {% endblock %}
 
 {% block right %}

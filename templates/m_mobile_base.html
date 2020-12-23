@@ -1,280 +1,63 @@
+<!--
+    html for Sensor Data Minitoring & Analysis System(WSN application)
+-->
 <!DOCTYPE html>
 <html>
-
 <head>
-
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="icon" href="/static/images/logo.png">
-    <!--
-    <script type="text/javascript" src="/static/js/???"></script>
-    <link rel="stylesheet" href="/assets/styles/index.css">
-    <link rel="stylesheet" href="/assets/styles/header.css">
-    <link rel="stylesheet" href="/assets/styles/screen.css">
-    <link rel="stylesheet" href="/assets/styles/footer.css">
-    -->
+    <link rel="stylesheet" href="/static/css/mbase.css">
+    <link rel="stylesheet" href="/static/css/mgrid.css">
+    <link rel="stylesheet" href="/static/css/mtable.css">
+    <link rel="stylesheet" href="/static/css/mform.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     {% block head %}
+    <!--
+        put js here !!!
+    -->
     {% endblock %}
-    <title>Sensor Data Monitoring on Mobile</title>
-
-    <style>
-
-        * {
-            font-size: 20px;
-            box-sizing: border-box;
-            margin-top: 0px;
-            margin-left: 0px;
-            margin-bottom: 0px;
-            margin-right: 0px;
-        }
-
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-        }
-
-        input {
-            box-sizing: border-box;
-            border: 2px solid #aaa;
-            background-color: #ffc;
-        }
-        input:disabled {
-            border: 1px solid #ccc;
-            background-color: #999;
-        }
-
-        .contain {
-            object-fit: contain;
-            /* height: 680px; */ 
-        }
-
-        /* The grid container
-        .grid-container {
-            display: grid;
-            width: 600px;
-            grid-template-columns: 150px auto;
-            grid-template-areas: 
-                'top      top      top      top'
-                'top-left top-left top-left top-right' 
-                'left     righ     right    right' 
-                'foot     foot     foot     foot';
-        }
-        */ 
-
-        .top,
-        .top-left,
-        .top-right {
-            height: 50px;
-            padding-top: 10px;
-            padding-bottom: 10px;
-            padding-left: 6px;
-            padding-right: 6px;       
-        }
-        
-        .top {
-            grid-area: top;
-            background-color: #999;
-            color: black;
-            text-align: center;
-        }
-
-        .top-left,
-        .top-right {
-            background-color: #666;
-            color: white;
-        }
-
-        .top-left {
-            grid-area: top-left;
-            text-align: left;
-        }
-
-        .top-right {
-            grid-area: top-right;
-            text-align: right;
-        }
-
-        .left,
-        .right {
-            /* height: 900px; /* fixed size - would be removed */
-            padding-top: 4px;
-            padding-bottom: 4px;
-            padding-left: 4px;
-            padding-right: 4px;
-        }
-
-        /* Style the left column */
-        .left {
-            grid-area: left;
-            text-align: center;
-            background-color: #aaa;
-        }
-
-        /* Style the right column */
-        .right {
-            grid-area: right;
-            text-align: left;
-            background-color: white;
-        }
-
-        /* Style the footer */
-        .foot {
-            grid-area: foot;
-            background-color: #999;
-            color: white;
-            padding-top: 4px;
-            padding-bottom: 4px;
-            text-align: center;
-        }
-
-        label.status {
-            font-size: 30px;
-            font-weight: bold;
-            color: grey;
-        }    
-
-        /* Style the table */
-        table {
-            text-align: left;
-            table-layout: fixed;
-            /* width: 430px; */
-        }
-
-        table,
-        td,
-        th {
-            border-collapse: collapse;
-        }
-
-        th,
-        td {
-            padding: 6px;
-            border: solid 1px;
-        }
-
-        th {
-            text-align: center;
-            background-color: #99b;
-        }
-
-        td {
-            height: 48px;
-            text-align: right;
-        }
-
-        td.col_00 {
-            width: 180px;
-            background-color: #999;
-        }
-
-        td.col_01 {
-            width: 90px;
-            font-weight: bold;
-        }
-
-        td.col_02 {
-            width: 160px;
-            text-align: left;
-            color: #444;
-        }
-
-        .button-h,
-        .button-r {
-            display: inline-block;
-            padding: 2px 4px;
-            font-weight: bold;
-            cursor: pointer;
-            text-align: center;
-            text-decoration: none;
-            outline: none;
-            color: #00f;
-            background-color: #fff;
-            border: none;
-            border-radius: 4px;
-            box-shadow: 0 8px #777;
-        }
-
-        .button-h:disabled,
-        .button-r:disabled {
-            background-color: #888;
-            color: #77e;
-        }
-
-        .button-h:hover,
-        .button-r:hover {
-            background-color: #88f;
-            color: #fff;
-        }
-
-        .button-h:active,
-        .button-r:active {
-            background-color: #88f;
-            box-shadow: 0 4px #666;
-            transform: translateY(4px);
-        }
-
-        .button-l {
-            display: inline-block;
-            cursor: pointer;
-            padding: 10px;
-            font-size: 24px;
-            font-weight: bold;
-            text-align: center;
-            text-decoration: none;
-            outline: none;
-            color: #00f;
-            background-color: #ff0;
-            border: 1px solid #00f;
-            border-radius: 8px;
-        }
-
-        .button-l:disabled {
-            background-color: #888;
-            color: #44a;
-        }
-
-        .button-l:hover {
-            background-color: #559;
-            color: #fff;
-        }   
-    </style>
-
+    <title>Sensor Data Monitoring Mobile</title>
 </head>
 
 <body>
-
-    {% block body %}
-    {% endblock %}
-
     <div class="grid-container">
+        <!-- application header -->
         <div class="top">
             <b>【Sensor Data Monitoring】</b> prototype β version
         </div>      
+        <!-- menu buttons left side -->
         <div class="top-left">
             <button class="button-r" id="btn_ihome" onclick="window.location.href='/m'"        ><i class="fa fa-home"></i> Home</button>
             <button class="button-r" id="btn_monit" onclick="window.location.href='/m_mobile'" ><b>Sensor Monitoring</b></button>
         </div>
+        <!-- menu buttons right side -->
         <div class="top-right">
             <button class="button-r" id="btn_about" onclick="window.location.href='/m_intro_0'"><i class="fa fa-info-circle"></i> About...</button>
         </div>
-    
+        <!-- application area left side -->
         <div class="left">
             {% block left %}
             {% endblock %}
         </div>       
+        <!-- application area right side -->   
         <div class="right" style="text-align: left">
             {% block right %}
             {% endblock %}
         </div>
+        <!-- application footer -->
         <div class="foot">
             {% block foot %}
             {% endblock %}
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="https://d3js.org/d3.v4.js"></script>
-
+    {% block body_bottom %}
+    <!--
+        if any html, put those here !!!
+    -->
+    {% endblock %}
 </body>
 </html>

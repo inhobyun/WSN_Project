@@ -1,3 +1,6 @@
+<!--
+    html for Sensor Data Minitoring & Analysis System(WSN application)
+-->
 {% extends "m_mobile_base.html" %}
 
 {% block head %}
@@ -20,17 +23,20 @@
     </style>
 {% endblock %}
 
+{% block foot %}
+    <div>
+        <b>Introduction</b> <a href="/m">Click</a> to return home...
+    </div>
+{% endblock %}
+
+{% block body_bottom %}
+{% endblock %}
+
 {% block left %}
 {% endblock %}
 
 {% block right %}
     <div style="text-align:center; padding-top:20px;">
         <img class="contain" width=520; src="/static/images/intro-0.jpg">
-    </div>
-{% endblock %}
-
-{% block foot %}
-    <div>
-        <b>Introduction</b> <a href="/m">Click</a> to return home...
     </div>
 {% endblock %}

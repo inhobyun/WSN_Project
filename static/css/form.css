@@ -1,0 +1,115 @@
+/* Style the label */
+
+label.status {
+    font-size: 20px;
+    font-weight: bold;
+    color: grey;
+}    
+
+/* Style the input */
+
+input {
+    box-sizing: border-box;
+    border: 2px solid #aaa;
+    background-color: #ffc;
+}
+input:disabled {
+    border: 1px solid #ccc;
+    background-color: #999;
+}
+
+/* Style the button */
+
+.button-h,
+.button-r {
+    display: inline-block;
+    padding: 2px 4px;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    outline: none;
+    color: #00f;
+    background-color: #fff;
+    border: none;
+    border-radius: 4px;
+    box-shadow: 0 8px #777;
+}
+
+.button-h:disabled,
+.button-r:disabled {
+    background-color: #888;
+    color: #77e;
+}
+
+.button-h:hover,
+.button-r:hover {
+    background-color: #88f;
+    color: #fff;
+}
+
+.button-h:active,
+.button-r:active {
+    background-color: #88f;
+    box-shadow: 0 4px #666;
+    transform: translateY(4px);
+}
+
+.button-l {
+    display: inline-block;
+    cursor: pointer;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    outline: none;
+    color: #00f;
+    background-color: #ff0;
+    border: 1px solid #00f;
+    border-radius: 3px;
+}
+
+.button-l:disabled {
+    background-color: #888;
+    color: #44a;
+}
+
+.button-l:hover {
+    background-color: #559;
+    color: #fff;
+}
+
+/* Style the file */
+
+.upload-btn-wrapper {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+    /* border: 1px solid #cdcdcd; */
+    /* border-radius: 3px; */
+    padding: 4px 6px;
+    height: 32px!important;
+    width:calc(100% - 26px);
+}
+
+.upload-btn-wrapper .btnr {
+    border: 2px solid #229;
+    color: #00f;
+    padding: 2px 8px;
+    border-radius: 1px;
+    /* font-size: 14px; */
+    font-weight: bold;
+    position: relative;
+}
+.upload-btn-wrapper .btnr + span {
+    padding-left: 5px;
+    padding-right: 5px;
+    font-weight: normal;
+}
+
+.upload-btn-wrapper input[type=file] {
+    font-size: 42px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+}

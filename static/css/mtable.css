@@ -1,0 +1,45 @@
+/* Style the table */
+
+table {
+    text-align: left;
+    table-layout: fixed;
+    /* width: 430px; */
+}
+
+table,
+td,
+th {
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 6px;
+    border: solid 1px;
+}
+
+th {
+    text-align: center;
+    background-color: #99b;
+}
+
+td {
+    height: 48px;
+    text-align: right;
+}
+
+td.col_00 {
+    width: 180px;
+    background-color: #999;
+}
+
+td.col_01 {
+    width: 90px;
+    font-weight: bold;
+}
+
+td.col_02 {
+    width: 160px;
+    text-align: left;
+    color: #444;
+}

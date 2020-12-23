@@ -1,3 +1,6 @@
+//
+// js for Sensor Data Minitoring & Analysis System(WSN application)
+//
 
 function disableAllMenus(is_mobile) {
     document.getElementById("btn_ihome").disabled = true;

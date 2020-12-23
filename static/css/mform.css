@@ -1,0 +1,78 @@
+/* Stle the form */
+
+label.status {
+    font-size: 30px;
+    font-weight: bold;
+    color: grey;
+}    
+
+input {
+    box-sizing: border-box;
+    border: 2px solid #aaa;
+    background-color: #ffc;
+}
+
+input:disabled {
+    border: 1px solid #ccc;
+    background-color: #999;
+}
+
+.button-h,
+.button-r {
+    display: inline-block;
+    padding: 2px 4px;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    outline: none;
+    color: #00f;
+    background-color: #fff;
+    border: none;
+    border-radius: 4px;
+    box-shadow: 0 8px #777;
+}
+
+.button-h:disabled,
+.button-r:disabled {
+    background-color: #888;
+    color: #77e;
+}
+
+.button-h:hover,
+.button-r:hover {
+    background-color: #88f;
+    color: #fff;
+}
+
+.button-h:active,
+.button-r:active {
+    background-color: #88f;
+    box-shadow: 0 4px #666;
+    transform: translateY(4px);
+}
+
+.button-l {
+    display: inline-block;
+    cursor: pointer;
+    padding: 10px;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    outline: none;
+    color: #00f;
+    background-color: #ff0;
+    border: 1px solid #00f;
+    border-radius: 8px;
+}
+
+.button-l:disabled {
+    background-color: #888;
+    color: #44a;
+}
+
+.button-l:hover {
+    background-color: #559;
+    color: #fff;
+}   

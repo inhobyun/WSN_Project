@@ -1,7 +1,78 @@
+<!--
+    html for Sensor Data Minitoring & Analysis System(WSN application)
+-->
 {% extends "m_base.html" %}
 
+{% block head %}
+    <script src="https://d3js.org/d3.v4.js"></script>
+    <script type="text/javascript" src="/static/js/drawing.js"></script>
+{% endblock %}
+
 {% block foot %}
-    <div style="color:#fff;">Push [Draw Graph] button to draw time-series graph...</div>
+    <div">Push [Draw Graph] button to draw time-series graph...</div>
+{% endblock %}
+
+{% block body_bottom %}
+    <script>
+        function logList() {
+            var i, n;
+            const select_btn = document.getElementById("btn_log");
+            const select_box = document.getElementById("log_list");
+            const select_nam = document.getElementById("file_name");
+            axios.post('/post_logList', {
+                // value: value,
+            }).then(response => {
+                const data = response.data;
+                // add option           
+                const cnt = data.rows.length;
+                for (i = 0; i < cnt; i++) { 
+                    let opt = document.createElement('option');
+                    opt.text = data.rows[i]
+                    select_box.add(opt);
+                }           
+                select_btn.innerHTML = 'Select log';
+                select_btn.disabled = true
+                
+            }).catch(function (error) {
+                alert('Error occurred on submit: ' + error);
+            });            
+        }
+
+        function dispTimeGraph(color_val) {
+            document.getElementById("btn_draw").disabled = true;
+            // drawing option
+            var r_btn = document.getElementsByName("draw");
+            var i;
+            var value;        
+            for (i = 0; i < r_btn.length; i++) {
+                if ( r_btn[i].checked ) {
+                    value = r_btn[i].value;
+                }
+            }
+            const fname = document.getElementById("log_list").value;     
+            axios.post('/post_graphTime', {
+                value: value,
+                fname: fname,
+            }).then(response => {
+                const data = response.data;
+                // drawing
+                drawGraph(data, color_val,
+                    document.getElementById("y_min"),
+                    document.getElementById("y_max"),
+                    document.getElementById("x_min"),
+                    document.getElementById("x_max")
+                );
+                document.getElementById("time_stamp").innerHTML = data.t;
+                document.getElementById("freq_stamp").innerHTML = data.f;
+                document.getElementById("mode_stamp").innerHTML = data.m;
+                document.getElementById("btn_draw").disabled = false;
+                document.getElementById("scale_manu").disabled = false;
+                document.getElementById("scale_manu").checked = true;
+            }).catch(function (error) {
+                alert('Error occurred on submit: ' + error);
+            });            
+        }
+    </script>
 {% endblock %}
 
 {% block left %}
@@ -70,7 +141,6 @@
 {% endblock %}
 
 {% block right %}
-
     <div style="text-align:left"><b>Accelerometer Sensor Data - Time Series Graph</b></div>
     <div style="text-align:left">
         <label id="time_label"></label>Measured Time : </label>
@@ -86,68 +156,4 @@
     <div class="form">
         <div id="chart-box"></div>
     </div>
-
-    <script>
-        function logList() {
-            var i, n;
-            const select_btn = document.getElementById("btn_log");
-            const select_box = document.getElementById("log_list");
-            const select_nam = document.getElementById("file_name");
-            axios.post('/post_logList', {
-                // value: value,
-            }).then(response => {
-                const data = response.data;
-                // add option           
-                const cnt = data.rows.length;
-                for (i = 0; i < cnt; i++) { 
-                    let opt = document.createElement('option');
-                    opt.text = data.rows[i]
-                    select_box.add(opt);
-                }           
-                select_btn.innerHTML = 'Select log';
-                select_btn.disabled = true
-                
-            }).catch(function (error) {
-                alert('Error occurred on submit: ' + error);
-            });            
-        }
-
-        function dispTimeGraph(color_val) {
-            document.getElementById("btn_draw").disabled = true;
-            // drawing option
-            var r_btn = document.getElementsByName("draw");
-            var i;
-            var value;        
-            for (i = 0; i < r_btn.length; i++) {
-                if ( r_btn[i].checked ) {
-                    value = r_btn[i].value;
-                }
-            }
-            const fname = document.getElementById("log_list").value;     
-            axios.post('/post_graphTime', {
-                value: value,
-                fname: fname,
-            }).then(response => {
-                const data = response.data;
-                // drawing
-                drawGraph(data, color_val,
-                    document.getElementById("y_min"),
-                    document.getElementById("y_max"),
-                    document.getElementById("x_min"),
-                    document.getElementById("x_max")
-                );
-                document.getElementById("time_stamp").innerHTML = data.t;
-                document.getElementById("freq_stamp").innerHTML = data.f;
-                document.getElementById("mode_stamp").innerHTML = data.m;
-                document.getElementById("btn_draw").disabled = false;
-                document.getElementById("scale_manu").disabled = false;
-                document.getElementById("scale_manu").checked = true;
-            }).catch(function (error) {
-                alert('Error occurred on submit: ' + error);
-            });            
-        }
-    </script>    
-
-    <script type="text/javascript" src="/static/js/drawing.js"></script>
-
 {% endblock %}

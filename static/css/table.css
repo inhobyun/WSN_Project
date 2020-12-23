@@ -1,0 +1,41 @@
+/* Style the table */
+
+table {
+    width: 60%;
+    text-align: left;
+    table-layout: auto;
+}
+
+table,
+td,
+th {
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 6px;
+    border: solid 1px;
+}
+
+th {
+    text-align: center;
+    background-color: #99b;
+}
+
+td {
+    text-align: right;
+}
+
+td.col_00 {
+    background-color: #999;
+}
+
+td.col_01 {
+    font-weight: bold;
+}
+
+td.col_02 {
+    text-align: left;
+    color: #444;
+}

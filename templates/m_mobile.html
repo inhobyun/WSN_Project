@@ -1,3 +1,6 @@
+<!--
+    html for Sensor Data Minitoring & Analysis System(WSN application)
+-->
 {% extends "m_mobile_base.html" %}
 
 {% block head %}
@@ -17,10 +20,16 @@
             width: 450px;
         }
     </style>
+
+    <script type="text/javascript" src="/static/js/monitoring.js"></script>
+    <script type="text/javascript" src="/static/js/misc.js"></script>
 {% endblock %}
 
 {% block foot %}
     <div>Push [Start] button to run monitoring...</div>
+{% endblock %}
+
+{% block body_bottom %}
 {% endblock %}
 
 {% block left %}
@@ -40,91 +49,86 @@
 {% endblock %}
 
 {% block right %}
-
-<div style="text-align:left"><b>SCD Sensor Data - on-time display</b></div>
-<br>
-<hr>
-<div style="padding-left:0px">
-    <label id="row_0_label">Time : </label>
+    <div style="text-align:left"><b>SCD Sensor Data - on-time display</b></div>
     <br>
-    <label id="row_0" style="color:blueviolet;"><b>YYYY-MM-DD hh:mm:ss [unix_time]</b></label>
-</div> 
-<hr>
-<div style="padding-left:0px; padding-top:12px">
-    <label id="status_0_label">Movement Status : </label>
-    <label class="status" id="status_0">unknown</label>
-</div>
-<div style="padding-left:48px; padding-top:12px">   
-    <label id="status_1_label">Fault Status : </label>
-    <label class="status" id="status_1">unknown</label>
-</div>
-<br>
-<div tyle="text-align:left;">
-    <table id="monitor">
-        <tr>
-            <th>Sensor</th>
-            <th>Value</th>
-            <th>UoM</th>
-        </tr>
-        <tr>
-            <td class="col_00">accelero. mean X</td>
-            <td class="col_01" id="row_1">-</td>
-            <td class="col_02">G-forces (g)</td>
-        </tr>
-        <tr>
-            <td class="col_00">accelero. vari. X</td>
-            <td class="col_01" id="row_2">-</td>
-            <td class="col_02">g<sup>2</sup></td>
-        </tr>
-        <tr>
-            <td class="col_00">accelero. mean. Y</td>
-            <td class="col_01" id="row_3">-</td>
-            <td class="col_02">G-forces (g)</td>
-        </tr>
-        <tr>
-            <td class="col_00">accelero. vari. Y</td>
-            <td class="col_01" id="row_4">-</td>
-            <td class="col_02">g<sup>2</sup></td>
-        </tr>
-        <tr>
-            <td class="col_00">accelero. mean. Z</td>
-            <td class="col_01" id="row_5">-</td>
-            <td class="col_02">G-forces (g)</td>
-        </tr>
-        <tr>
-            <td class="col_00">accelero. vari. Z</td>
-            <td class="col_01" id="row_6">-</td>
-            <td class="col_02">g<sup>2</sup></td>
-        </tr>
-        <tr>
-            <td class="col_00">temperature</td>
-            <td class="col_01" id="row_7">-</td>
-            <td class="col_02">celcius (℃)</td>
-        </tr>
-        <tr>
-            <td class="col_00">light</td>
-            <td class="col_01" id="row_8">-</td>
-            <td class="col_02">Lux (lx)</td>
-        </tr>
-        <tr>
-            <td class="col_00">magnetometer X</td>
-            <td class="col_01" id="row_9">-</td>
-            <td class="col_02">micro-tesla (&#181;T)</td>
-        </tr>
-        <tr>
-            <td class="col_00">magnetometer Y</td>
-            <td class="col_01" id="row_10">-</td>
-            <td class="col_02">micro-tesla (&#181;T)</td>
-        </tr>
-        <tr>
-            <td class="col_00">magnetometer Z</td>
-            <td class="col_01" id="row_11">-</td>
-            <td class="col_02">micro-tesla (&#181;T)</td>
+    <hr>
+    <div style="padding-left:0px">
+        <label id="row_0_label">Time : </label>
+        <br>
+        <label id="row_0" style="color:blueviolet;"><b>YYYY-MM-DD hh:mm:ss [unix_time]</b></label>
+    </div> 
+    <hr>
+    <div style="padding-left:0px; padding-top:12px">
+        <label id="status_0_label">Movement Status : </label>
+        <label class="status" id="status_0">unknown</label>
+    </div>
+    <div style="padding-left:48px; padding-top:12px">   
+        <label id="status_1_label">Fault Status : </label>
+        <label class="status" id="status_1">unknown</label>
+    </div>
+    <br>
+    <div tyle="text-align:left;">
+        <table id="monitor">
+            <tr>
+                <th>Sensor</th>
+                <th>Value</th>
+                <th>UoM</th>
             </tr>
-    </table>
-</div>
-
-<script type="text/javascript" src="/static/js/monitoring.js"></script>
-<script type="text/javascript" src="/static/js/misc.js"></script>
-
+            <tr>
+                <td class="col_00">accelero. mean X</td>
+                <td class="col_01" id="row_1">-</td>
+                <td class="col_02">G-forces (g)</td>
+            </tr>
+            <tr>
+                <td class="col_00">accelero. vari. X</td>
+                <td class="col_01" id="row_2">-</td>
+                <td class="col_02">g<sup>2</sup></td>
+            </tr>
+            <tr>
+                <td class="col_00">accelero. mean. Y</td>
+                <td class="col_01" id="row_3">-</td>
+                <td class="col_02">G-forces (g)</td>
+            </tr>
+            <tr>
+                <td class="col_00">accelero. vari. Y</td>
+                <td class="col_01" id="row_4">-</td>
+                <td class="col_02">g<sup>2</sup></td>
+            </tr>
+            <tr>
+                <td class="col_00">accelero. mean. Z</td>
+                <td class="col_01" id="row_5">-</td>
+                <td class="col_02">G-forces (g)</td>
+            </tr>
+            <tr>
+                <td class="col_00">accelero. vari. Z</td>
+                <td class="col_01" id="row_6">-</td>
+                <td class="col_02">g<sup>2</sup></td>
+            </tr>
+            <tr>
+                <td class="col_00">temperature</td>
+                <td class="col_01" id="row_7">-</td>
+                <td class="col_02">celcius (℃)</td>
+            </tr>
+            <tr>
+                <td class="col_00">light</td>
+                <td class="col_01" id="row_8">-</td>
+                <td class="col_02">Lux (lx)</td>
+            </tr>
+            <tr>
+                <td class="col_00">magnetometer X</td>
+                <td class="col_01" id="row_9">-</td>
+                <td class="col_02">micro-tesla (&#181;T)</td>
+            </tr>
+            <tr>
+                <td class="col_00">magnetometer Y</td>
+                <td class="col_01" id="row_10">-</td>
+                <td class="col_02">micro-tesla (&#181;T)</td>
+            </tr>
+            <tr>
+                <td class="col_00">magnetometer Z</td>
+                <td class="col_01" id="row_11">-</td>
+                <td class="col_02">micro-tesla (&#181;T)</td>
+                </tr>
+        </table>
+    </div>
 {% endblock %}

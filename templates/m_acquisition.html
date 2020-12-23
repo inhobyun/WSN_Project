@@ -1,7 +1,110 @@
+<!--
+    html for Sensor Data Minitoring & Analysis System(WSN application)
+-->
 {% extends "m_base.html" %}
 
+{% block head %}
+    <script type="text/javascript" src="/static/js/misc.js"></script>
+    <script>
+        function startSTEandBDT() {
+            // get value from UI
+            //const value = document.getElementById('???').value;
+        
+            //control UI before function run
+            disableAllMenus('N');
+            document.getElementById("btn_start_1").disabled = true;
+            // display pre-messages
+            document.getElementById("inf_message").innerHTML += "▶ run STE(Short Time Experiment), then BDT(Block Data Transfer): SENSOR ➜ EDGE-DEVICE<br>";
+            document.getElementById("err_message").innerHTML  = "<br>✋ it will take some minutes(⏱), wait until completed";
+            // run flask function
+            axios.post('/post_STEandBDT', {
+                //value: Number(value),
+            }).then(response => {
+                const data = response.data;
+                // display post-message
+                document.getElementById("err_message").innerHTML  = ''
+                document.getElementById("inf_message").innerHTML += "__✔ completed: " + data.msg_00 + "<br>";
+                // control UI after function run
+                if ( data.msg_01 == 'Y' ) {
+                    document.getElementById("btn_start_2" ).disabled = false;
+                } else {
+                    document.getElementById("fin_message").innerHTML += "😅 Hmm... try later !";
+                    enableAllMenus('N');
+                }            
+            }).catch(function (error) {
+                // display error-message
+                document.getElementById("err_message").innerHTML = "<br>❗ Error occurred on submit: " + error;
+            });
+        }
+        
+        function startBDTtoSever() {
+            // get value from UI
+            //const value = document.getElementById('???').value;
+        
+            //control UI before function run
+            disableAllMenus('N');
+            document.getElementById("btn_start_2").disabled = true;
+            // display pre-messages
+            document.getElementById("inf_message").innerHTML += "▶ run BDT(Block Data Transfer): EDGE-DEVICE ➜ SERVER<br>";
+            document.getElementById("err_message").innerHTML  = "<br>✋ it will take some minutes(⏱), wait until completed";
+            // run flask function
+            axios.post('/post_BDTtoServer', {
+                //value: Number(value),
+            }).then(response => {
+                const data = response.data;
+                // display post-message
+                document.getElementById("err_message").innerHTML  = ''
+                document.getElementById("inf_message").innerHTML += "__✔ completed: " + data.msg_00 + "<br>";
+                // control UI after function run
+                if ( data.msg_01 == 'Y' ) {
+                    document.getElementById("btn_start_3" ).disabled = false;
+                } else {
+                    document.getElementById("fin_message").innerHTML += "😅 Hmm... try later !";
+                    enableAllMenus('N');
+                }            
+            }).catch(function (error) {
+                // display error-message
+                document.getElementById("err_message").innerHTML = "<br>❗ Error occurred on submit: " + error;
+            });
+        }
+        
+        function startBDTtoFile() {
+            // get value from UI
+            const value = document.getElementById('file_mark').value;
+        
+            //control UI before function run
+            disableAllMenus('N');
+            document.getElementById("btn_start_3").disabled = true;
+            // display pre-messages
+            document.getElementById("inf_message").innerHTML += "▶ save data to \".CSV\" formated file<br>";
+            // run flask function
+            axios.post('/post_BDTtoFile', {
+                value: value,
+            }).then(response => {
+                const data = response.data;
+                // display post-message
+                document.getElementById("err_message").innerHTML  = ''
+                document.getElementById("inf_message").innerHTML += "__✔ completed: " + data.msg_00;
+                if ( data.msg_01 == 'Y' ) {
+                    document.getElementById("fin_message").innerHTML += "😄 all done, congratuation !";
+                } else {
+                    document.getElementById("fin_message").innerHTML += "😅 Hmm... try later !";
+                }    
+                // control UI after function run
+                enableAllMenus('N');
+            }).catch(function (error) {
+                // display error-message
+                document.getElementById("err_message").innerHTML = "<br>❗ Error occurred on submit: " + error;
+            });
+        }
+    </script>
+{% endblock %}
+
 {% block foot %}
-    <div style="color:#fff;">Push [Run] button to run data acquisition...</div>
+    <div">Push [Run] button to run data acquisition...</div>
+{% endblock %}
+
+{% block body_bottom %}
 {% endblock %}
 
 {% block left %}
@@ -28,108 +131,8 @@
 {% endblock %}
 
 {% block right %}
-
-<div style="text-align:center; font-weight:bold; font: size 16;"><b>Sensor Data Acquisition Running Status</b></div>
-<div style="text-align:left;   font-weight:bold; font: size 16; color:blue"  id="inf_message"><br></div>
-<div style="text-align:left;   font-weight:bold; font: size 20; color:red"   id="err_message"></div>
-<div style="text-align:left;   font-weight:bold; font: size 20; color:black" id="fin_message"></div>     
-
-<script>
-
-    function startSTEandBDT() {
-        // get value from UI
-        //const value = document.getElementById('???').value;
-
-        //control UI before function run
-        disableAllMenus('N');
-        document.getElementById("btn_start_1").disabled = true;
-        // display pre-messages
-        document.getElementById("inf_message").innerHTML += "▶ run STE(Short Time Experiment), then BDT(Block Data Transfer): SENSOR ➜ EDGE-DEVICE<br>";
-        document.getElementById("err_message").innerHTML  = "<br>✋ it will take some minutes(⏱), wait until completed";
-        // run flask function
-        axios.post('/post_STEandBDT', {
-            //value: Number(value),
-        }).then(response => {
-            const data = response.data;
-            // display post-message
-            document.getElementById("err_message").innerHTML  = ''
-            document.getElementById("inf_message").innerHTML += "__✔ completed: " + data.msg_00 + "<br>";
-            // control UI after function run
-            if ( data.msg_01 == 'Y' ) {
-                document.getElementById("btn_start_2" ).disabled = false;
-            } else {
-                document.getElementById("fin_message").innerHTML += "😅 Hmm... try later !";
-                enableAllMenus('N');
-            }            
-        }).catch(function (error) {
-            // display error-message
-            document.getElementById("err_message").innerHTML = "<br>❗ Error occurred on submit: " + error;
-        });
-    }
-
-    function startBDTtoSever() {
-        // get value from UI
-        //const value = document.getElementById('???').value;
-
-        //control UI before function run
-        disableAllMenus('N');
-        document.getElementById("btn_start_2").disabled = true;
-        // display pre-messages
-        document.getElementById("inf_message").innerHTML += "▶ run BDT(Block Data Transfer): EDGE-DEVICE ➜ SERVER<br>";
-        document.getElementById("err_message").innerHTML  = "<br>✋ it will take some minutes(⏱), wait until completed";
-        // run flask function
-        axios.post('/post_BDTtoServer', {
-            //value: Number(value),
-        }).then(response => {
-            const data = response.data;
-            // display post-message
-            document.getElementById("err_message").innerHTML  = ''
-            document.getElementById("inf_message").innerHTML += "__✔ completed: " + data.msg_00 + "<br>";
-            // control UI after function run
-            if ( data.msg_01 == 'Y' ) {
-                document.getElementById("btn_start_3" ).disabled = false;
-            } else {
-                document.getElementById("fin_message").innerHTML += "😅 Hmm... try later !";
-                enableAllMenus('N');
-            }            
-        }).catch(function (error) {
-            // display error-message
-            document.getElementById("err_message").innerHTML = "<br>❗ Error occurred on submit: " + error;
-        });
-    }
-
-    function startBDTtoFile() {
-        // get value from UI
-        const value = document.getElementById('file_mark').value;
-
-        //control UI before function run
-        disableAllMenus('N');
-        document.getElementById("btn_start_3").disabled = true;
-        // display pre-messages
-        document.getElementById("inf_message").innerHTML += "▶ save data to \".CSV\" formated file<br>";
-        // run flask function
-        axios.post('/post_BDTtoFile', {
-            value: value,
-        }).then(response => {
-            const data = response.data;
-            // display post-message
-            document.getElementById("err_message").innerHTML  = ''
-            document.getElementById("inf_message").innerHTML += "__✔ completed: " + data.msg_00;
-            if ( data.msg_01 == 'Y' ) {
-                document.getElementById("fin_message").innerHTML += "😄 all done, congratuation !";
-            } else {
-                document.getElementById("fin_message").innerHTML += "😅 Hmm... try later !";
-            }    
-            // control UI after function run
-            enableAllMenus('N');
-        }).catch(function (error) {
-            // display error-message
-            document.getElementById("err_message").innerHTML = "<br>❗ Error occurred on submit: " + error;
-        });
-    }    
-
-</script>
-
-<script type="text/javascript" src="/static/js/misc.js"></script>
-
+    <div style="text-align:center; font-weight:bold; font: size 16;"><b>Sensor Data Acquisition Running Status</b></div>
+    <div style="text-align:left;   font-weight:bold; font: size 16; color:blue"  id="inf_message"><br></div>
+    <div style="text-align:left;   font-weight:bold; font: size 20; color:red"   id="err_message"></div>
+    <div style="text-align:left;   font-weight:bold; font: size 20; color:black" id="fin_message"></div>     
 {% endblock %}

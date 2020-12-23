@@ -1,3 +1,6 @@
+//
+// js for Sensor Data Minitoring & Analysis System(WSN application)
+//
 
 var tid = null;
 var col = 'black';
