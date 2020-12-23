@@ -1,6 +1,6 @@
 /* The grid container */
 
-.grid-container {
+#grid-container {
     display: grid;
     grid-template-columns: 280px, auto;
     grid-template-areas: 
@@ -10,14 +10,14 @@
         'foot     foot     foot';
 } 
 
-.top,
-.top-left,
-.top-right {
+.top, .top-left,.top-right {
     padding-top: 6px;
     padding-bottom: 6px;
     padding-left: 6px;
     padding-right: 6px;       
 }
+
+/* Style the header */
 
 .top {
     grid-area: top;
@@ -26,8 +26,9 @@
     text-align: center;
 }
 
-.top-left,
-.top-right {
+/* Style the menu */
+
+.top-left, .top-right {
     background-color: #666;
     color: white;
 }
@@ -42,8 +43,7 @@
     text-align: right;
 }
 
-.left,
-.right {
+.left, .right {
     height: 760px; /* fixed size - would be removed */
     padding-top: 4px;
     padding-bottom: 4px;
