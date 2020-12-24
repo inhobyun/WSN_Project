@@ -2,12 +2,12 @@
 
 .grid-container {
     display: grid;
-    grid-template-columns: 280px, auto;
+    grid-template-columns: auto;
     grid-template-areas: 
-        'top      top      top'
-        'top-left top-left top-right' 
-        'left     right    right' 
-        'foot     foot     foot';
+    'top      top      top      top      top'
+    'top-left top-left top-left top-left top-right' 
+    'left     right    right    right    right' 
+    'foot     foot     foot     foot     foot';
 } 
 
 .top,
@@ -33,7 +33,6 @@
 .top-left,
 .top-right {
     background-color: #666;
-    color: white;
 }
 
 .top-left {

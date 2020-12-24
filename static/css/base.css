@@ -1,12 +1,25 @@
 /* Style the base */
 
 * {
-    font-size: 16px;
+    /* font-size: 16px; */
     box-sizing: border-box;
     margin-top: 0px;
     margin-left: 0px;
     margin-bottom: 0px;
     margin-right: 0px;
+}
+
+/* Responsive layout */
+@media (min-width: 1081px) {
+    * {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 1080px) {
+    * {
+        font-size: 14px;
+    }
 }
 
 body {
@@ -17,39 +30,3 @@ body {
     object-fit: contain;
     height: 680px; 
 }
-
-
-/* Responsive layout */
-@media (min-width: 641px) and (max-width: 1080px) {
-    * {
-        font-size: 14px;
-    }
-    .grid-container {
-        grid-template-columns: 220px auto; /* fixed size - would be removed */
-    }    
-    label.status {
-        font-size: 16px;
-    }    
-    .button-h {
-        display: none;
-    }
-}
-
-@media (min-width: 480px) and (max-width: 640px) {
-    * {
-        font-size: 12px;
-    }
-    .grid-container {
-        grid-template-columns: 180px auto; /* fixed size - would be removed */
-    }
-    label.status {
-        font-size: 14px;
-    }    
-    .button-h {
-        display: none;
-    }
-    table {
-        width: 98%;
-    } 
-}
-

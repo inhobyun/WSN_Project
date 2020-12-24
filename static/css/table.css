@@ -1,9 +1,7 @@
 /* Style the table */
 
 table {
-    text-align: left;
-    table-layout: fixed;
-    /* width: 60% */
+    table-layout: auto;
 }
 
 table,
@@ -16,30 +14,27 @@ th,
 td {
     padding: 6px;
     border: solid 1px;
+    height: 48px;
 }
 
 th {
     text-align: center;
-    background-color: #99b;
+    background-color: #aad;
 }
 
 td {
-    height: 48px;
     text-align: right;
 }
 
 td.col_00 {
-    width: 240px;
     background-color: #999;
 }
 
 td.col_01 {
-    width: 120px;
     font-weight: bold;
 }
 
 td.col_02 {
-    width: 180px;
     text-align: left;
     color: #444;
 }
