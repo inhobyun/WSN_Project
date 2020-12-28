@@ -149,9 +149,6 @@ def http_polling(pol_msg = TCP_DEV_READY_MSG):
     try: 
         f = request.urlopen(url_str)
         print('sent => ',  end='', flush=True)
-        if pol_msg == TCP_DEV_OPEN_MSG and gTCPwriter == None:
-            print('connect => ',  end='', flush=True)
-            gTCPreader, gTCPwriter = asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
         rtn_str = f.read().decode()
         f.close()
     except:
@@ -161,6 +158,10 @@ def http_polling(pol_msg = TCP_DEV_READY_MSG):
     
     return rtn_str
 
+#############################################
+# send & receive via http port of flask server
+#############################################
+#
 async def http_TX_RX(tx_msg, loop):
     global gTCPreader
     global gTCPwriter
@@ -169,7 +170,7 @@ async def http_TX_RX(tx_msg, loop):
     reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_HTTP_PORT)
     print('connected\n<---<\n', flush=True)
 
-    # '[37mGET /polling/%s HTTP/1.1[0m'
+    # 'GET /polling/%s HTTP/1.1'
     tx_data = ('GET /get_polling/%s HTTP/1.1' % tx_msg).encode('ascii')
     rx_msg = ''
 
@@ -186,9 +187,13 @@ async def http_TX_RX(tx_msg, loop):
     else:
         print('"%r" sent' % tx_msg, flush=True)
     #
-    if tx_msg == TCP_DEV_OPEN_MSG and gTCPwriter == None:
-        print('WSN-C> connected to server',  flush=True)
+    if tx_msg == TCP_DEV_OPEN_MSG:
+        print('WSN-C> connecting to server => ',  end='', flush=True)
+        if gTCPwriter != None:
+            gTCPwriter.close()
+            gTCPwriter = None
         gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
+        print('connected', flush=True)
     #
         rx_data = None
         print('AIO-C> [HTTP RX] wait => ', end = '', flush=True)    
@@ -902,15 +907,19 @@ if  SCD_clear_memory(p) == None:
 # connect server
 #
 loop = asyncio.get_event_loop()
-## http_polling(TCP_DEV_OPEN_MSG)
 loop.run_until_complete( http_TX_RX(TCP_DEV_OPEN_MSG, loop) )
-## gTCPtxMsg = TCP_DEV_READY_MSG
 #############################################
 #
 # loop if not TCP_DEV_CLOSE_MSG 
 #
 gIDLElastTime = time.time()
-while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxNull < 3:
+while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
+    #
+    # if too many null messages
+    #
+    if gTCPrxNull > 3:
+            print ("WSN-C> too many null received, server connection refreshing !", flush=True)
+            loop.run_until_complete( http_TX_RX(TCP_DEV_OPEN_MSG, loop) )
     #
     # if any messae to send
     #
@@ -919,6 +928,14 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxNull < 3:
             loop.run_until_complete( tcp_TX(gTCPtxMsg, loop) )
         except ConnectionResetError:
             print ("WSN-C> server connection is broken !", flush=True)
+            loop.run_until_complete( http_TX_RX(TCP_DEV_OPEN_MSG, loop) )
+            continue
+        except TimeoutError:
+            print ("WSN-C> server connection is timed-out !", flush=True)
+            time.sleep(1.)
+            continue
+        except:
+            print ("WSN-C> unknown error during sending !", flush=True)
             break
     #
     # wait any message from server
@@ -928,20 +945,24 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxNull < 3:
     try:
         loop.run_until_complete( tcp_RX(loop) )
     except ConnectionResetError:
-        print ("WSN-C> server connection is reset !", flush=True)
-        break
+        print ("WSN-C> server connection is broken !", flush=True)
+        loop.run_until_complete( http_TX_RX(TCP_DEV_OPEN_MSG, loop) )
+        continue
     except TimeoutError:
         print ("WSN-C> server connection is timed-out !", flush=True)
         time.sleep(1.)
         continue
+    except:
+        print ("WSN-C> unknown error during receiving !", flush=True)
+        break
     #
     if gTCPrxMsg != None and gTCPrxMsg != '':
         #
         # process server message
         #
-        if gTCPrxMsg == TCP_DEV_READY_MSG:
-            # start STE rolling w/o memory writing
-            print ("WSN-C> got polling [%s], no echo-back..." % TCP_DEV_READY_MSG, flush=True)
+        if gTCPrxMsg == TCP_DEV_READY_MSG or gTCPrxMsg == TCP_DEV_OPEN_MSG:
+            # polling messages that client or manually sent
+            print ("WSN-C> got polling [%s] ..." % gTCPrxMsg, flush=True)
             # polling reponse here
         elif gTCPrxMsg == TCP_BDT_END_MSG:
             # start STE rolling w/o memory writing
@@ -1011,7 +1032,8 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxNull < 3:
     # if last server communication time is longer than poll time, polling via http
     #
     if t - gTCPlastTime > TCP_POLL_TIME:
-            http_polling()        
+            ## http_polling()
+            loop.run_until_complete( http_TX_RX(TCP_DEV_READY_MSG, loop) )
 #
 #############################################
 
@@ -1021,8 +1043,8 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxNull < 3:
 #
 p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x21' ) # reset threshold flag
 time.sleep(0.7)
-##p.writeCharacteristic( SCD_SET_MODE_HND, b'\xFF' )    # mode selection
-##time.sleep(0.7)
+## p.writeCharacteristic( SCD_SET_MODE_HND, b'\xFF' )    # mode selection
+## time.sleep(0.7)
 if SCD_clear_memory(p) != None:
     p.disconnect()
 #
