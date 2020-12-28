@@ -140,12 +140,16 @@ gTCPrxNull   = 0
 #############################################
 #
 def http_polling(pol_msg = TCP_DEV_READY_MSG):
+    global gTCPreader
+    global gTCPwriter
     #
     print('\n>--->\nWSN-C> HTTP polling try => ', end='', flush=True)
     url_str = 'http://%s:%s/get_polling/%s' % (TCP_HOST_NAME, TCP_HTTP_PORT, pol_msg)
     rtn_str = ''
     try: 
         f = request.urlopen(url_str)
+        if pol_msg == TCP_DEV_OPEN_MSG and gTCPwriter == None:
+            gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
         rtn_str = f.read().decode()
         f.close()
     except:
@@ -889,14 +893,14 @@ if  SCD_clear_memory(p) == None:
 #
 # connect server
 #
-http_polling(pol_msg = TCP_DEV_OPEN_MSG)
+http_polling(TCP_DEV_OPEN_MSG)
 #############################################
 #
 # loop if not TCP_DEV_CLOSE_MSG 
 #
 gIDLElastTime = time.time()
 loop = asyncio.get_event_loop()
-gTCPtxMsg = TCP_DEV_READY_MSG
+#gTCPtxMsg = TCP_DEV_READY_MSG
 while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxNull < 3:
     #
     # if any messae to send
