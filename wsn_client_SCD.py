@@ -148,7 +148,9 @@ def http_polling(pol_msg = TCP_DEV_READY_MSG):
     rtn_str = ''
     try: 
         f = request.urlopen(url_str)
+        print('sent => ',  end='', flush=True)
         if pol_msg == TCP_DEV_OPEN_MSG and gTCPwriter == None:
+            print('connect => ',  end='', flush=True)
             gTCPreader, gTCPwriter = asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
         rtn_str = f.read().decode()
         f.close()
