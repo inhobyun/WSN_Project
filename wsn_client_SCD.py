@@ -17,6 +17,7 @@ by Inho Byun, Researcher/KAIST
                     updated 2020-12-10; acquisition
                     updated 2020-12-20; polling
                     updated 2020-12-22; data log file name
+                    updated 2020-12-28; DEV_OPEN
 """
 import asyncio
 from bluepy.btle import Scanner, DefaultDelegate, UUID, Peripheral

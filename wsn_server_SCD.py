@@ -8,6 +8,7 @@ by Inho Byun, Researcher/KAIST
                     updated 2020-12-10; acquisition
                     updated 2020-12-20; mobile UI, multi-monitoring protection, polling
                     updated 2020-12-22; data log file name
+                    updated 2020-12-28; DEV_OPEN
 """
 import datetime
 from flask import Flask, redirect, request
@@ -816,7 +817,7 @@ if __name__ == '__main__':
             #
             # flask web server running
             #
-            app.run(host='0.0.0.0')
+            app.run(host='0.0.0.0', port=8081)
             #
     ##except KeyboardInterrupt: # does not work, seems caught by flask
     except:     
