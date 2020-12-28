@@ -779,10 +779,9 @@ def get_polling(message):
         accept_socket(wait_time)
         #
         if gSocketConn != None:
-            write_to_socket(msg)
-            ret_msg = 'connected and replied: ' + msg + ' at ' + time_stamp() + ' to WSN client'
+            ret_msg = 'connected at ' + time_stamp() + ' to WSN client'
         else:
-            ret_msg = 'could not connect nor reply: ' + msg + ' at ' + time_stamp() + ' to WSN client'
+            ret_msg = 'could not connect at ' + time_stamp() + ' to WSN client'
     return ret_msg
 
 #############################################
