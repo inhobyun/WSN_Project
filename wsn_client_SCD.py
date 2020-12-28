@@ -151,7 +151,7 @@ def http_polling(pol_msg = TCP_DEV_READY_MSG):
         print('sent => ',  end='', flush=True)
         if pol_msg == TCP_DEV_OPEN_MSG and gTCPwriter == None:
             print('connect => ',  end='', flush=True)
-            gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
+            gTCPreader, gTCPwriter = asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
         rtn_str = f.read().decode()
         f.close()
     except:
@@ -902,8 +902,8 @@ if  SCD_clear_memory(p) == None:
 # connect server
 #
 loop = asyncio.get_event_loop()
-http_polling(TCP_DEV_OPEN_MSG)
-## http_tx_rx(TCP_DEV_OPEN_MSG, loop)
+## http_polling(TCP_DEV_OPEN_MSG)
+http_TX_RX(TCP_DEV_OPEN_MSG, loop)
 ## gTCPtxMsg = TCP_DEV_READY_MSG
 #############################################
 #
