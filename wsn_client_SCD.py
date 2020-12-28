@@ -149,7 +149,7 @@ def http_polling(pol_msg = TCP_DEV_READY_MSG):
     try: 
         f = request.urlopen(url_str)
         if pol_msg == TCP_DEV_OPEN_MSG and gTCPwriter == None:
-            gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
+            gTCPreader, gTCPwriter = asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
         rtn_str = f.read().decode()
         f.close()
     except:
