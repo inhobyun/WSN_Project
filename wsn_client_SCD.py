@@ -167,10 +167,18 @@ async def http_TX_RX(tx_msg, loop):
     global gTCPwriter
     #
     print('\n>--->\nAIO-C> connecting http server to read ... ', end ='', flush=True)
-    reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_HTTP_PORT)
-    print('connected\n<---<\n', flush=True)
+    try:
+        reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_HTTP_PORT)
+    except asyncio.TimeoutError:
+        print('timeout !', flush=True)
+        return ''
+    except:
+        print('error !', flush=True)
+        return ''
+    else:    
+        print('connected\n<---<\n', flush=True)
 
-    # 'GET /polling/%s HTTP/1.1'
+    # send 'GET /polling/%s HTTP/1.1'
     tx_data = ('GET /get_polling/%s HTTP/1.1' % tx_msg).encode('ascii')
     rx_msg = ''
 
