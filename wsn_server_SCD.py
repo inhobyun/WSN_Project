@@ -771,11 +771,10 @@ def get_polling(message):
         if gSocketConn != None:
             close_socket()
             open_socket()
+        wait_time = 30
         if len(sys.argv) > 2:
             if sys.argv[1] == 'acceptwait':
                 wait_time = ACCEPT_WAIT_TIME
-            else:
-                wait_time = 30
         accept_socket(wait_time)
         #
         if gSocketConn != None:
