@@ -202,7 +202,7 @@ async def http_TX_RX(tx_msg, loop):
         if gTCPwriter != None:
             gTCPwriter.close()
             gTCPwriter = None
-        gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
+        connect_corout = asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
         print('connected', flush=True)
     #
     rx_data = None
@@ -210,6 +210,7 @@ async def http_TX_RX(tx_msg, loop):
     try:
         ## rx_data = await asyncio.wait_for ( reader.read(TCP_PACKET_MAX), timeout=3.0 )
         rx_data = await rx_corout
+        TCPreader, gTCPwriter = await connect_corout
     except asyncio.TimeoutError:
         print('timeout', flush=True)
         pass
