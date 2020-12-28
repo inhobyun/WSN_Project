@@ -206,7 +206,7 @@ async def http_TX_RX(tx_msg, loop):
     rx_data = None
     print('AIO-C> [HTTP RX] wait => ', end = '', flush=True)    
     try:
-        rx_data = await asyncio.wait_for ( reader.read(TCP_PACKET_MAX), timeout=9.0 )
+        rx_data = await asyncio.wait_for ( reader.read(TCP_PACKET_MAX), timeout=3.0 )
     except asyncio.TimeoutError:
         print('timeout', flush=True)
         pass

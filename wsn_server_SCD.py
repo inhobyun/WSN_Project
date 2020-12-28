@@ -225,7 +225,7 @@ def write_to_socket(tx_msg):
         gTCPerrCnt += 1
         print ("error !", flush=True)
     else:
-        print ('"%r" sent to WSN server' % tx_msg, flush=True)
+        print ('"%r" sent to WSN client' % tx_msg, flush=True)
         gTCPlastTime = time.time()
     #    
     return
