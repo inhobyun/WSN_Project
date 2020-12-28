@@ -915,6 +915,7 @@ if  SCD_clear_memory(p) == None:
 # connect server
 #
 loop = asyncio.get_event_loop()
+http_polling(TCP_DEV_OPEN_MSG)
 loop.run_until_complete( http_TX_RX(TCP_DEV_OPEN_MSG, loop) )
 #############################################
 #
@@ -927,6 +928,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     #
     if gTCPrxNull > 3:
             print ("WSN-C> too many null received, server connection refreshing !", flush=True)
+            gTCPrxNull = 0
             loop.run_until_complete( http_TX_RX(TCP_DEV_OPEN_MSG, loop) )
     #
     # if any messae to send
@@ -1040,8 +1042,8 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     # if last server communication time is longer than poll time, polling via http
     #
     if t - gTCPlastTime > TCP_POLL_TIME:
-            ## http_polling()
-            loop.run_until_complete( http_TX_RX(TCP_DEV_READY_MSG, loop) )
+            http_polling()
+            ## loop.run_until_complete( http_TX_RX(TCP_DEV_READY_MSG, loop) )
 #
 #############################################
 
