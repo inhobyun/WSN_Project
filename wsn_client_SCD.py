@@ -151,7 +151,7 @@ def http_polling(pol_msg = TCP_DEV_READY_MSG):
         print('sent => ',  end='', flush=True)
         if pol_msg == TCP_DEV_OPEN_MSG and gTCPwriter == None:
             print('connect => ',  end='', flush=True)
-            gTCPreader, gTCPwriter = asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
+            gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
         rtn_str = f.read().decode()
         f.close()
     except:
@@ -160,15 +160,17 @@ def http_polling(pol_msg = TCP_DEV_READY_MSG):
         print('"%r" received\n<---<\n' % rtn_str)
     
     return rtn_str
-'''
+
 async def http_TX_RX(tx_msg, loop):
-    #
+    global gTCPreader
+    global gTCPwriter
+     #
     print('\n>--->\nAIO-C> connecting http server to read ... ', end ='', flush=True)
     reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_HTTP_PORT)
     print('connected\n<---<\n', flush=True)
 
     # '[37mGET /polling/%s HTTP/1.1[0m'
-    tx_data = ('%s:%s/get_polling/%s HTTP/1.1' % tx_msg).encode('ascii')
+    tx_data = ('GET /get_polling/%s HTTP/1.1' % tx_msg).encode('ascii')
     rx_msg = ''
 
     print('AIO-C> [HTTP TX] try => ', end = '', flush=True) 
@@ -183,6 +185,10 @@ async def http_TX_RX(tx_msg, loop):
         pass
     else:
         print('"%r" sent' % tx_msg, flush=True)
+    #
+    if tx_msg == TCP_DEV_OPEN_MSG and gTCPwriter == None:
+        print('WSN-C> connected to server',  flush=True)
+        gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
     #
         rx_data = None
         print('AIO-C> [HTTP RX] wait => ', end = '', flush=True)    
@@ -204,7 +210,7 @@ async def http_TX_RX(tx_msg, loop):
 
     writer.close()        
     return rx_msg
-'''
+
 #############################################
 # handle to receive command message
 #############################################
@@ -895,14 +901,15 @@ if  SCD_clear_memory(p) == None:
 #
 # connect server
 #
+loop = asyncio.get_event_loop()
 http_polling(TCP_DEV_OPEN_MSG)
+## http_tx_rx(TCP_DEV_OPEN_MSG, loop)
+## gTCPtxMsg = TCP_DEV_READY_MSG
 #############################################
 #
 # loop if not TCP_DEV_CLOSE_MSG 
 #
 gIDLElastTime = time.time()
-loop = asyncio.get_event_loop()
-#gTCPtxMsg = TCP_DEV_READY_MSG
 while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxNull < 3:
     #
     # if any messae to send
@@ -913,11 +920,6 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxNull < 3:
         except ConnectionResetError:
             print ("WSN-C> server connection is broken !", flush=True)
             break
-    #
-    # if last server communication time is longer than poll time, polling via http
-    #
-    if t - gTCPlastTime > TCP_POLL_TIME:
-            http_polling()        
     #
     # wait any message from server
     #
@@ -1005,6 +1007,11 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxNull < 3:
     if t - gIDLElastTime > gIDLEinterval:
         SCD_run_STE_for_idling(p)
         gIDLElastTime = t
+    #
+    # if last server communication time is longer than poll time, polling via http
+    #
+    if t - gTCPlastTime > TCP_POLL_TIME:
+            http_polling()        
 #
 #############################################
 
