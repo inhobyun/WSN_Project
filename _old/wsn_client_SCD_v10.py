@@ -116,7 +116,6 @@ TCP_PACKET_MAX  = 1024              # max TCP packet size
 TCP_POLL_TIME   = 300.              # max time interval to poll TCP port
 #
 TCP_DEV_READY_MSG = 'DEV_READY'     # server message to check client ready
-TCP_DEV_OPEN_MSG  = 'DEV_OPEN'      # server message to connect client
 TCP_DEV_CLOSE_MSG = 'DEV_CLOSE'     # server message to disconnect client
 TCP_STE_START_MSG = 'STE_START'     # server message to start STE for monitoring
 TCP_STE_STOP_MSG  = 'STE_STOP'      # server message to stop STE
@@ -886,9 +885,6 @@ SCD_toggle_STE_rolling(p, False, False)
 if  SCD_clear_memory(p) == None:
     p = SCD_scan_and_connect(False)
 #
-# connect server
-#
-http_polling(pol_msg = TCP_DEV_OPEN_MSG)
 #############################################
 #
 # loop if not TCP_DEV_CLOSE_MSG 

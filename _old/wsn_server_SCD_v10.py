@@ -41,7 +41,6 @@ TCP_POLL_TIME   = 300.              # max time interval to poll TCP port
 TCP_ERR_CNT_MAX = 8                 # max unknown error count before reconnection
 #
 TCP_DEV_READY_MSG = 'DEV_READY'     # server message to check client ready
-TCP_DEV_OPEN_MSG  = 'DEV_OPEN'      # server message to connect client
 TCP_DEV_CLOSE_MSG = 'DEV_CLOSE'     # server message to disconnect client
 TCP_STE_START_MSG = 'STE_START'     # server message to start STE for monitoring
 TCP_STE_STOP_MSG  = 'STE_STOP'      # server message to stop STE
@@ -371,14 +370,6 @@ def post_monStart():
     global gSTElockFlag
     global gBDTlockFlag
 
-    # check client socket connect
-    if (gSocketConn == None):
-        rows = {'row' : [time_stamp(),'*','*','*','*','*','*','*','*','*','*','*'],
-                'status' : ['[sensor device]', '[is disconnected]'],
-                'timer' : 'off'
-               }
-        return json.dumps(rows)   
-
     # check STE, BDT lock flag
     if (value==0 and  gSTElockFlag) or gBDTlockFlag:
         rows = {'row' : [time_stamp(),'*','*','*','*','*','*','*','*','*','*','*'],
@@ -458,13 +449,6 @@ def post_STEandBDT():
     global gSTElockFlag
     global gBDTlockFlag
     global gBDTtextList
-
-    # check client socket connect
-    if (gSocketConn == None):
-        msgs = {'msg_00' : "sensor device is disconnected",
-                'msg_01' : 'N'
-           }
-        return json.dumps(msgs)
 
     # check BDT lock flag
     if gBDTlockFlag or gSTElockFlag:
@@ -758,21 +742,17 @@ def get_polling(message):
     msg = escape(message)
     ret_msg = '' 
     print('WSN-S> "%r" reeived from WSN client' % msg, flush=True)
-    if msg == TCP_DEV_READY_MSG or msg == TCP_STE_STOP_MSG or msg == TCP_DEV_CLOSE_MSG:
-        if gSocketConn != None:
-            write_to_socket(msg)
-            ret_msg = 'replied: ' + msg + ' at ' + time_stamp() + ' to WSN client'
-        else:
-            ret_msg = 'could not reply: ' + msg + ' at ' + time_stamp() + ' to WSN client'    
-    elif msg == TCP_DEV_OPEN_MSG:
-        #
-        accept_socket(ACCEPT_WAIT_TIME)
-        #
-        if gSocketConn != None:
-            write_to_socket(msg)
-            ret_msg = 'connected and replied: ' + msg + ' at ' + time_stamp() + ' to WSN client'
-        else:
-            ret_msg = 'could not connect nor reply: ' + msg + ' at ' + time_stamp() + ' to WSN client'
+    if msg == TCP_DEV_READY_MSG:
+        write_to_socket(msg)
+        ret_msg = 'replied: ' + msg + ' at ' + time_stamp() + ' to WSN client'
+    elif msg == TCP_STE_STOP_MSG:    
+        write_to_socket(msg)
+        ret_msg = 'replied:' + msg + ' at ' + time_stamp() + ' to WSN client'
+    elif msg == TCP_DEV_CLOSE_MSG:    
+        write_to_socket(msg)
+        ret_msg = 'replied:' + msg + ' at ' + time_stamp() + ' to WSN client'
+    else:    
+        ret_msg = 'received: ' + msg + ' at ' + time_stamp()
     return ret_msg
 
 #############################################
@@ -805,7 +785,7 @@ if __name__ == '__main__':
     try:
         if open_socket():
             #
-            # wait client connection (normally not used, only in case of test with flask web server, )
+            # wait client connection (normally not used, only in case of test, )
             #
             if len(sys.argv) > 2:
                 if sys.argv[1] == 'acceptwait':
