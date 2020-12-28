@@ -203,23 +203,23 @@ async def http_TX_RX(tx_msg, loop):
         gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
         print('connected', flush=True)
     #
-        rx_data = None
-        print('AIO-C> [HTTP RX] wait => ', end = '', flush=True)    
-        try:
-            rx_data = await asyncio.wait_for ( reader.read(TCP_PACKET_MAX), timeout=3.0 )
-        except asyncio.TimeoutError:
-            print('timeout', flush=True)
-            pass
-        except:
-            print('error !', flush=True)
-            pass
+    rx_data = None
+    print('AIO-C> [HTTP RX] wait => ', end = '', flush=True)    
+    try:
+        rx_data = await asyncio.wait_for ( reader.read(TCP_PACKET_MAX), timeout=9.0 )
+    except asyncio.TimeoutError:
+        print('timeout', flush=True)
+        pass
+    except:
+        print('error !', flush=True)
+        pass
+    else:
+        if rx_data != None:
+            rx_msg = rx_data.decode()
+        if rx_msg == '':
+            print('null received', flush=True)
         else:
-            if rx_data != None:
-                rx_msg = rx_data.decode()
-            if rx_msg == '':
-                print('null received', flush=True)
-            else:
-                print('"%r" received' % rx_msg, flush=True)
+            print('"%r" received' % rx_msg, flush=True)
 
     writer.close()        
     return rx_msg
