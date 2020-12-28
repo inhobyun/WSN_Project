@@ -766,7 +766,17 @@ def get_polling(message):
             ret_msg = 'could not reply: ' + msg + ' at ' + time_stamp() + ' to WSN client'    
     elif msg == TCP_DEV_OPEN_MSG:
         #
-        accept_socket(ACCEPT_WAIT_TIME)
+        # wait client connection (normally not used, only in case of test with flask web server, )
+        #
+        if gSocketConn != None:
+            close_socket()
+            open_socket()
+        if len(sys.argv) > 2:
+            if sys.argv[1] == 'acceptwait':
+                wait_time = ACCEPT_WAIT_TIME
+            else:
+                wait_time = 30
+        accept_socket(wait_time)
         #
         if gSocketConn != None:
             write_to_socket(msg)
@@ -804,12 +814,6 @@ if __name__ == '__main__':
     print("WSN-S> starting !", flush=True)
     try:
         if open_socket():
-            #
-            # wait client connection (normally not used, only in case of test with flask web server, )
-            #
-            if len(sys.argv) > 2:
-                if sys.argv[1] == 'acceptwait':
-                    accept_socket(ACCEPT_WAIT_TIME)
             #
             # flask web server running
             #
