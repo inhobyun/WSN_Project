@@ -896,7 +896,22 @@ http_polling(pol_msg = TCP_DEV_OPEN_MSG)
 #
 gIDLElastTime = time.time()
 loop = asyncio.get_event_loop()
-while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxNull < 8:
+gTCPtxMsg = TCP_DEV_READY_MSG
+while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxNull < 3:
+    #
+    # if any messae to send
+    #
+    if gTCPtxMsg != None:
+        try:     
+            loop.run_until_complete( tcp_TX(gTCPtxMsg, loop) )
+        except ConnectionResetError:
+            print ("WSN-C> server connection is broken !", flush=True)
+            break
+    #
+    # if last server communication time is longer than poll time, polling via http
+    #
+    if t - gTCPlastTime > TCP_POLL_TIME:
+            http_polling()        
     #
     # wait any message from server
     #
@@ -984,20 +999,6 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG and gTCPrxNull < 8:
     if t - gIDLElastTime > gIDLEinterval:
         SCD_run_STE_for_idling(p)
         gIDLElastTime = t
-    #
-    # if any messae to send
-    #
-    if gTCPtxMsg != None:
-        try:     
-            loop.run_until_complete( tcp_TX(gTCPtxMsg, loop) )
-        except ConnectionResetError:
-            print ("WSN-C> server connection is broken !", flush=True)
-            break
-    #
-    # if last server communication time is longer than poll time, polling via http
-    #
-    if t - gTCPlastTime > TCP_POLL_TIME:
-            http_polling()        
 #
 #############################################
 
