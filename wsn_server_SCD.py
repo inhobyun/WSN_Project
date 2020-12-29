@@ -118,7 +118,7 @@ def open_socket(clientNum = 1):
 #############################################
 # refresh socket
 #
-def refresh_socket():
+def refresh_socket(clientNum = 1):
     global gSocketServer
     global gSocketConn
     global gSocketAddr
