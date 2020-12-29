@@ -186,7 +186,7 @@ async def http_TX_RX(tx_msg, loop):
     print('AIO-C> [HTTP TX] try => ', end = '', flush=True) 
     try:        
         writer.write(tx_data)
-        ## await asyncio.wait_for ( writer.drain(), timeout=3.0 )
+        await asyncio.wait_for ( writer.drain(), timeout=3.0 )
     except asyncio.TimeoutError:
         print('timeout !', flush=True)
     except:
