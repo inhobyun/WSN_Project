@@ -181,11 +181,13 @@ async def http_TX_RX(tx_msg, loop):
     # send 'GET /polling/%s HTTP/1.1'
     tx_data = ('GET /get_polling/%s HTTP/1.1' % tx_msg).encode('ascii')
     rx_msg = ''
+    rx_data = None
 
     print('AIO-C> [HTTP TX] try => ', end = '', flush=True) 
     try:        
         writer.write(tx_data)
         await asyncio.wait_for ( writer.drain(), timeout=3.0 )
+        rx_corout = asyncio.wait_for ( reader.read(TCP_PACKET_MAX), timeout=3.0 )
     except asyncio.TimeoutError:
         print('timeout !', flush=True)
         pass
@@ -195,22 +197,19 @@ async def http_TX_RX(tx_msg, loop):
     else:
         print('"%r" sent' % tx_msg, flush=True)
     #
-    rx_corout = asyncio.wait_for ( reader.read(TCP_PACKET_MAX), timeout=3.0 )
     #
     if tx_msg == TCP_DEV_OPEN_MSG:
         print('WSN-C> connecting to server => ',  end='', flush=True)
         if gTCPwriter != None:
             gTCPwriter.close()
             gTCPwriter = None
-        connect_corout = asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
+        TCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
         print('connected', flush=True)
     #
-    rx_data = None
     print('AIO-C> [HTTP RX] wait => ', end = '', flush=True)    
     try:
         ## rx_data = await asyncio.wait_for ( reader.read(TCP_PACKET_MAX), timeout=3.0 )
         rx_data = await rx_corout
-        TCPreader, gTCPwriter = await connect_corout
     except asyncio.TimeoutError:
         print('timeout', flush=True)
         pass

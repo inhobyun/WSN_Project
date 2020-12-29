@@ -96,6 +96,7 @@ def open_socket(clientNum = 1):
         print ("TCP-S> take argument as port# (default: %d)" % TCP_PORT, flush=True)
         TCP_PORT = int(sys.argv[1])
     gSocketServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    #
     if gSocketServer != None:
         print ("TCP-S> socket created", flush=True)
         print ("TCP-S> trying to bind %s:%d" % (TCP_HOST_NAME, TCP_PORT), flush=True )
@@ -114,6 +115,39 @@ def open_socket(clientNum = 1):
     gTCPlastTime = time.time()
     #
     return True 
+#############################################
+# refresh socket
+#
+def refresh_socket():
+    global gSocketServer
+    global gSocketConn
+    global gSocketAddr
+    global gTCPerrCnt
+    global gTCPlastTime
+    #
+    if gSocketConn != None:
+        print ("TCP-S> close accepted connection", flush=True)
+        gSocketConn.close()
+        gSocketConn = gSocketAddr = None
+        gTCPlastTime = gTCPerrCnt = 0
+    #
+    if gSocketServer != None:
+        print ("TCP-S> trying to bind %s:%d" % (TCP_HOST_NAME, TCP_PORT), flush=True )
+        try:
+            gSocketServer.bind((TCP_HOST_NAME, TCP_PORT))
+        except:
+            print ("TCP-S> binding fail... Exiting...", flush=True)
+            return False
+    else:
+        print ("TCP-S> socket is null ... Exiting...", flush=True)
+        return False
+    print ("TCP-S> binded...", flush=True)    
+    gSocketServer.listen(clientNum)
+    print ("TCP-S> listening...", flush=True) 
+    gTCPerrCnt = 0
+    gTCPlastTime = time.time()
+    #
+    return True    
 
 #############################################
 # close socket
@@ -145,8 +179,7 @@ def check_tcp_error():
     global gTCPerrCnt
     #
     if gTCPerrCnt > TCP_ERR_CNT_MAX:
-        close_socket()
-        open_socket()
+        refresh_socket()
         return True
 
     return False
@@ -770,8 +803,7 @@ def get_polling(message):
         # wait client connection (normally not used, only in case of test with flask web server, )
         #
         if gSocketConn != None:
-            close_socket()
-            open_socket()
+            refresh_socket()
         wait_time = 6
         if len(sys.argv) > 2:
             if sys.argv[1] == 'acceptwait':
