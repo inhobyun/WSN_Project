@@ -143,7 +143,7 @@ def http_polling(pol_msg = TCP_DEV_READY_MSG):
     global gTCPreader
     global gTCPwriter
     #
-    print('\n>--->\nWSN-C> HTTP polling try => ', end='', flush=True)
+    print('----->\nWSN-C> HTTP polling try => ', end='', flush=True)
     url_str = 'http://%s:%s/get_polling/%s' % (TCP_HOST_NAME, TCP_HTTP_PORT, pol_msg)
     rtn_str = ''
     try: 
@@ -152,9 +152,9 @@ def http_polling(pol_msg = TCP_DEV_READY_MSG):
         rtn_str = f.read().decode()
         f.close()
     except:
-        print('error !\n<---<\n')
+        print('error !\n----->')
     else:
-        print('"%r" received\n<---<\n' % rtn_str)
+        print('"%r" received\n----->' % rtn_str)
     
     return rtn_str
 
@@ -166,15 +166,15 @@ async def http_TX(tx_msg, loop):
     global gTCPreader
     global gTCPwriter
     #
-    print('\n>--->\nAIO-C> connecting http server to write & read ... ', end ='', flush=True)
+    print('----->\nAIO-C> connecting http server to write & read ... ', end ='', flush=True)
     try:
         reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_HTTP_PORT)
     except asyncio.TimeoutError:
-        print('timeout !\n<---<\n', flush=True)
+        print('timeout !\n----->', flush=True)
     except:
-        print('error !\n<---<\n', flush=True)
+        print('error !\n----->', flush=True)
     else:    
-        print('connected\n<---<\n', flush=True)
+        print('connected\n----->', flush=True)
         # send 'GET /get_polling/%s HTTP/1.1'
         tx_data = ('GET /get_polling/%s HTTP/1.1' % tx_msg).encode('ascii')
         rx_msg = ''

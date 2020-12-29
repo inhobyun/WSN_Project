@@ -189,15 +189,15 @@ def accept_socket(blockingTimer = 8):
     #
     check_tcp_error()
     if gSocketConn == None:
-        print ("\n>--->\nTCP-S> wait client; accepting => ", end = '', flush=True)
+        print ("----->\nTCP-S> wait client; accepting => ", end = '', flush=True)
         try:
             gSocketServer.setblocking(blockingTimer)
             gSocketConn, gSocketAddr = gSocketServer.accept()
         except:
-            print ("error !\n<---<\n", flush=True)
+            print ("error !\n----->", flush=True)
             gSocketConn = gSocketAddr = None
             return False         
-        print ("accepted port# [", gSocketAddr, "]\n<---<\n", flush=True)
+        print ("accepted port# [", gSocketAddr, "]\n----->", flush=True)
         gTCPlastTime = time.time()
     return True    
 
