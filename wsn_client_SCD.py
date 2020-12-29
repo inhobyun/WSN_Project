@@ -249,11 +249,13 @@ async def tcp_RX(loop):
     print('AIO-C> [RX] wait => ', end = '', flush=True)    
     try:
         rx_data = await asyncio.wait_for ( gTCPreader.read(TCP_PACKET_MAX), timeout=10.0 )
-    except asyncio.TimeoutError:
+    except TimeoutError:
         print('timeout', flush=True)
-    #except:
-    #    print('error !', flush=True)
-    #    gTCPwriter = gTCPreader = None
+    except ConnectionResetError:
+        print('connection error !', flush=True)
+        gTCPwriter = gTCPreader = None
+    except:
+        print('unknown error !', flush=True)
     else:
         if rx_data != None:
             gTCPrxMsg = rx_data.decode()
@@ -287,11 +289,13 @@ async def tcp_TX(tx_msg, loop):
         try:        
             gTCPwriter.write(tx_data)
             await asyncio.wait_for ( gTCPwriter.drain(), timeout=10.0 )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             print('timeout !', flush=True)
-        except:
-            print('error !', flush=True)
+        except ConnectionResetError:
+            print('connection error !', flush=True)
             gTCPwriter = gTCPreader = None
+        except:
+            print('unknown error !', flush=True)
         else:
             n = len(tx_msg)
             if n < 40:        
@@ -934,6 +938,8 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     # if any messae to send
     #
     if gTCPtxMsg != None:
+        loop.run_until_complete( tcp_TX(gTCPtxMsg, loop) )
+        '''
         try:     
             loop.run_until_complete( tcp_TX(gTCPtxMsg, loop) )
         except ConnectionResetError:
@@ -947,11 +953,14 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
         except:
             print ("WSN-C> unknown error during sending !", flush=True)
             break
+        '''
     #
     # wait any message from server
     #
     print ("\nWSN-C> keep running until [%r] from server ..." % TCP_DEV_CLOSE_MSG, flush=True)
     gTCPtxMsg = gTCPrxMsg = None
+    loop.run_until_complete( tcp_RX(loop) )
+    '''
     try:
         loop.run_until_complete( tcp_RX(loop) )
     except ConnectionResetError:
@@ -965,6 +974,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     except:
         print ("WSN-C> unknown error during receiving !", flush=True)
         break
+    '''
     #
     if gTCPrxMsg != None and gTCPrxMsg != '':
         #
