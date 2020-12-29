@@ -189,10 +189,8 @@ async def http_TX_RX(tx_msg, loop):
         ## await asyncio.wait_for ( writer.drain(), timeout=3.0 )
     except asyncio.TimeoutError:
         print('timeout !', flush=True)
-        pass
     except:
         print('error !', flush=True)
-        pass
     else:
         print('"%r" sent' % tx_msg, flush=True)
     #
@@ -207,10 +205,8 @@ async def http_TX_RX(tx_msg, loop):
             TCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
         except asyncio.TimeoutError:
             print('timeout !', flush=True)
-            pass
         except:
             print('error !', flush=True)
-            pass
         else:    
             print('connected', flush=True)
     #
@@ -220,10 +216,8 @@ async def http_TX_RX(tx_msg, loop):
         rx_data = await rx_corout
     except asyncio.TimeoutError:
         print('timeout', flush=True)
-        pass
     except:
         print('error !', flush=True)
-        pass
     else:
         if rx_data != None:
             rx_msg = rx_data.decode()
@@ -257,11 +251,9 @@ async def tcp_RX(loop):
         rx_data = await asyncio.wait_for ( gTCPreader.read(TCP_PACKET_MAX), timeout=10.0 )
     except asyncio.TimeoutError:
         print('timeout', flush=True)
-        pass
-    except:
-        print('error !', flush=True)
-        gTCPwriter = gTCPreader = None
-        pass
+    #except:
+    #    print('error !', flush=True)
+    #    gTCPwriter = gTCPreader = None
     else:
         if rx_data != None:
             gTCPrxMsg = rx_data.decode()
