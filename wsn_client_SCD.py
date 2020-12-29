@@ -939,42 +939,12 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     #
     if gTCPtxMsg != None:
         loop.run_until_complete( tcp_TX(gTCPtxMsg, loop) )
-        '''
-        try:     
-            loop.run_until_complete( tcp_TX(gTCPtxMsg, loop) )
-        except ConnectionResetError:
-            print ("WSN-C> server connection is broken !", flush=True)
-            loop.run_until_complete( http_TX_RX(TCP_DEV_OPEN_MSG, loop) )
-            continue
-        except TimeoutError:
-            print ("WSN-C> server connection is timed-out !", flush=True)
-            time.sleep(1.)
-            continue
-        except:
-            print ("WSN-C> unknown error during sending !", flush=True)
-            break
-        '''
     #
     # wait any message from server
     #
     print ("\nWSN-C> keep running until [%r] from server ..." % TCP_DEV_CLOSE_MSG, flush=True)
     gTCPtxMsg = gTCPrxMsg = None
     loop.run_until_complete( tcp_RX(loop) )
-    '''
-    try:
-        loop.run_until_complete( tcp_RX(loop) )
-    except ConnectionResetError:
-        print ("WSN-C> server connection is broken !", flush=True)
-        loop.run_until_complete( http_TX_RX(TCP_DEV_OPEN_MSG, loop) )
-        continue
-    except TimeoutError:
-        print ("WSN-C> server connection is timed-out !", flush=True)
-        time.sleep(1.)
-        continue
-    except:
-        print ("WSN-C> unknown error during receiving !", flush=True)
-        break
-    '''
     #
     if gTCPrxMsg != None and gTCPrxMsg != '':
         #
