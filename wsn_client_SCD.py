@@ -202,7 +202,7 @@ async def http_TX_RX(tx_msg, loop):
             gTCPwriter.close()
             gTCPwriter = None
         try:    
-            TCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
+            gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
         except asyncio.TimeoutError:
             print('timeout !', flush=True)
         except:
@@ -251,7 +251,7 @@ async def tcp_RX(loop):
         rx_data = await asyncio.wait_for ( gTCPreader.read(TCP_PACKET_MAX), timeout=10.0 )
     except asyncio.TimeoutError:
         print('timeout', flush=True)
-    except asyncio.ConnectionResetError:
+    except ConnectionResetError:
         print('connection error !', flush=True)
         gTCPwriter = gTCPreader = None
     except:
@@ -291,7 +291,7 @@ async def tcp_TX(tx_msg, loop):
             await asyncio.wait_for ( gTCPwriter.drain(), timeout=10.0 )
         except asyncio.TimeoutError:
             print('timeout !', flush=True)
-        except asyncio.ConnectionResetError:
+        except ConnectionResetError:
             print('connection error !', flush=True)
             gTCPwriter = gTCPreader = None
         except:
