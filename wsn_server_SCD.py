@@ -17,7 +17,7 @@ import json
 import numpy as np
 from markupsafe import escape
 import math
-##import matplotlib.pyplot as plotter
+## import matplotlib.pyplot as plotter
 import os, fnmatch
 import socket
 import sys
@@ -781,6 +781,8 @@ def post_graphFreq():
 # DEVICE READY polling
 @app.route('/get_polling/<message>', methods=['GET'])
 def get_polling(message):
+    global gSocketConn
+    global gSocketAddr
 
     msg = escape(message)
     ret_msg = '' 
@@ -789,19 +791,21 @@ def get_polling(message):
         if gSocketConn != None:
             write_to_socket(msg)
             ret_msg = 'replied: ' + msg + ' at ' + time_stamp() + ' to WSN client'
+            if msg == TCP_DEV_CLOSE_MSG:
+                gSocketConn.close()
+                gSocketConn = gSocketAddr = None
         else:
             ret_msg = 'could not reply: ' + msg + ' at ' + time_stamp() + ' to WSN client'    
     elif msg == TCP_DEV_OPEN_MSG:
-        #
-        # wait client connection (normally not used, only in case of test with flask web server, )
-        #
-        if gSocketConn != None:
-            refresh_socket()
-        wait_time = 9
-        if len(sys.argv) > 2:
-            if sys.argv[1] == 'acceptwait':
-                wait_time = ACCEPT_WAIT_TIME
-        accept_socket(wait_time)
+        if gSocketConn == None:
+            wait_time = 9
+            if len(sys.argv) > 2:
+                #
+                # wait client connection (normally not used, only in case of test with flask web server, )
+                #
+                if sys.argv[1] == 'acceptwait':
+                    wait_time = ACCEPT_WAIT_TIME
+            accept_socket(wait_time)
         #
         if gSocketConn != None:
             ret_msg = 'connected at ' + time_stamp() + ' to WSN client'
@@ -843,7 +847,7 @@ if __name__ == '__main__':
             #
             app.run(host='0.0.0.0', port=8081)
             #
-    ##except KeyboardInterrupt: # does not work, seems caught by flask
+    ## except KeyboardInterrupt: # does not work, seems caught by flask
     except:     
         print("WSN-S> error during running, close client...", flush=True)
         write_to_socket(TCP_DEV_CLOSE_MSG)

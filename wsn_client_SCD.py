@@ -931,9 +931,8 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     # if too many null messages
     #
     if gTCPrxNull > 3:
-            print ("WSN-C> too many null received, server connection refreshing !", flush=True)
-            gTCPrxNull = 0
-            loop.run_until_complete( http_TX_RX(TCP_DEV_OPEN_MSG, loop) )
+            print ("WSN-C> too many null received, exiting !", flush=True)
+            break
     #
     # if any messae to send
     #
@@ -951,11 +950,11 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
         # process server message
         #
         if gTCPrxMsg == TCP_DEV_READY_MSG or gTCPrxMsg == TCP_DEV_OPEN_MSG:
-            # polling messages that client or manually sent
+            # polling messages that server or manually sent
             print ("WSN-C> got polling [%s] ..." % gTCPrxMsg, flush=True)
             # polling reponse here
         elif gTCPrxMsg == TCP_BDT_END_MSG:
-            # start STE rolling w/o memory writing
+            # polling message that server sent, should echo-back
             print ("WSN-C> got polling [%s], echo-back..." % TCP_BDT_END_MSG, flush=True)
             gTCPtxMsg = TCP_BDT_END_MSG
         elif gTCPrxMsg == TCP_STE_START_MSG:
