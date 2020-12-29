@@ -162,72 +162,69 @@ def http_polling(pol_msg = TCP_DEV_READY_MSG):
 # send & receive via http port of flask server
 #############################################
 #
-async def http_TX_RX(tx_msg, loop):
+async def http_TX(tx_msg, loop):
     global gTCPreader
     global gTCPwriter
     #
-    print('\n>--->\nAIO-C> connecting http server to read ... ', end ='', flush=True)
+    print('\n>--->\nAIO-C> connecting http server to write & read ... ', end ='', flush=True)
     try:
         reader, writer = await asyncio.open_connection(TCP_HOST_NAME, TCP_HTTP_PORT)
     except asyncio.TimeoutError:
-        print('timeout !', flush=True)
-        return ''
+        print('timeout !\n<---<\n', flush=True)
     except:
-        print('error !', flush=True)
-        return ''
+        print('error !\n<---<\n', flush=True)
     else:    
         print('connected\n<---<\n', flush=True)
-
-    # send 'GET /polling/%s HTTP/1.1'
-    tx_data = ('GET /get_polling/%s HTTP/1.1' % tx_msg).encode('ascii')
-    rx_msg = ''
-    rx_data = None
-
-    print('AIO-C> [HTTP TX] try => ', end = '', flush=True) 
-    try:        
-        writer.write(tx_data)
-        ## await asyncio.wait_for ( writer.drain(), timeout=3.0 )
-    except asyncio.TimeoutError:
-        print('timeout !', flush=True)
-    except:
-        print('error !', flush=True)
-    else:
-        print('"%r" sent' % tx_msg, flush=True)
-    #
-    #
-    rx_corout = asyncio.wait_for ( reader.read(TCP_PACKET_MAX), timeout=3.0 )
-    if tx_msg == TCP_DEV_OPEN_MSG:
-        print('WSN-C> connecting to server => ',  end='', flush=True)
-        if gTCPwriter != None:
-            gTCPwriter.close()
-            gTCPwriter = None
-        try:    
-            gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
+        # send 'GET /get_polling/%s HTTP/1.1'
+        tx_data = ('GET /get_polling/%s HTTP/1.1' % tx_msg).encode('ascii')
+        rx_msg = ''
+        rx_data = None
+        # send GET
+        print('AIO-C> [HTTP TX] try => ', end = '', flush=True) 
+        try:        
+            writer.write(tx_data)
+            await asyncio.wait_for ( writer.drain(), timeout=3.0 )
         except asyncio.TimeoutError:
             print('timeout !', flush=True)
         except:
             print('error !', flush=True)
-        else:    
-            print('connected', flush=True)
-    #
-    print('AIO-C> [HTTP RX] wait => ', end = '', flush=True)    
-    try:
-        ## rx_data = await asyncio.wait_for ( reader.read(TCP_PACKET_MAX), timeout=3.0 )
-        rx_data = await rx_corout
-    except asyncio.TimeoutError:
-        print('timeout', flush=True)
-    except:
-        print('error !', flush=True)
-    else:
-        if rx_data != None:
-            rx_msg = rx_data.decode()
-        if rx_msg == '':
-            print('null received', flush=True)
         else:
-            print('"%r" received' % rx_msg, flush=True)
-
-    writer.close()        
-    return rx_msg
+            print('"%r" sent' % tx_msg, flush=True)
+        # connect server
+        ## rx_corout = asyncio.wait_for ( reader.read(TCP_PACKET_MAX), timeout=3.0 )
+        if tx_msg == TCP_DEV_OPEN_MSG:
+            print('AIO-C> connecting to server => ',  end='', flush=True)
+            if gTCPwriter != None:
+                gTCPwriter.close()
+                gTCPwriter = None
+            try:    
+                gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
+            except asyncio.TimeoutError:
+                print('timeout !', flush=True)
+            except:
+                print('error !', flush=True)
+            else:    
+                print('connected', flush=True)
+        # receive
+        '''
+        print('AIO-C> [HTTP RX] wait => ', end = '', flush=True)    
+        try:
+            ## rx_data = await asyncio.wait_for ( reader.read(TCP_PACKET_MAX), timeout=3.0 )
+            rx_data = await rx_corout
+        except asyncio.TimeoutError:
+            print('timeout', flush=True)
+        except:
+            print('error !', flush=True)
+        else:
+            if rx_data != None:
+                rx_msg = rx_data.decode()
+            if rx_msg == '':
+                print('null received', flush=True)
+            else:
+                print('"%r" received' % rx_msg, flush=True)
+        '''        
+        #
+        writer.close()        
 
 #############################################
 # handle to receive command message
@@ -240,33 +237,30 @@ async def tcp_RX(loop):
     global gTCPwriter
     global gTCPrxNull
     #
-    if ( gTCPwriter == None ):
-        print('\n>--->\nAIO-C> connecting server to read ... ', end ='', flush=True)
-        gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
-        print('connected\n<---<\n', flush=True)
+    if ( gTCPwriter != None ):
     #
-    rx_data = None
-    print('AIO-C> [RX] wait => ', end = '', flush=True)    
-    try:
-        rx_data = await asyncio.wait_for ( gTCPreader.read(TCP_PACKET_MAX), timeout=10.0 )
-    except asyncio.TimeoutError:
-        print('timeout', flush=True)
-    except ConnectionResetError:
-        print('connection error !', flush=True)
-        gTCPwriter = gTCPreader = None
-    except:
-        print('unknown error !', flush=True)
-    else:
-        if rx_data != None:
-            gTCPrxMsg = rx_data.decode()
-        if gTCPrxMsg == '':
-            gTCPrxNull += 1
-            print('null received: %d times' % gTCPrxNull, flush=True)
-            time.sleep(1.)
+        rx_data = None
+        print('AIO-C> [RX] wait => ', end = '', flush=True)    
+        try:
+            rx_data = await asyncio.wait_for ( gTCPreader.read(TCP_PACKET_MAX), timeout=10.0 )
+        except asyncio.TimeoutError:
+            print('timeout', flush=True)
+        except ConnectionResetError:
+            print('connection error !', flush=True)
+            gTCPwriter = gTCPreader = None
+        except:
+            print('unknown error !', flush=True)
         else:
-            gTCPrxNull = 0
-            print('"%r" received' % gTCPrxMsg, flush=True)
-        gTCPlastTime = time.time()     
+            if rx_data != None:
+                gTCPrxMsg = rx_data.decode()
+            if gTCPrxMsg == '':
+                gTCPrxNull += 1
+                print('null received: %d times' % gTCPrxNull, flush=True)
+                time.sleep(1.)
+            else:
+                gTCPrxNull = 0
+                print('"%r" received' % gTCPrxMsg, flush=True)
+            gTCPlastTime = time.time()     
     
 #############################################
 # handle to send data
@@ -278,35 +272,32 @@ async def tcp_TX(tx_msg, loop):
     global gTCPreader
     global gTCPwriter
     #
-    if ( gTCPwriter == None ):
-        print('\n>--->\nAIO-C> connecting server to read ... ', end ='', flush=True)
-        gTCPreader, gTCPwriter = await asyncio.open_connection(TCP_HOST_NAME, TCP_PORT)
-        print('connected\n<---<\n', flush=True)
+    if ( gTCPwriter != None ):
     #
-    if tx_msg != None and tx_msg != '':
-        print('AIO-C> [TX] try => ', end = '', flush=True)        
-        tx_data = tx_msg.encode()
-        try:        
-            gTCPwriter.write(tx_data)
-            await asyncio.wait_for ( gTCPwriter.drain(), timeout=10.0 )
-        except asyncio.TimeoutError:
-            print('timeout !', flush=True)
-        except ConnectionResetError:
-            print('connection error !', flush=True)
-            gTCPwriter = gTCPreader = None
-        except:
-            print('unknown error !', flush=True)
-        else:
-            n = len(tx_msg)
-            if n < 40:        
-                print('"%r" sent' % tx_msg, flush=True)
+        if tx_msg != None and tx_msg != '':
+            print('AIO-C> [TX] try => ', end = '', flush=True)        
+            tx_data = tx_msg.encode()
+            try:        
+                gTCPwriter.write(tx_data)
+                await asyncio.wait_for ( gTCPwriter.drain(), timeout=10.0 )
+            except asyncio.TimeoutError:
+                print('timeout !', flush=True)
+            except ConnectionResetError:
+                print('connection error !', flush=True)
+                gTCPwriter = gTCPreader = None
+            except:
+                print('unknown error !', flush=True)
             else:
-                txt = tx_msg[0:40]
-                txt.replace('\n','\\n')
-                print('"%r"...; %d bytes sent' % (txt, n), flush=True)
-            gTCPlastTime = time.time()        
-    else:
-        print('AIO-C> [TX] nothing to send !', flush=True)    
+                n = len(tx_msg)
+                if n < 40:        
+                    print('"%r" sent' % tx_msg, flush=True)
+                else:
+                    txt = tx_msg[0:40]
+                    txt.replace('\n','\\n')
+                    print('"%r"...; %d bytes sent' % (txt, n), flush=True)
+                gTCPlastTime = time.time()        
+        else:
+            print('AIO-C> [TX] nothing to send !', flush=True)    
 
 #############################################
 # functions definition
@@ -403,20 +394,20 @@ def SCD_toggle_STE_rolling( p, will_start = False, will_notify = False ):
             time.sleep(0.2)
             p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
             time.sleep(0.2)
-            print ("SCD> STE is starting", flush=True)        
+            print ("SCD> STE is started", flush=True)        
             gSTEisRolling = True
     else:
         # turn STE off
         if gSTEisRolling:
             p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
-            print ("SCD> STE is stopping", flush=True)
+            print ("SCD> STE is stopping => ", end='' flush=True)
             time.sleep(0.2)        
             ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
             while ( ret_val != b'\x00' ):
-                print ("SCD> => STE has not completed yet, generic command is [%s]" % ret_val.hex(), flush=True)
+                print ("not yet, generic command [%s] => " % ret_val.hex(), end='', flush=True)
                 time.sleep(0.2)
                 ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
-            print ("SCD> STE stoped", flush=True)
+            print ("stoped", flush=True)
             gSTEisRolling = False
     #        
     return        
@@ -920,7 +911,7 @@ if  SCD_clear_memory(p) == None:
 # connect server
 #
 loop = asyncio.get_event_loop()
-loop.run_until_complete( http_TX_RX(TCP_DEV_OPEN_MSG, loop) )
+loop.run_until_complete( http_TX(TCP_DEV_OPEN_MSG, loop) )
 #############################################
 #
 # loop if not TCP_DEV_CLOSE_MSG 
@@ -941,7 +932,6 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     #
     # wait any message from server
     #
-    print ("\nWSN-C> keep running until [%r] from server ..." % TCP_DEV_CLOSE_MSG, flush=True)
     gTCPtxMsg = gTCPrxMsg = None
     loop.run_until_complete( tcp_RX(loop) )
     #
@@ -1022,7 +1012,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     #
     if t - gTCPlastTime > TCP_POLL_TIME:
             http_polling()
-            ## loop.run_until_complete( http_TX_RX(TCP_DEV_READY_MSG, loop) )
+            ## loop.run_until_complete( http_TX(TCP_DEV_READY_MSG, loop) )
 #
 #############################################
 

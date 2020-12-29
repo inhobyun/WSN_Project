@@ -194,7 +194,7 @@ def accept_socket(blockingTimer = 8):
             gSocketServer.setblocking(blockingTimer)
             gSocketConn, gSocketAddr = gSocketServer.accept()
         except:
-            print ("error !", flush=True)
+            print ("error !\n<---<\n", flush=True)
             gSocketConn = gSocketAddr = None
             return False         
         print ("accepted port# [", gSocketAddr, "]\n<---<\n", flush=True)
@@ -806,11 +806,7 @@ def get_polling(message):
                 if sys.argv[1] == 'acceptwait':
                     wait_time = ACCEPT_WAIT_TIME
             accept_socket(wait_time)
-        #
-        if gSocketConn != None:
-            ret_msg = 'connected at ' + time_stamp() + ' to WSN client'
-        else:
-            ret_msg = 'could not connect at ' + time_stamp() + ' to WSN client'
+    #        
     return ret_msg
 
 #############################################
