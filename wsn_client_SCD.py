@@ -917,11 +917,12 @@ if  SCD_clear_memory(p) == None:
 #
 loop = asyncio.get_event_loop()
 loop.run_until_complete( http_TX_RX(TCP_DEV_OPEN_MSG, loop) )
+time.sleep(3.)
 #############################################
 #
 # loop if not TCP_DEV_CLOSE_MSG 
 #
-gIDLElastTime = time.time()
+gTCPlastTime = gIDLElastTime = time.time()
 while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     #
     # if too many null messages
