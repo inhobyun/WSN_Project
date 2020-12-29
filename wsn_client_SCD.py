@@ -352,7 +352,7 @@ def SCD_set_STE_config( p, is_writing = False, read_n_disp = False ):
     time.sleep(.3)
     if read_n_disp:
         ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
-        print ("SCD> STE config. get\n[%s](%d)" % (hex_str(ret_val), len(ret_val)), flush=True)
+        print ("SCD--> STE config. get\n[%s](%d)" % (hex_str(ret_val), len(ret_val)), flush=True)
     #
     return
 
@@ -365,7 +365,7 @@ def SCD_check_STE_rolling( p ):
     STE_result_0 = p.readCharacteristic( SCD_STE_RESULT_HND )
     time.sleep(.2)
     STE_result_1 = p.readCharacteristic( SCD_STE_RESULT_HND )
-    print ("SCD> checking rolling counter [%d] [%d]" % (int(STE_result_0[32]), int(STE_result_1[32])), flush=True)
+    print ("SCD--> checking rolling counter [%d] [%d]" % (int(STE_result_0[32]), int(STE_result_1[32])), flush=True)
     if STE_result_0[32] != STE_result_1[32] :
         gSTEisRolling = True
     else:
@@ -394,13 +394,13 @@ def SCD_toggle_STE_rolling( p, will_start = False, will_notify = False ):
             time.sleep(0.2)
             p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
             time.sleep(0.2)
-            print ("SCD> STE is started", flush=True)        
+            print ("SCD--> STE is started", flush=True)        
             gSTEisRolling = True
     else:
         # turn STE off
         if gSTEisRolling:
             p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
-            print ("SCD> STE is stopping => ", end='', flush=True)
+            print ("SCD--> STE is stopping => ", end='', flush=True)
             time.sleep(0.2)        
             ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
             while ( ret_val != b'\x00' ):
@@ -476,17 +476,17 @@ def SCD_print_STE_status():
     # output time stamp & notification, rolling count
     #
     tm = float( (struct.unpack('<l', gSTEcfgMode[0:4]))[0] )   
-    print ( "SCD> STE config. time   : %s(%.3f)" \
+    print ( "SCD--> STE config. time   : %s(%.3f)" \
             % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), tm), flush=True )
     if gSTEnotiCnt > 0:
-        print ( "SCD> Notification Start : %s(%.3f)" \
+        print ( "SCD--> Notification Start : %s(%.3f)" \
                 % (datetime.datetime.fromtimestamp(gSTEstartTime).strftime('%Y-%m-%d %H:%M:%S'), gSTEstartTime), flush=True )
-        print ( "SCD> Notification End   : %s(%.3f)" \
+        print ( "SCD--> Notification End   : %s(%.3f)" \
                 % (datetime.datetime.fromtimestamp(gSTElastTime).strftime('%Y-%m-%d %H:%M:%S'), gSTElastTime), flush=True )
-        print ( "SCD> Notification Count : %d" % gSTEnotiCnt, flush=True )
+        print ( "SCD--> Notification Count : %d" % gSTEnotiCnt, flush=True )
         gSTEnotiCnt = gSTElastTime = gSTEstartTime = 0
     if  gSTElastData != None:
-        print ( "SCD> Rolling Count      : %d" % int(gSTElastData[32]), flush=True )
+        print ( "SCD--> Rolling Count      : %d" % int(gSTElastData[32]), flush=True )
     #
     return
 
@@ -578,13 +578,13 @@ def SCD_scan_and_connect( is_first = True ):
     #
     # scanning for a while
     #
-    print ("SCD> BLE device scan %sstarted..." % ('re' if not is_first else ''), flush=True)
+    print ("SCD--> BLE device scan %sstarted..." % ('re' if not is_first else ''), flush=True)
 
     tm = tm_s = time.time()
     while tm_s - tm < RESCAN_PERIOD:
         scanner = Scanner().withDelegate(ScanDelegate())
         devices = scanner.scan(SCAN_TIME)
-        print ("\nSCD> BLE device scan completed... [%d] devices are scanned" % gScannedCount, flush=True)
+        print ("\nSCD--> BLE device scan completed... [%d] devices are scanned" % gScannedCount, flush=True)
         #
         # check to match BOSCH SCD device identifiers
         #
@@ -593,13 +593,13 @@ def SCD_scan_and_connect( is_first = True ):
             for (adtype, desc, value) in dev.getScanData():
                 if adtype == 255 and TARGET_MANUFA_UUID in value:
                     matching_count += 1
-                    print("SCD> => found target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value), flush=True)            
+                    print("SCD--> => found target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value), flush=True)            
                 if adtype == 9 and TARGET_DEVICE_NAME in value:
                     matching_count += 1
-                    print("SCD> => found target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value), flush=True)            
+                    print("SCD--> => found target (AD Type=%d) '%s' is '%s'" % (adtype, desc, value), flush=True)            
                 if matching_count >= 2:
-                    print("SCD> => found BOSCH SCD device!")
-                    print("SCD> device address [%s], type=[%s], RSSI=[%d]dB" % (dev.addr, dev.addrType, dev.rssi), flush=True)
+                    print("SCD--> => found BOSCH SCD device!")
+                    print("SCD--> device address [%s], type=[%s], RSSI=[%d]dB" % (dev.addr, dev.addrType, dev.rssi), flush=True)
                     gTargetDevice = dev
                     break
             if gTargetDevice != None:
@@ -609,10 +609,10 @@ def SCD_scan_and_connect( is_first = True ):
         #
         if gTargetDevice == None:
             tm = time.time()
-            print("SCD> no matching device found at [%s]... retry after %d sec..." \
+            print("SCD--> no matching device found at [%s]... retry after %d sec..." \
                   % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), RESCAN_INTERVAL), flush=True )
             if tm_s - tm >= RESCAN_PERIOD:
-                print("SCD> no matching device found... exiting...", flush=True)
+                print("SCD--> no matching device found... exiting...", flush=True)
                 sys.exit(-1)
             time.sleep(RESCAN_INTERVAL)
         else:
@@ -620,7 +620,7 @@ def SCD_scan_and_connect( is_first = True ):
     #
     # connect
     #
-    print("SCD> connecting [%s], type=[%s]" % (gTargetDevice.addr, gTargetDevice.addrType), flush=True)
+    print("SCD--> connecting [%s], type=[%s]" % (gTargetDevice.addr, gTargetDevice.addrType), flush=True)
     p = None
     retry = 0
     while p == None:
@@ -628,9 +628,9 @@ def SCD_scan_and_connect( is_first = True ):
             p = Peripheral(gTargetDevice.addr, gTargetDevice.addrType)
         except:
             retry += 1
-            print("SCD> => BLE device connection error occured [%d] time(s)... retry after 10 sec..." % retry, flush=True)
+            print("SCD--> => BLE device connection error occured [%d] time(s)... retry after 10 sec..." % retry, flush=True)
             if retry > 30:
-                print("SCD> => BLE device connection error occured... exiting...", flush=True)
+                print("SCD--> => BLE device connection error occured... exiting...", flush=True)
                 sys.exit(-1)
             time.sleep(10)    
     #
@@ -646,9 +646,9 @@ def SCD_scan_and_connect( is_first = True ):
 def SCD_clear_memory( p ):
     #
     ret_val = p.readCharacteristic( SCD_STE_CONFIG_HND )
-    print ("SCD> Flash memory remain is [%s] MAX:0b0000" % ret_val[31:34].hex(), flush=True)
+    print ("SCD--> Flash memory remain is [%s] MAX:0b0000" % ret_val[31:34].hex(), flush=True)
     if (struct.unpack('i', ret_val[31:35]))[0] < SCD_MAX_FLASH:  
-        print ("SCD> => flash memory is not empty ... wait seconds to clean-up", flush=True)
+        print ("SCD--> => flash memory is not empty ... wait seconds to clean-up", flush=True)
         p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x30' ) # erase sensor data
         p.disconnect()
         time.sleep(10.)
@@ -665,7 +665,7 @@ def SCD_run_STE_for_idling( p ):
     # rolls STE for short time period
     #
     # start STE w/o memory writing
-    print ("SCD> STE running for idling ...", flush=True)
+    print ("SCD--> STE running for idling ...", flush=True)
     p.setDelegate( NotifyDelegate(p) )
     SCD_set_STE_config(p, False)
     rolling_status_backup = gSTEisRolling
@@ -693,7 +693,7 @@ def SCD_run_STE_and_BDT( p ):
     # rolls STE for certain time period
     #
     # start STE w/ memory writing
-    print ("SCD> Recording STE starting ...", flush=True)
+    print ("SCD--> Recording STE starting ...", flush=True)
     p.setDelegate( NotifyDelegate(p) )
     SCD_set_STE_config(p, True, True)
     SCD_toggle_STE_rolling(p, True, True)
@@ -709,10 +709,10 @@ def SCD_run_STE_and_BDT( p ):
     #
     # start BDT
     #
-    print ("SCD> Bulk Data Transfer after a while ...", flush=True)
+    print ("SCD--> Bulk Data Transfer after a while ...", flush=True)
     time.sleep(0.7)
     p.setDelegate( NotifyDelegate(p) )
-    print ("SCD> BDT Starting ...", flush=True)
+    print ("SCD--> BDT Starting ...", flush=True)
     time.sleep(0.7)
     p.writeCharacteristic( SCD_BDT_DATA_FLOW_HND+1, struct.pack('<H', 1) )
     time.sleep(0.7)
@@ -723,7 +723,7 @@ def SCD_run_STE_and_BDT( p ):
         if wait_flag :
             continue
         ret_val = p.readCharacteristic( SCD_BDT_STATUS_HND )
-    print ("\nSCD> Bulk Data Transfer completed...status is [%s], time [%.3f], count [%d]" % \
+    print ("\nSCD--> Bulk Data Transfer completed...status is [%s], time [%.3f], count [%d]" % \
             (ret_val.hex(), (gBDTlastTime-gBDTstartTime), gBDTnotiCnt), flush=True )
     #
     if ret_val == b'x02':
@@ -736,16 +736,16 @@ def SCD_run_STE_and_BDT( p ):
 def SCD_print_info( p ):
 
     ret_val = p.readCharacteristic( SCD_DEVICE_NAME_HND )
-    print ("SCD> Device Name is [%s]" % ret_val.decode("utf-8"), flush=True)
+    print ("SCD--> Device Name is [%s]" % ret_val.decode("utf-8"), flush=True)
     #
     ret_val = p.readCharacteristic( SCD_SYSTEM_ID_HND )
-    print ("SCD> System ID is [%s][%s]" % (hex_str(ret_val[0:3]), hex_str(ret_val[3:8])), flush=True)
+    print ("SCD--> System ID is [%s][%s]" % (hex_str(ret_val[0:3]), hex_str(ret_val[3:8])), flush=True)
     #
     ret_val = p.readCharacteristic( SCD_SERIAL_NUM_HND )
-    print ("SCD> Serial # is [%s]" % ret_val.decode("utf-8"), flush=True)
+    print ("SCD--> Serial # is [%s]" % ret_val.decode("utf-8"), flush=True)
     #
     ret_val = p.readCharacteristic( SCD_FW_REVISION_HND )
-    print ("SCD> Revision is FW [%s]," % ret_val.decode("utf-8"), end = '', flush=True)
+    print ("SCD--> Revision is FW [%s]," % ret_val.decode("utf-8"), end = '', flush=True)
     #
     ret_val = p.readCharacteristic( SCD_HW_REVISION_HND )
     print ("HW [%s]," % ret_val.decode("utf-8"), end = '', flush=True)
@@ -754,16 +754,16 @@ def SCD_print_info( p ):
     print ("SW [%s]" % ret_val.decode("utf-8"), flush=True)
     #
     ret_val = p.readCharacteristic( SCD_MANUFA_NAME_HND )
-    print ("SCD> Manufacturer Name is [%s]" % ret_val.decode("utf-8"), flush=True)
+    print ("SCD--> Manufacturer Name is [%s]" % ret_val.decode("utf-8"), flush=True)
     #
     ret_val = p.readCharacteristic( SCD_IF_VERSION_HND )
-    print ("SCD> IF Version is [%s]" % hex_str(ret_val), flush=True)
+    print ("SCD--> IF Version is [%s]" % hex_str(ret_val), flush=True)
     #
     ret_val = p.readCharacteristic( SCD_TEST_RESULT_HND )
-    print ("SCD> Self Test Result is [%s] c0:OK, otherwise not OK!" % ret_val.hex(), flush=True)
+    print ("SCD--> Self Test Result is [%s] c0:OK, otherwise not OK!" % ret_val.hex(), flush=True)
     #
     ret_val = p.readCharacteristic( SCD_SET_MODE_HND )
-    print ("SCD> Mode is [%s] 00:STE, ff:Mode Selection" % ret_val.hex(), flush=True)
+    print ("SCD--> Mode is [%s] 00:STE, ff:Mode Selection" % ret_val.hex(), flush=True)
     return
 
 #############################################
@@ -776,7 +776,7 @@ def SCD_BDT_text_block():
     global gBDTtextLen
     global gBDTtextPos
     
-    print ("SCD> text block creation from BDT ...", flush=True)
+    print ("SCD--> text block creation from BDT ...", flush=True)
     if gBDTtextBlock != '':
         del gBDTtextBlock
         gBDTtextBlock = ''
@@ -844,7 +844,7 @@ def SCD_BDT_text_block():
     gBDTtextLen = len(gBDTtextBlock)
     gBDTtextPos = 0
     #    
-    print ("SCD> text block [%d] bytes recorded !" % gBDTtextLen, flush=True)
+    print ("SCD--> text block [%d] bytes recorded !" % gBDTtextLen, flush=True)
 
 #############################################
 # create text memory block from BDT w/o non-data
