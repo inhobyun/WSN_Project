@@ -132,20 +132,13 @@ def refresh_socket():
         gTCPlastTime = gTCPerrCnt = 0
     #
     if gSocketServer != None:
-        print ("TCP-S> trying to bind %s:%d" % (TCP_HOST_NAME, TCP_PORT), flush=True )
-        try:
-            gSocketServer.bind((TCP_HOST_NAME, TCP_PORT))
-        except:
-            print ("TCP-S> binding fail... Exiting...", flush=True)
-            return False
+        gSocketServer.listen(clientNum)
+        print ("TCP-S> listening...", flush=True) 
+        gTCPerrCnt = 0
+        gTCPlastTime = time.time()
     else:
         print ("TCP-S> socket is null ... Exiting...", flush=True)
         return False
-    print ("TCP-S> binded...", flush=True)    
-    gSocketServer.listen(clientNum)
-    print ("TCP-S> listening...", flush=True) 
-    gTCPerrCnt = 0
-    gTCPlastTime = time.time()
     #
     return True    
 
