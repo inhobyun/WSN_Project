@@ -400,7 +400,7 @@ def SCD_toggle_STE_rolling( p, will_start = False, will_notify = False ):
         # turn STE off
         if gSTEisRolling:
             p.writeCharacteristic( SCD_SET_GEN_CMD_HND, b'\x20' )
-            print ("SCD> STE is stopping => ", end='' flush=True)
+            print ("SCD> STE is stopping => ", end='', flush=True)
             time.sleep(0.2)        
             ret_val = p.readCharacteristic( SCD_SET_GEN_CMD_HND )
             while ( ret_val != b'\x00' ):
