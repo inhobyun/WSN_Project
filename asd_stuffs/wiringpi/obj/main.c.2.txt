@@ -1,0 +1,124 @@
+/*
+ * logger.c:
+ * Main program for logging data from analog sensors
+ *
+ * Requires: 	ADS1256 
+ * 		
+ * Copyright (c) 2019 Lodovico Lappetito
+ ******************************************************
+ */
+
+// Header
+#include <stdlib.h>     //exit()
+#include <signal.h>     //signal()
+#include <time.h>
+#include <sys/time.h>
+#include <string.h>
+#include <stdio.h>
+
+#include "ADS1256.h"
+
+// Define standards
+#define TRUE	(1==1)
+#define FALSE	(!TRUE)
+#define UNDEF	-1
+
+// Variables
+int line_index;
+
+FILE *file;
+
+// Methods
+int  createLogFile();
+int  endLogFile();
+void Handler(int);
+
+int main(void){
+
+    int An0Value = 0;
+    int An1Value = 0.0;
+    int An2Value = 0.0;
+    int An3Value = 0.0;
+    int An4Value = 0.0;
+    int An5Value = 0.0;
+    int An6Value = 0.0;
+    int An7Value = 0.0;
+    printf("Logger\r\n");
+    DEV_ModuleInit();
+
+    // Exception handling:ctrl + c
+    signal(SIGINT, Handler);
+
+    if(ADS1256_init() == 1) {
+        printf("\r\nEND                  \r\n");
+        DEV_ModuleExit();
+        exit(0);
+    }
+	
+	// Init logging
+	createLogFile();
+
+    while(1) {
+        
+        An0Value = (ADS1256_GetChannalValue(0)*5.0/0x7FFFFF)*1000000;
+        // An1Value = (ADS1256_GetChannalValue(1)*5.0/0x7FFFFF)*1000000;
+        // An2Value = (ADS1256_GetChannalValue(2)*5.0/0x7FFFFF)*1000000;
+        // An3Value = (ADS1256_GetChannalValue(2)*5.0/0x7FFFFF)*1000000;
+        // An4Value = (ADS1256_GetChannalValue(2)*5.0/0x7FFFFF)*1000000;
+	// An5Value = (ADS1256_GetChannalValue(2)*5.0/0x7FFFFF)*1000000;
+	// An6Value = (ADS1256_GetChannalValue(2)*5.0/0x7FFFFF)*1000000;
+	// An7Value = (ADS1256_GetChannalValue(2)*5.0/0x7FFFFF)*1000000;
+      
+        printf("0 : %d\r\n",An0Value);
+	// printf("1 : %d\r\n",An1Value);
+        // printf("2 : %d\r\n",An2Value);
+        // printf("3 : %d\r\n",An3Value);
+        // printf("4 : %d\r\n",An4Value);
+        // printf("5 : %d\r\n",An5Value);
+        // printf("6 : %d\r\n",An6Value);
+        // printf("7 : %d\r\n",An7Value);
+        
+    }
+	
+    return 0;
+}
+
+void  Handler(int signo){
+    //System Exit
+    printf("\r\nEND                  \r\n");
+    DEV_ModuleExit();
+	
+    // End log file
+    endLogFile();
+	
+    exit(0);
+}
+
+int createLogFile(){
+	// Create filename /home/pi/LoggerPI/Data/YYYY-MM-DD HH:mm.csv
+	char filename[64];
+	time_t now;
+	time(&now);
+	struct tm* now_tm;
+	now_tm = localtime(&now);
+
+	strftime(filename, 64, "/home/pi/LoggerPI/Data/%Y-%m-%d_%H-%M-%S.csv", now_tm);
+
+	// Open file (create if not existing, otherwise truncate)
+	file = fopen(filename, "w");
+
+	// Write csv header
+	fprintf(file, "Time [s],An0[uV],An1[uV],An2[uV],An3[uV],An4[uV],An5[uV],An6[uV],An7[uV]\n");
+
+	// Reset line index
+	line_index = 0;
+	
+	return 0;
+}
+
+int endLogFile(){
+	// Close csv file
+	fclose(file);
+	
+	return 0;
+}

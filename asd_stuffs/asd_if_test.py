@@ -18,6 +18,10 @@ from urllib import request, parse
 import ADS1256
 import RPi.GPIO as GPIO
 
+#
+# constant values
+#
+TEST_DURATION = 1.0
 
 print ("ASD--> ADS1256 Test Program", flush=True)
 
@@ -31,10 +35,9 @@ except :
 
 cnt = 0
 t0 = t1 = time.time()
-while ( t1 - t0 < 0.5 ):
-        val_x = ADC.ADS1256_GetChannalValue(0)
+while ( t1 - t0 < TEST_DURATION ):
         t1 = time.time()
-        print ('ASD--> [%lf] at %f\x0d'%(val_x*5.0/0x7fffff, t1), flush=True)
+        print ('ASD--> at %f\x0d'%(t1), flush=True)
         print ("\33[2A", flush=True)
         cnt += 1
         
@@ -43,7 +46,18 @@ print ('\nASD--> count [%d] time period: %f, %f'%(cnt, (t1-t0), (t1-t0)/cnt), fl
 
 cnt = 0
 t0 = t1 = time.time()
-while ( t1 - t0 < 0.5 ):
+while ( t1 - t0 < TEST_DURATION ):
+        val_x = ADC.ADS1256_GetChannalValue(0)
+        t1 = time.time()
+        print ('ASD--> [%lf] at %f\x0d'%(val_x*5.0/0x7fffff, t1), flush=True)
+        print ("\33[2A", flush=True)
+        cnt += 1
+        
+print ('\nASD--> count [%d] time period: %f, %f'%(cnt, (t1-t0), (t1-t0)/cnt), flush=True)
+
+cnt = 0
+t0 = t1 = time.time()
+while ( t1 - t0 < TEST_DURATION ):
         val_x = ADC.ADS1256_GetChannalValue(0)
         val_y = ADC.ADS1256_GetChannalValue(1)
         val_z = ADC.ADS1256_GetChannalValue(2)
