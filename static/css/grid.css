@@ -2,13 +2,32 @@
 
 .grid-container {
     display: grid;
-    grid-template-columns: auto;
+    /* grid-template-columns: auto; */
     grid-template-areas: 
-    'top      top      top      top      top'
-    'top-left top-left top-left top-left top-right' 
-    'left     right    right    right    right' 
-    'foot     foot     foot     foot     foot';
+    'top      top      top      top'
+    'top-left top-left top-left top-right' 
+    'left     right    right    right' 
+    'foot     foot     foot     foot';
 } 
+
+/* Responsive layout */
+@media (min-width: 1081px) {
+    .grid-container {
+        grid-template-columns: fixed;
+    }
+    .left {
+        width: 240px;    
+    }
+}
+
+@media (max-width: 1080px) {
+    .grid-container {
+        grid-template-columns: fixed;
+    }
+    .left {
+        width: 200px;    
+    }
+}
 
 .top,
 .top-left,
