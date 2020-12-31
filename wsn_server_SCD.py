@@ -1,7 +1,7 @@
 """
 Sensor data monitoring and analysis application based on flask WEB application framework
 
-usage: python wsn_server_SCD.py [port#] ['acceptwait']
+usage: python wsn_server_SCD.py [port#]
 
 by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
@@ -56,7 +56,7 @@ TCP_BDT_END_MSG   = 'BDT_END'       # client message to inform BDT data transfer
 #
 # Some constant parameters
 #
-ACCEPT_WAIT_TIME  = 11100           # 3 hrs 5 min.; time period to wait client connection
+ACCEPT_WAIT_TIME  = 9               # time period to wait client connection
 #
 WSN_LOG_FILE_PATH   = "./static/log"
 WSN_LOG_FILE_NAME   = "WSN_Data_log.csv"
@@ -801,14 +801,7 @@ def get_polling(message):
             ret_msg = 'could not reply: ' + msg + ' at ' + time_stamp() + ' to WSN client'    
     elif msg == TCP_DEV_OPEN_MSG:
         if gSocketConn == None:
-            wait_time = 9
-            if len(sys.argv) > 2:
-                #
-                # wait client connection (normally not used, only in case of test with flask web server, )
-                #
-                if sys.argv[2] == 'acceptwait':
-                    wait_time = ACCEPT_WAIT_TIME
-            accept_socket(wait_time)
+            accept_socket(ACCEPT_WAIT_TIME)
     #        
     return ret_msg
 
