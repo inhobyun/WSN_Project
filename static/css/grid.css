@@ -81,7 +81,7 @@
 /* Style the right column */
 .right {
     grid-area: right;
-    text-align: center;
+    text-align: left;
     background-color: white;
 }
 
