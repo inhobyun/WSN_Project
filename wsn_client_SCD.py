@@ -142,6 +142,9 @@ gTCPrxNull   = 0
 def http_polling(pol_msg = TCP_DEV_READY_MSG):
     global gTCPreader
     global gTCPwriter
+    global TCP_HOST_NAME
+    global TCP_PORT
+    global TCP_HTTP_PORT
     #
     print('----->\nWSN-C> HTTP polling try => ', end='', flush=True)
     url_str = 'http://%s:%s/get_polling/%s' % (TCP_HOST_NAME, TCP_HTTP_PORT, pol_msg)
@@ -886,7 +889,7 @@ if len(sys.argv) > 2:
     TCP_PORT = int(sys.argv[2])
 if len(sys.argv) > 3:
     print ("WSN-C> take 3'rd argument as http port# (default: '%d')" % TCP_HTTP_PORT, flush=True)
-    TCP_PORT = int(sys.argv[3])
+    TCP_HTTP_PORT = int(sys.argv[3])
 
 #
 # scan and connect SCD
