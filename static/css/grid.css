@@ -4,10 +4,10 @@
     display: grid;
     /* grid-template-columns: auto; */
     grid-template-areas: 
-    'top      top      top      top'
-    'top-left top-left top-left top-right' 
-    'left     right    right    right' 
-    'foot     foot     foot     foot';
+    'top      top      top      top       top'
+    'top-left top-left top-left top-right top-right' 
+    'left     right    right    right     right' 
+    'foot     foot     foot     foot      foot';
 } 
 
 /* Responsive layout */
@@ -16,7 +16,7 @@
         grid-template-columns: fixed;
     }
     .left {
-        width: 280px;    
+        width: 260px;    
     }
 }
 
@@ -25,7 +25,7 @@
         grid-template-columns: fixed;
     }
     .left {
-        width: 240px;    
+        width: 230px;    
     }
 }
 
@@ -81,15 +81,16 @@
 /* Style the right column */
 .right {
     grid-area: right;
-    background-color: whitesmoke;
+    text-align: center;
+    background-color: white;
 }
 
 /* Style the footer */
 .foot {
     grid-area: foot;
+    text-align: center;
     background-color: #999;
     color: white;
     padding-top: 4px;
     padding-bottom: 4px;
-    text-align: center;
 }

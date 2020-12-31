@@ -838,7 +838,7 @@ def post_logList():
 #############################################
 #
 if __name__ == '__main__':
-    print("WSN-S> starting ! created 2020-12-31", flush=True)
+    print("WSN-S> starting !", flush=True)
     try:
         if open_socket():
             #
