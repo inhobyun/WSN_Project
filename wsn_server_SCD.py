@@ -1,6 +1,8 @@
 """
 Sensor data monitoring and analysis application based on flask WEB application framework
 
+usage: python wsn_server_SCD.py [port#] ['acceptwait']
+
 by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
                     started 2020-10-01
@@ -9,6 +11,7 @@ by Inho Byun, Researcher/KAIST
                     updated 2020-12-20; mobile UI, multi-monitoring protection, polling
                     updated 2020-12-22; data log file name
                     updated 2020-12-28; DEV_OPEN
+                    updated 2020-12-31; argv Bug fix
 """
 import datetime
 from flask import Flask, redirect, request
@@ -803,7 +806,7 @@ def get_polling(message):
                 #
                 # wait client connection (normally not used, only in case of test with flask web server, )
                 #
-                if sys.argv[1] == 'acceptwait':
+                if sys.argv[2] == 'acceptwait':
                     wait_time = ACCEPT_WAIT_TIME
             accept_socket(wait_time)
     #        
