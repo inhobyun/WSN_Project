@@ -4,7 +4,8 @@ Code to reset SCD
 by Inho Byun, Researcher/KAIST
    inho.byun@gmail.com
                     started 2020-11-09
-                    last updated 2020-12-02; cleaned-up
+                    updated 2020-12-02; cleaned-up
+                    updated 2020-12-31; comment-out notification print out
 """
 from bluepy.btle import Scanner, DefaultDelegate, UUID, Peripheral
 import datetime
@@ -218,7 +219,7 @@ class NotifyDelegate(DefaultDelegate):
                 gSTEStopTime = gSTELastTime  = gSTEStartTime = time.time()
             else:
                 gSTEStopTime = time.time()
-            print("**** %s" % string_STE_data(data), end='\n', flush = True)    
+            ## print("**** %s" % string_STE_data(data), end='\n', flush = True)    
         else:
             print("**** %2d-#%3d-[%s]" % (cHandle, gSTECount, hex_str(data)), end='\n', flush = True)
 
