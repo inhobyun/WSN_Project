@@ -18,6 +18,7 @@ by Inho Byun, Researcher/KAIST
                     updated 2020-12-20; polling
                     updated 2020-12-22; data log file name
                     updated 2020-12-28; DEV_OPEN
+                    updated 2021-01-04; BTLEDisconnectError handling
 """
 import asyncio
 from bluepy.btle import Scanner, DefaultDelegate, UUID, Peripheral
@@ -873,6 +874,81 @@ def SCD_BDT_get_text(returnMax = TCP_PACKET_MAX):
             rtn = ''
             gBDTtextPos += 1
     return rtn    
+
+#############################################
+# server message handling
+#
+def server_msg_handling( p ):
+    global gTCPrxMsg
+    global gTCPtxMsg
+    global gSTElastData
+    global gSTElastTime
+    global gSTEisRolling
+    global gBDTisRolled
+
+    if gTCPrxMsg == TCP_DEV_READY_MSG or gTCPrxMsg == TCP_DEV_OPEN_MSG:
+        # polling messages that server or manually sent
+        print ("WSN-C> got polling [%s] ..." % gTCPrxMsg, flush=True)
+        # polling reponse here
+    elif gTCPrxMsg == TCP_BDT_END_MSG:
+        # polling message that server sent, should echo-back
+        print ("WSN-C> got polling [%s], echo-back..." % TCP_BDT_END_MSG, flush=True)
+        gTCPtxMsg = TCP_BDT_END_MSG
+    elif gTCPrxMsg == TCP_STE_START_MSG:
+        # start STE rolling w/o memory writing
+        print ("WSN-C> start STE rolling...", flush=True)
+        p.setDelegate( NotifyDelegate(p) )
+        SCD_set_STE_config(p, False)
+        SCD_toggle_STE_rolling(p, True, False)
+        ## gIDLElastTime = time.time()
+    elif gTCPrxMsg == TCP_STE_REQ_MSG:
+        # request STE data
+        if gSTEisRolling:
+            print ("WSN-C> handover STE data ...", flush=True)
+            # if not enable STE notification
+            gSTElastData = p.readCharacteristic(SCD_STE_RESULT_HND)
+            gSTElastTime = time.time()
+            gTCPtxMsg = SCD_string_STE_data(gSTElastTime, gSTElastData)
+            ## gIDLElastTime = gSTElastTime   
+        else:
+            print ("WSN-C> invalid message, STE has not been started !", flush=True)    
+    elif gTCPrxMsg == TCP_BDT_RUN_MSG:
+        # start BDT
+        print ("WSN-C> start BDT running ...")
+        if not gSTEisRolling:                
+            SCD_run_STE_and_BDT(p)
+            if SCD_clear_memory(p) == None:
+                p = SCD_scan_and_connect(False)
+            SCD_BDT_text_block()
+            gBDTisRolled = True    
+            gIDLElastTime = time.time()
+        else:
+            print ("WSN-C> invalid message, BDT is not allowed during rolling !", flush=True)     
+    elif gTCPrxMsg == TCP_BDT_REQ_MSG:
+        # request BDT data
+        if gBDTisRolled:
+            print ("WSN-C> request BDT data ...", flush=True)
+            gTCPtxMsg = SCD_BDT_get_text()
+            if gTCPtxMsg.find("End") != -1:
+                gBDTisRolled = False
+        else:
+            print ("WSN-C> invalid message, BDT has not been done !", flush=True)    
+    elif gTCPrxMsg == TCP_STE_STOP_MSG or gTCPrxMsg == TCP_DEV_CLOSE_MSG:
+        # stop STE or disconnect
+        print ("WSN-C> stop STE rolling ...", flush=True)
+        SCD_set_STE_config (p, False)
+        SCD_toggle_STE_rolling (p, False, False)
+        SCD_print_STE_status()
+        ## gIDLElastTime = time.time()
+    elif gTCPrxMsg == TCP_DEV_CLOSE_MSG:
+        # exit from loop
+        print ("WSN-C> close device ...", flush=True)
+        break    
+    else:
+        # invalid message
+        print ("WSN-C> invalid [RX] message !", flush=True)    
+    #
+    return
 #
 #############################################
 
@@ -942,67 +1018,13 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
         #
         # process server message
         #
-        if gTCPrxMsg == TCP_DEV_READY_MSG or gTCPrxMsg == TCP_DEV_OPEN_MSG:
-            # polling messages that server or manually sent
-            print ("WSN-C> got polling [%s] ..." % gTCPrxMsg, flush=True)
-            # polling reponse here
-        elif gTCPrxMsg == TCP_BDT_END_MSG:
-            # polling message that server sent, should echo-back
-            print ("WSN-C> got polling [%s], echo-back..." % TCP_BDT_END_MSG, flush=True)
-            gTCPtxMsg = TCP_BDT_END_MSG
-        elif gTCPrxMsg == TCP_STE_START_MSG:
-            # start STE rolling w/o memory writing
-            print ("WSN-C> start STE rolling...", flush=True)
-            p.setDelegate( NotifyDelegate(p) )
-            SCD_set_STE_config(p, False)
-            SCD_toggle_STE_rolling(p, True, False)
-            ## gIDLElastTime = time.time()
-        elif gTCPrxMsg == TCP_STE_REQ_MSG:
-            # request STE data
-            if gSTEisRolling:
-                print ("WSN-C> handover STE data ...", flush=True)
-                # if not enable STE notification
-                gSTElastData = p.readCharacteristic(SCD_STE_RESULT_HND)
-                gSTElastTime = time.time()
-                gTCPtxMsg = SCD_string_STE_data(gSTElastTime, gSTElastData)
-                ## gIDLElastTime = gSTElastTime   
-            else:
-                print ("WSN-C> invalid message, STE has not been started !", flush=True)    
-        elif gTCPrxMsg == TCP_BDT_RUN_MSG:
-            # start BDT
-            print ("WSN-C> start BDT running ...")
-            if not gSTEisRolling:                
-                SCD_run_STE_and_BDT(p)
-                if SCD_clear_memory(p) == None:
-                    p = SCD_scan_and_connect(False)
-                SCD_BDT_text_block()
-                gBDTisRolled = True    
-                gIDLElastTime = time.time()
-            else:
-                print ("WSN-C> invalid message, BDT is not allowed during rolling !", flush=True)     
-        elif gTCPrxMsg == TCP_BDT_REQ_MSG:
-            # request BDT data
-            if gBDTisRolled:
-                print ("WSN-C> request BDT data ...", flush=True)
-                gTCPtxMsg = SCD_BDT_get_text()
-                if gTCPtxMsg.find("End") != -1:
-                    gBDTisRolled = False
-            else:
-                print ("WSN-C> invalid message, BDT has not been done !", flush=True)    
-        elif gTCPrxMsg == TCP_STE_STOP_MSG or gTCPrxMsg == TCP_DEV_CLOSE_MSG:
-            # stop STE or disconnect
-            print ("WSN-C> stop STE rolling ...", flush=True)
-            SCD_set_STE_config (p, False)
-            SCD_toggle_STE_rolling (p, False, False)
-            SCD_print_STE_status()
-            ## gIDLElastTime = time.time()
-        elif gTCPrxMsg == TCP_DEV_CLOSE_MSG:
-            # exit from loop
-            print ("WSN-C> close device ...", flush=True)
-            break    
-        else:
-            # invalid message
-            print ("WSN-C> invalid [RX] message !", flush=True)    
+        try:
+            server_msg_handling( p )
+        except bluepy.btle.BTLEDisconnectError:
+            print ("WSN-C> BTLE disconnected !", flush=True)
+            p = SCD_scan_and_connect(False)
+        except:
+            print ("WSN-C> unknown error !", flush=True)        
     #
     # idling check
     #
