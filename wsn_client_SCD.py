@@ -940,10 +940,9 @@ def server_msg_handling( p ):
         SCD_toggle_STE_rolling (p, False, False)
         SCD_print_STE_status()
         ## gIDLElastTime = time.time()
-    elif gTCPrxMsg == TCP_DEV_CLOSE_MSG:
+    ## elif gTCPrxMsg == TCP_DEV_CLOSE_MSG:
         # exit from loop
-        print ("WSN-C> close device ...", flush=True)
-        break    
+        ## print ("WSN-C> close device ...", flush=True)
     else:
         # invalid message
         print ("WSN-C> invalid [RX] message !", flush=True)    
@@ -1018,16 +1017,18 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
         #
         # process server message
         #
+        if gTCPrxMsg == TCP_DEV_CLOSE_MSG:
+            break  
         try:
             server_msg_handling( p )
-        except BTLEDisconnectError:
+        except bluepy.btle.BTLEDisconnectError:
             print ("WSN-C> BTLE disconnected while message loop ... reconnecting ...", flush=True)
             p = SCD_scan_and_connect(False)
             if  SCD_clear_memory(p) == None:
                 p = SCD_scan_and_connect(False)
         except:
             print ("WSN-C> unknown error while message loop !", flush=True)
-            break        
+            break
     #
     # idling check
     #
