@@ -1020,11 +1020,14 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
         #
         try:
             server_msg_handling( p )
-        except bluepy.btle.BTLEDisconnectError:
-            print ("WSN-C> BTLE disconnected !", flush=True)
+        except BTLEDisconnectError:
+            print ("WSN-C> BTLE disconnected while message loop ... reconnecting ...", flush=True)
             p = SCD_scan_and_connect(False)
+            if  SCD_clear_memory(p) == None:
+                p = SCD_scan_and_connect(False)
         except:
-            print ("WSN-C> unknown error !", flush=True)        
+            print ("WSN-C> unknown error while message loop !", flush=True)
+            break        
     #
     # idling check
     #
