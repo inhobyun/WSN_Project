@@ -67,17 +67,17 @@ SCD_MAX_FLASH = 0x0b0000 # 11*16**4 = 720896 = 704K
 #
 # Some constant parameters
 #
-SCAN_TIME       = 10.   # scanning duration for BLE devices 
-RESCAN_INTERVAL = 50.   # 1 min.; looping to rescan BLE after scan failed
+SCAN_TIME         = 10.    # scanning duration for BLE devices 
+RESCAN_INTERVAL   = 50.    # 1 min.; looping to rescan BLE after scan failed
 ##RESCAN_PERIOD   = 11100. # 3 hrs 5 min.; time period to rescan BLE to connect
-RESCAN_PERIOD   = 43200. # 12 hrs; time period to rescan BLE to connect  
+RESCAN_PERIOD     = 43200. # 12 hrs; time period to rescan BLE to connect  
+SCD_IDLE_INTERVAL = 60.    # time interval to make BLE traffic to keep connection
 #
 STE_RUN_TIME    = 2.3    # STE rolling time in secconds for SENSOR data recording
 STE_FREQUENCY   = (400, 800, 1600, 3200, 6400)  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz 
 #
 # global variables
 #
-gTargetDevice = None  # target device object 
 gScannedCount = 0     # count of scanned BLE devices
 # STE - Short Time Experiment
 gSTEcfgMode   = bytes(35)  # Sensor Mode
@@ -98,7 +98,6 @@ gBDTcrc32     = bytearray(4)
 gBDTisRolled = False
 # IDLE
 gIDLElastTime = 0.    # last BLE traffic on connection
-gIDLEinterval = 60.   # time interval to make BLE traffic to keep connection
 
 
 #############################################
@@ -181,8 +180,6 @@ async def http_TX(tx_msg, loop):
         print('connected\n----->', flush=True)
         # send 'GET /get_polling/%s HTTP/1.1'
         tx_data = ('GET /get_polling/%s HTTP/1.1' % tx_msg).encode('ascii')
-        rx_msg = ''
-        rx_data = None
         # send GET
         print('AIO-C> [HTTP TX] try => ', end = '', flush=True) 
         try:        
@@ -212,6 +209,8 @@ async def http_TX(tx_msg, loop):
         # receive
         '''
         print('AIO-C> [HTTP RX] wait => ', end = '', flush=True)    
+        rx_msg = ''
+        rx_data = None
         try:
             ## rx_data = await asyncio.wait_for ( reader.read(TCP_PACKET_MAX), timeout=3.0 )
             rx_data = await rx_corout
@@ -578,12 +577,13 @@ class NotifyDelegate(DefaultDelegate):
 #
 #############################################
 def SCD_scan_and_connect( is_first = True ):
-    global gTargetDevice
+    global gScannedCount
     #
     # scanning for a while
     #
     print ("SCD--> BLE device scan %sstarted..." % ('re' if not is_first else ''), flush=True)
 
+    target_dev = None
     tm = tm_s = time.time()
     while tm_s - tm < RESCAN_PERIOD:
         scanner = Scanner().withDelegate(ScanDelegate())
@@ -604,14 +604,14 @@ def SCD_scan_and_connect( is_first = True ):
                 if matching_count >= 2:
                     print("SCD--> => found BOSCH SCD device!")
                     print("SCD--> device address [%s], type=[%s], RSSI=[%d]dB" % (dev.addr, dev.addrType, dev.rssi), flush=True)
-                    gTargetDevice = dev
+                    target_dev = dev
                     break
-            if gTargetDevice != None:
+            if target_dev != None:
                 break
         #
         # if none found then exiting    
         #
-        if gTargetDevice == None:
+        if target_dev == None:
             tm = time.time()
             print("SCD--> no matching device found at [%s]... retry after %d sec..." \
                   % (datetime.datetime.fromtimestamp(tm).strftime('%Y-%m-%d %H:%M:%S'), RESCAN_INTERVAL), flush=True )
@@ -624,12 +624,12 @@ def SCD_scan_and_connect( is_first = True ):
     #
     # connect
     #
-    print("SCD--> connecting [%s], type=[%s]" % (gTargetDevice.addr, gTargetDevice.addrType), flush=True)
+    print("SCD--> connecting [%s], type=[%s]" % (target_dev.addr, target_dev.addrType), flush=True)
     p = None
     retry = 0
     while p == None:
         try:
-            p = Peripheral(gTargetDevice.addr, gTargetDevice.addrType)
+            p = Peripheral(target_dev.addr, target_dev.addrType)
         except:
             retry += 1
             print("SCD--> => BLE device connection error occured [%d] time(s)... retry after 10 sec..." % retry, flush=True)
@@ -822,7 +822,7 @@ def SCD_BDT_text_block():
     gBDTtextBlock += (" Row #, Time-Stamp, X-AXIS, Y-AXIS, Z-AXIS\n")
     line = 1
     while (idx < EOD_pos):
-        sensor_type =  gBDTdata[idx  ] & 0x0f
+        ## sensor_type =  gBDTdata[idx  ] & 0x0f
         time_stamp  = (gBDTdata[idx  ] & 0xf0) >> 4
         time_stamp +=  gBDTdata[idx+1] << 4
         time_stamp +=  gBDTdata[idx+2] << 12
@@ -885,6 +885,7 @@ def server_msg_handling( p ):
     global gSTElastTime
     global gSTEisRolling
     global gBDTisRolled
+    global gIDLElastTime
 
     if gTCPrxMsg == TCP_DEV_READY_MSG or gTCPrxMsg == TCP_DEV_OPEN_MSG:
         # polling messages that server or manually sent
@@ -946,6 +947,13 @@ def server_msg_handling( p ):
     else:
         # invalid message
         print ("WSN-C> invalid [RX] message !", flush=True)    
+    #
+    # idling check
+    #
+    t = time.time()
+    if t - gIDLElastTime > SCD_IDLE_INTERVAL:
+        SCD_run_STE_for_idling(p)
+        gIDLElastTime = t
     #
     return
 #
@@ -1030,16 +1038,9 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
             print ("WSN-C> unknown error while message loop !", flush=True)
             break
     #
-    # idling check
-    #
-    t = time.time()
-    if t - gIDLElastTime > gIDLEinterval:
-        SCD_run_STE_for_idling(p)
-        gIDLElastTime = t
-    #
     # if last server communication time is longer than poll time, polling via http
     #
-    if t - gTCPlastTime > TCP_POLL_TIME:
+    if time.time() - gTCPlastTime > TCP_POLL_TIME:
             http_polling()
             ## loop.run_until_complete( http_TX(TCP_DEV_READY_MSG, loop) )
 #
