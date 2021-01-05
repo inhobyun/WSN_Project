@@ -156,6 +156,7 @@ def http_polling(pol_msg = TCP_DEV_READY_MSG):
         f.close()
     except:
         print('error !\n----->')
+        sys.exit(-1)
     else:
         print('"%r" received\n----->' % rtn_str)
     
@@ -176,6 +177,7 @@ async def http_TX(tx_msg, loop):
         print('timeout !\n----->', flush=True)
     except:
         print('error !\n----->', flush=True)
+        sys.exit(-1)
     else:    
         print('connected\n----->', flush=True)
         # send 'GET /get_polling/%s HTTP/1.1'
@@ -189,6 +191,7 @@ async def http_TX(tx_msg, loop):
             print('timeout !', flush=True)
         except:
             print('error !', flush=True)
+            sys.exit(-1)
         else:
             print('"%r" sent' % tx_msg, flush=True)
         # connect server
@@ -204,10 +207,11 @@ async def http_TX(tx_msg, loop):
                 print('timeout !', flush=True)
             except:
                 print('error !', flush=True)
+                sys.exit(-1)
             else:    
                 print('connected', flush=True)
         # receive
-        
+        '''
         print('AIO-C> [HTTP RX] wait => ', end = '', flush=True)    
         rx_msg = ''
         rx_data = None
@@ -218,6 +222,7 @@ async def http_TX(tx_msg, loop):
             print('timeout', flush=True)
         except:
             print('error !', flush=True)
+            sys.exit(-1)
         else:
             if rx_data != None:
                 rx_msg = rx_data.decode()
@@ -225,7 +230,7 @@ async def http_TX(tx_msg, loop):
                 print('null received', flush=True)
             else:
                 print('"%r" received' % rx_msg, flush=True)
-              
+        '''      
         #
         writer.close()        
 
@@ -253,6 +258,7 @@ async def tcp_RX(loop):
             gTCPwriter = gTCPreader = None
         except:
             print('unknown error !', flush=True)
+            sys.exit(-1)
         else:
             if rx_data != None:
                 gTCPrxMsg = rx_data.decode()
@@ -292,6 +298,7 @@ async def tcp_TX(tx_msg, loop):
                 gTCPwriter = gTCPreader = None
             except:
                 print('unknown error !', flush=True)
+                sys.exit(-1)
             else:
                 n = len(tx_msg)
                 if n < 40:        
