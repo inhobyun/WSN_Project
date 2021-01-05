@@ -959,7 +959,7 @@ def server_msg_handling( p ):
     elif gTCPrxMsg == TCP_DEV_CLOSE_MSG:
         # exit from loop
         print ("WSN-C> close device ...", flush=True)
-    else:
+    elif gTCPrxMsg != None:
         # invalid message
         print ('WSN-C> invalid [RX] message: "%r" !' % gTCPrxMsg, flush=True)    
     #
