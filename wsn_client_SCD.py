@@ -192,7 +192,7 @@ async def http_TX(tx_msg, loop):
         else:
             print('"%r" sent' % tx_msg, flush=True)
         # connect server
-        rx_corout = asyncio.wait_for ( reader.read(TCP_PACKET_MAX), timeout=3.0 )
+        ## rx_corout = asyncio.wait_for ( reader.read(TCP_PACKET_MAX), timeout=3.0 )
         if tx_msg == TCP_DEV_OPEN_MSG:
             print('AIO-C> connecting to server => ',  end='', flush=True)
             if gTCPwriter != None:
@@ -212,8 +212,8 @@ async def http_TX(tx_msg, loop):
         rx_msg = ''
         rx_data = None
         try:
-            ## rx_data = await asyncio.wait_for ( reader.read(TCP_PACKET_MAX), timeout=3.0 )
-            rx_data = await rx_corout
+            rx_data = await asyncio.wait_for ( reader.read(TCP_PACKET_MAX), timeout=3.0 )
+            ## rx_data = await rx_corout
         except asyncio.TimeoutError:
             print('timeout', flush=True)
         except:
