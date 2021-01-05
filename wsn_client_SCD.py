@@ -887,6 +887,12 @@ def server_msg_handling( p ):
     global gBDTisRolled
     global gIDLElastTime
 
+    # idling check
+    t = time.time()
+    if t - gIDLElastTime > SCD_IDLE_INTERVAL:
+        SCD_run_STE_for_idling(p)
+        gIDLElastTime = t
+    # message handling
     if gTCPrxMsg == TCP_DEV_READY_MSG or gTCPrxMsg == TCP_DEV_OPEN_MSG:
         # polling messages that server or manually sent
         print ("WSN-C> got polling [%s] ..." % gTCPrxMsg, flush=True)
@@ -941,19 +947,12 @@ def server_msg_handling( p ):
         SCD_toggle_STE_rolling (p, False, False)
         SCD_print_STE_status()
         ## gIDLElastTime = time.time()
-    ## elif gTCPrxMsg == TCP_DEV_CLOSE_MSG:
+    elif gTCPrxMsg == TCP_DEV_CLOSE_MSG:
         # exit from loop
-        ## print ("WSN-C> close device ...", flush=True)
+        print ("WSN-C> close device ...", flush=True)
     else:
         # invalid message
-        print ("WSN-C> invalid [RX] message !", flush=True)    
-    #
-    # idling check
-    #
-    t = time.time()
-    if t - gIDLElastTime > SCD_IDLE_INTERVAL:
-        SCD_run_STE_for_idling(p)
-        gIDLElastTime = t
+        print ('WSN-C> invalid [RX] message: "%r" !' % gTCPrxMsg, flush=True)    
     #
     return
 #
@@ -1021,22 +1020,18 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     gTCPtxMsg = gTCPrxMsg = None
     loop.run_until_complete( tcp_RX(loop) )
     #
-    if gTCPrxMsg != None and gTCPrxMsg != '':
-        #
-        # process server message
-        #
-        if gTCPrxMsg == TCP_DEV_CLOSE_MSG:
-            break  
-        try:
-            server_msg_handling( p )
-        except bluepy.btle.BTLEDisconnectError:
-            print ("WSN-C> BTLE disconnected while message loop ... reconnecting ...", flush=True)
+    # does message handling
+    #
+    try:
+        server_msg_handling( p )
+    except btle.BTLEDisconnectError:
+        print ("WSN-C> BTLE disconnected while message loop ... reconnecting ...", flush=True)
+        p = SCD_scan_and_connect(False)
+        if  SCD_clear_memory(p) == None:
             p = SCD_scan_and_connect(False)
-            if  SCD_clear_memory(p) == None:
-                p = SCD_scan_and_connect(False)
-        except:
-            print ("WSN-C> unknown error while message loop !", flush=True)
-            break
+    except:
+        print ("WSN-C> unknown error while message loop !", flush=True)
+        break
     #
     # if last server communication time is longer than poll time, polling via http
     #
