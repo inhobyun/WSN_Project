@@ -256,6 +256,8 @@ async def tcp_RX(loop):
         else:
             if rx_data != None:
                 gTCPrxMsg = rx_data.decode()
+            else:
+                gTCPrxNull += 1
             if gTCPrxMsg == '':
                 gTCPrxNull += 1
                 print('null received: %d times' % gTCPrxNull, flush=True)
