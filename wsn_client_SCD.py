@@ -1033,7 +1033,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     #
     try:
         server_msg_handling( p )
-    except btle.BTLEDisconnectError:
+    except BTLEDisconnectError:
         print ("WSN-C> BTLE disconnected while message loop ... reconnecting ...", flush=True)
         p = SCD_scan_and_connect(False)
         if  SCD_clear_memory(p) == None:
