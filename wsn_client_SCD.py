@@ -856,8 +856,10 @@ def SCD_BDT_text_block():
                 line += 1
                 gBDTtextBlock += ( "\n%d," % line )
             gBDTtextBlock += ( ",%.1f" % ( float(int.from_bytes(gBDTdata[idx:idx+2], byteorder='little', signed=True)) / 10. ) ) # UoM : g
-            idx += 2        
-    gBDTtextBlock += ("\nEnd of Data\n")
+            idx += 2 
+    if gBDTtextBlock[len(gBDTtextBlock)-1] != '\n':
+        gBDTtextBlock += '\n'
+    gBDTtextBlock += ("End of Data\n")
     gBDTtextLen = len(gBDTtextBlock)
     gBDTtextPos = 0
     #    
