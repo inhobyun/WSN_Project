@@ -825,10 +825,10 @@ def SCD_BDT_text_block():
     time_delay = int.from_bytes(gBDTdata[idx+ 9:idx+13], byteorder='little', signed=True)
     ODR_adxl   = gBDTdata[idx+13]
     idx += 17 # skip start maker & container
-    gBDTtextBlock  = ("server time    : %s(%d)\n" %  ( (datetime.datetime.fromtimestamp(float(time_unix)).strftime('%Y-%m-%d %H:%M:%S'), time_unix) ))
-    gBDTtextBlock += ("delay time     : %.3f\n" % ( float(time_delay)/1000. ))
+    gBDTtextBlock  = ("server time: %s(%d)\n" %  ( (datetime.datetime.fromtimestamp(float(time_unix)).strftime('%Y-%m-%d %H:%M:%S'), time_unix) ))
+    gBDTtextBlock += ("delay time: %.3f\n" % ( float(time_delay)/1000. ))
     gBDTtextBlock += ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ ODR_adxl ]) 
-    gBDTtextBlock += (" Row #, Time-Stamp, X-AXIS, Y-AXIS, Z-AXIS\n")
+    gBDTtextBlock += ("Row #, Time-Stamp, X-AXIS, Y-AXIS, Z-AXIS\n")
     line = 1
     while (idx < EOD_pos):
         ## sensor_type =  gBDTdata[idx  ] & 0x0f
@@ -843,14 +843,12 @@ def SCD_BDT_text_block():
             if idx >= EOD_pos:
                 break
             if (n == 0):
-                ##gBDTtextBlock += ( "%6d, %10.3f" % (line,(float(time_stamp)/1000.)))
+                line += 1
                 gBDTtextBlock += ( "%d,%.3f" % (line,(float(time_stamp)/1000.)))                          
             elif (n % 3) == 0:
                 line += 1
-                ##gBDTtextBlock += ( "\n%6d,           " % line )
                 gBDTtextBlock += ( "\n%d," % line )
-            ##gBDTtextBlock += ( ", %6d" % (int.from_bytes(gBDTdata[idx:idx+2], byteorder='little', signed=True)) )
-            gBDTtextBlock += ( ",%d" % (int.from_bytes(gBDTdata[idx:idx+2], byteorder='little', signed=True)) )
+            gBDTtextBlock += ( ",%.1f" % float(int.from_bytes(gBDTdata[idx:idx+2], byteorder='little', signed=True)) / 10. ) # UoM : g
             idx += 2
         gBDTtextBlock += ( "\n" )     
     gBDTtextBlock += ("End of Data\n")
