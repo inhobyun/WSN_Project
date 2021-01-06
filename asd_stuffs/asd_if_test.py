@@ -63,7 +63,7 @@ except :
 
 t_0 = t = time.time()
 n = 0
-while t_1 - t_0 < TEST_DURATION:
+while t - t_0 < TEST_DURATION:
         x = get_g_value (3)
         y = get_g_value (4)
         z = get_g_value (5)
@@ -98,7 +98,7 @@ f.write(head3)
 f.write(head4)
 for i in range(n):
         idx = i*4
-        row = ("%d,%.3f,%.2f,%.2f,%.2f\n" % (i+1, gData[idx]-t_0, gData[idx+1], gData[idx+2], gData[idx+3]))
+        row = ("%d,%.3f,%.2f,%.2f,%.2f\n" % (i+1, gData[idx]-t_0, int(gData[idx+1]*100), int(gData[idx+2]*100), int(gData[idx+3]*100)))
         f.write(row)
 f.write("End of Data\n")        
 f.close()
