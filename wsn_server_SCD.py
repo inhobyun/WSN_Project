@@ -12,6 +12,7 @@ by Inho Byun, Researcher/KAIST
                     updated 2020-12-22; data log file name
                     updated 2020-12-28; DEV_OPEN
                     updated 2020-12-31; argv Bug fix
+                    updated 2021-01-06; graphy drawing updated
 """
 import datetime
 from flask import Flask, redirect, request
@@ -57,6 +58,8 @@ TCP_BDT_END_MSG   = 'BDT_END'       # client message to inform BDT data transfer
 # Some constant parameters
 #
 ACCEPT_WAIT_TIME  = 9               # time period to wait client connection
+#
+MAX_X_LIMIT       = 9600            # X-Axis point limit 
 #
 WSN_LOG_FILE_PATH   = "./static/log"
 WSN_LOG_FILE_NAME   = "WSN_Data_log.csv"
@@ -635,13 +638,14 @@ def post_graphTime():
     time_stamp += '+' + stamp_heder(row,WSN_STAMP_DELAY)
     row = f.readline()
     freq_stamp = stamp_heder(row,WSN_STAMP_FREQ)
+    freq = ''.join([c for c in freq_stamp if c in '0123456789'])
     row = f.readline()
     # init    
     x = []
     y = []
     n = 0
     # read x, y, z accelometer values
-    while n < 9600:
+    while n < MAX_X_LIMIT:
         try:
             row = f.readline()
         except:
@@ -656,25 +660,33 @@ def post_graphTime():
         else: 
             try:
                 col = row.split(',')
-                x_val = float(int(col[0])) / 3200.0
+                if col[1] == '':
+                    x_val = (float(col[0]) - 1.) / float(freq)
+                else:
+                    x_val = float(col[1])
+                    if n == 0:
+                        x_base = x_val
+                        x_val = 0
+                    else:
+                        x_val -= x_base    
                 # ===========================================
                 # here, handle more options afterward 
                 # - option: sum, x, y, z
                 # - ...
                 # ===========================================
                 if value == 'X only':
-                    y_val = abs(int(col[2]))
+                    y_val = abs(float(col[2]))
                 elif value == 'Y only':
-                    y_val = abs(int(col[3]))
+                    y_val = abs(float(col[3]))
                 elif value == 'Z only':
-                    y_val = abs(int(col[4]))
+                    y_val = abs(float(col[4]))
                 else:
-                    y_val = abs(int(col[2])) + abs(int(col[3])) + abs(int(col[4]))              
+                    y_val = abs(float(col[2])) + abs(float(col[3])) + abs(float(col[4]))              
                 # ===========================================
                 x.append(x_val)
                 y.append(y_val)
-            except:
-                print("WSN-S> error line at [%d]" % n, flush=True)
+            except Exception as e:
+                print('WSN-S> error line at [%d], "%r"' % (n, e), flush=True)
             n += 1        
     # fill zero    
     ##while n < 9600:
@@ -710,12 +722,13 @@ def post_graphFreq():
     time_stamp += '+' + stamp_heder(row,WSN_STAMP_DELAY)
     row = f.readline()
     freq_stamp = stamp_heder(row,WSN_STAMP_FREQ)
+    freq = ''.join([c for c in freq_stamp if c in '0123456789'])
     row = f.readline()
     # init       
     y = []
     n = 0
     # read x, y, z accelerometer values
-    while n < 9600:
+    while n < MAX_X_LIMIT:
         try:
             row = f.readline()
         except:
@@ -735,17 +748,17 @@ def post_graphFreq():
                 # - option: sum(abs(x), abx(y), abx(z))
                 # - ...
                 # ===========================================
-                y_val = abs(int(col[2])) + abs(int(col[3])) + abs(int(col[4]))
+                y_val = abs(float(col[2])) + abs(float(col[3])) + abs(float(col[4]))
                 # ===========================================
                 y.append(y_val)
-            except:
-                print("WSN-S> error line at [%d]" % n, flush=True)
+            except Exception as e:
+                print('WSN-S> error line at [%d], "%r"' % (n, e), flush=True)
             n += 1        
     print("WSN-S> read [%d] lines of data" % n, flush=True)    
     f.close()          
     # prepare fourier Transform
     print("WSN-S> prepare FFT", flush=True)
-    sampling_frequency = 3200
+    sampling_frequency = float(freq)
     amplitude = np.ndarray( n )
     # copy amplitude
     idx = 0
