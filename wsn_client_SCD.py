@@ -74,7 +74,11 @@ RESCAN_PERIOD     = 43200. # 12 hrs; time period to rescan BLE to connect
 SCD_IDLE_INTERVAL = 60.    # time interval to make BLE traffic to keep connection
 #
 STE_RUN_TIME    = 2.3    # STE rolling time in secconds for SENSOR data recording
-STE_FREQUENCY   = (400, 800, 1600, 3200, 6400)  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz 
+STE_FREQUENCY   = (400, 800, 1600, 3200, 6400)  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz
+#
+WSN_STAMP_TIME      = "server time"
+WSN_STAMP_DELAY     = "delay time"
+WSN_STAMP_FREQ      = "accelometer ODR" 
 #
 # global variables
 #
@@ -825,9 +829,9 @@ def SCD_BDT_text_block():
     time_delay = int.from_bytes(gBDTdata[idx+ 9:idx+13], byteorder='little', signed=True)
     ODR_adxl   = gBDTdata[idx+13]
     idx += 17 # skip start maker & container
-    gBDTtextBlock  = ("server time: %s(%d)\n" %  ( (datetime.datetime.fromtimestamp(float(time_unix)).strftime('%Y-%m-%d %H:%M:%S'), time_unix) ))
-    gBDTtextBlock += ("delay time: %.3f\n" % ( float(time_delay)/1000. ))
-    gBDTtextBlock += ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ ODR_adxl ]) 
+    gBDTtextBlock  = ("%s: %s(%d)\n" %  ( WSN_STAMP_TIME, (datetime.datetime.fromtimestamp(float(time_unix)).strftime('%Y-%m-%d %H:%M:%S'), time_unix) ))
+    gBDTtextBlock += ("%s: %.3f\n" % ( WSN_STAMP_DELAY, float(time_delay)/1000. ))
+    gBDTtextBlock += ("%s: %d Hz\n" % ( WSN_STAMP_FREQ, STE_FREQUENCY[ ODR_adxl ] )) 
     gBDTtextBlock += ("Row #, Time-Stamp, X-AXIS, Y-AXIS, Z-AXIS\n")
     line = 1
     while (idx < EOD_pos):
