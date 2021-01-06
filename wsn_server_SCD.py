@@ -426,10 +426,13 @@ def post_monStart():
     if value==0: 
         write_to_socket(TCP_STE_START_MSG)
         from_client = None
-    else:    
+    elif value<11:    
         gSTElockFlag = True
         write_to_socket(TCP_STE_REQ_MSG)
         from_client = read_from_socket(blockingTimer = 20)
+    else:
+        post_monStop()
+        return    
     # get the data to post
     if from_client != None:
         from_client = from_client.replace(')','')

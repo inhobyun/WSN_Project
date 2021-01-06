@@ -24,11 +24,12 @@ function monStart(value, is_mobile) {
         const data = response.data;
         //console.log(data);
         dispData(data);
-        if (data.timer == 'on') {
-            tid = setTimeout(monStart, Number(interval)*1000, 1, is_mobile);
+        if (data.timer == 'on' & value < 10) {
+            tid = setTimeout(monStart, Number(interval)*1000, value+1, is_mobile);
             document.getElementById("btn_stop" ).disabled = false;
         } else {
-            enableAllMenus(is_mobile);           
+            //enableAllMenus(is_mobile);
+            monStop(is_mobile)
         }  
     }).catch(function (error) {
         alert('Error occurred on submit: ' + error);
