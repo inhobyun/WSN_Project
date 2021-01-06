@@ -423,6 +423,7 @@ def post_monStart():
         return json.dumps(rows)   
 
     # send STE start & request
+    print('WSN-S> monitoring count "%r"' % value, flush=True)
     if value==0: 
         write_to_socket(TCP_STE_START_MSG)
         from_client = None
