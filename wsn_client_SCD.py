@@ -849,11 +849,11 @@ def SCD_BDT_text_block():
                 break
             if (n == 0):
                 line += 1
-                gBDTtextBlock += ( "%d,%.3f" % (line,(float(time_stamp)/1000.)))                          
+                gBDTtextBlock += ( "%d,%.3f" % ( line, (float(time_stamp)/1000.) ) )                          
             elif (n % 3) == 0:
                 line += 1
                 gBDTtextBlock += ( "\n%d," % line )
-            gBDTtextBlock += ( ",%.1f" % float(int.from_bytes(gBDTdata[idx:idx+2], byteorder='little', signed=True)) / 10. ) # UoM : g
+            gBDTtextBlock += ( ",%.1f" % ( float(int.from_bytes(gBDTdata[idx:idx+2], byteorder='little', signed=True)) / 10. ) ) # UoM : g
             idx += 2
         gBDTtextBlock += ( "\n" )     
     gBDTtextBlock += ("End of Data\n")
