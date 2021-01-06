@@ -834,7 +834,7 @@ def SCD_BDT_text_block():
     gBDTtextBlock += ("%s: %.3f\n" % ( WSN_STAMP_DELAY, float(time_delay)/1000. ) )
     gBDTtextBlock += ("%s: %d Hz\n" % ( WSN_STAMP_FREQ, STE_FREQUENCY[ ODR_adxl ] ) ) 
     gBDTtextBlock += ("Row #, Time-Stamp, X-AXIS, Y-AXIS, Z-AXIS\n")
-    line = 1
+    line = 0
     while (idx < EOD_pos):
         ## sensor_type =  gBDTdata[idx  ] & 0x0f
         time_stamp  = (gBDTdata[idx  ] & 0xf0) >> 4
@@ -849,7 +849,7 @@ def SCD_BDT_text_block():
                 break
             if (n == 0):
                 line += 1
-                gBDTtextBlock += ( "%d,%.3f" % ( line, (float(time_stamp)/1000.) ) )                          
+                gBDTtextBlock += ( "%d,%.5f" % ( line, (float(time_stamp)/1000.) ) )                          
             elif (n % 3) == 0:
                 line += 1
                 gBDTtextBlock += ( "\n%d," % line )

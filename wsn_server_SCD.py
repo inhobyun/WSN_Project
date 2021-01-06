@@ -665,14 +665,14 @@ def post_graphTime():
             try:
                 col = row.split(',')
                 if col[1] == '':
-                    x_val = (float(col[0]) - 1.) / float(freq)
+                    x_val = x_base + (n - n_base) / float(freq)
                 else:
                     x_val = float(col[1])
-                    if n == 0:
-                        x_base = x_val
-                        x_val = 0
-                    else:
-                        x_val -= x_base    
+                    if n==0:
+                        x_offset = x_val
+                    x_val -= x_offset
+                    x_base = x_val
+                    n_base = int(col[0])
                 # ===========================================
                 # here, handle more options afterward 
                 # - option: sum, x, y, z
