@@ -21,8 +21,28 @@ import RPi.GPIO as GPIO
 #
 # constant values
 #
-TEST_DURATION = 1.0
+TEST_DURATION = 10.0
 
+#
+# gloval
+#
+gData = []
+
+
+#############################################
+# get_g_value 
+#
+def get_g_value (chNumber):
+        v_val = ADC.ADS1256_GetChannalValue(chNumber)*5.0/0x7fffff
+        g_val = v_val - 1.5 # ZERO g BIAS typical 1.5, x & y: 1.35~1.65, z: 1.2~1.8
+        g_val = g_val * 0.3 # typical 300mV, 270~330mV
+        return g_val
+
+#############################################
+#############################################
+#         
+# Main starts here
+#
 print ("ASD--> ADS1256 Test Program", flush=True)
 
 try:
@@ -31,80 +51,20 @@ try:
 except :
     GPIO.cleanup()
     print ("ASD--> ADS1256 init fail, unknown error !", flush=True)
-    exit()
+    sys.exit(-1)
 
-cnt = 0
-t0 = t1 = time.time()
-while ( t1 - t0 < TEST_DURATION ):
-        t1 = time.time()
-        print ('ASD--> at %f\x0d'%(t1), flush=True)
-        print ("\33[2A", flush=True)
-        cnt += 1
-        
-print ('\nASD--> count [%d] time period: %f, %f'%(cnt, (t1-t0), (t1-t0)/cnt), flush=True)
+t_0 = t = time.time()
+n = 0
+while t_1 - t_0 < TEST_DURATION:
+        x = get_g_value (3)
+        y = get_g_value (4)
+        z = get_g_value (5)
+        t = time.time()
+        n += 1
+        gData.append(t)
+        gData.append(x)
+        gData.append(y)
+        gData.append(z)
 
+print ("ASD--> record %d rows, start: %f, end: %f; %f sec" % (n, t_0, t, t-t_0 ), flush=True)
 
-cnt = 0
-t0 = t1 = time.time()
-while ( t1 - t0 < TEST_DURATION ):
-        val_x = ADC.ADS1256_GetChannalValue(3)
-        t1 = time.time()
-        print ('ASD--> [%lf] at %f\x0d'%(val_x*5.0/0x7fffff, t1), flush=True)
-        print ("\33[2A", flush=True)
-        cnt += 1
-        
-print ('\nASD--> count [%d] time period: %f, %f'%(cnt, (t1-t0), (t1-t0)/cnt), flush=True)
-
-cnt = 0
-t0 = t1 = time.time()
-while ( t1 - t0 < TEST_DURATION ):
-        val_x = ADC.ADS1256_GetChannalValue(3)
-        val_y = ADC.ADS1256_GetChannalValue(4)
-        val_z = ADC.ADS1256_GetChannalValue(5)
-        t1 = time.time()
-        print ('ASD--> [%lf][%lf][%lf] at %f\x0d'%(val_x*5.0/0x7fffff, val_y*5.0/0x7fffff, val_z*5.0/0x7fffff, t1), flush=True)
-        print ("\33[2A", flush=True)
-        cnt += 1
-        
-print ('\nASD--> count [%d] time period: %f, %f'%(cnt, (t1-t0), (t1-t0)/cnt), flush=True)
-
-cnt = 0
-t0 = t1 = time.time()
-while ( t1 - t0 < TEST_DURATION ):
-        t1 = time.time()
-        ##print ('ASD--> at %f\x0d'%(t1), flush=True)
-        ##print ("\33[2A", flush=True)
-        cnt += 1
-        
-print ('\nASD--> count [%d] time period: %f, %f'%(cnt, (t1-t0), (t1-t0)/cnt), flush=True)
-
-
-cnt = 0
-t0 = t1 = time.time()
-while ( t1 - t0 < TEST_DURATION ):
-        val_x = ADC.ADS1256_GetChannalValue(3)
-        t1 = time.time()
-        ##print ('ASD--> [%lf] at %f\x0d'%(val_x*5.0/0x7fffff, t1), flush=True)
-        ##print ("\33[2A", flush=True)
-        cnt += 1
-        
-print ('\nASD--> count [%d] time period: %f, %f'%(cnt, (t1-t0), (t1-t0)/cnt), flush=True)
-
-cnt = 0
-t0 = t1 = time.time()
-while ( t1 - t0 < TEST_DURATION ):
-        val_x = ADC.ADS1256_GetChannalValue(3)
-        val_y = ADC.ADS1256_GetChannalValue(4)
-        val_z = ADC.ADS1256_GetChannalValue(5)
-        t1 = time.time()
-        ##print ('ASD--> [%lf][%lf][%lf] at %f\x0d'%(val_x*5.0/0x7fffff, val_y*5.0/0x7fffff, val_z*5.0/0x7fffff, t1), flush=True)
-        ##print ("\33[2A", flush=True)
-        cnt += 1
-        
-print ('\nASD--> count [%d] time period: %f, %f'%(cnt, (t1-t0), (t1-t0)/cnt), flush=True)
-
-
-
-GPIO.cleanup()
-
-print ("ASD--> completed", flush=True)
