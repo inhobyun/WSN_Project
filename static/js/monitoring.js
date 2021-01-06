@@ -25,7 +25,8 @@ function monStart(value, is_mobile) {
         //console.log(data);
         dispData(data);
         if (data.timer == 'on' & value < 10) {
-            tid = setTimeout(monStart, Number(interval)*1000, value+1, is_mobile);
+            i = value + 1
+            tid = setTimeout(monStart, Number(interval)*1000, i, is_mobile);
             document.getElementById("btn_stop" ).disabled = false;
         } else {
             //enableAllMenus(is_mobile);
