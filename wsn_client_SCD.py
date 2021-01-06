@@ -836,6 +836,8 @@ def SCD_BDT_text_block():
     gBDTtextBlock += ("Row #, Time-Stamp, X-AXIS, Y-AXIS, Z-AXIS\n")
     line = 0
     while (idx < EOD_pos):
+        if line > 0:
+            gBDTtextBlock += ( "\n" )
         ## sensor_type =  gBDTdata[idx  ] & 0x0f
         time_stamp  = (gBDTdata[idx  ] & 0xf0) >> 4
         time_stamp +=  gBDTdata[idx+1] << 4
@@ -854,9 +856,8 @@ def SCD_BDT_text_block():
                 line += 1
                 gBDTtextBlock += ( "\n%d," % line )
             gBDTtextBlock += ( ",%.1f" % ( float(int.from_bytes(gBDTdata[idx:idx+2], byteorder='little', signed=True)) / 10. ) ) # UoM : g
-            idx += 2
-        gBDTtextBlock += ( "\n" )     
-    gBDTtextBlock += ("End of Data\n")
+            idx += 2        
+    gBDTtextBlock += ("\nEnd of Data\n")
     gBDTtextLen = len(gBDTtextBlock)
     gBDTtextPos = 0
     #    
