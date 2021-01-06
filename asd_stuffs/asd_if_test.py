@@ -21,7 +21,15 @@ import RPi.GPIO as GPIO
 #
 # constant values
 #
-TEST_DURATION = 10.0
+TEST_DURATION = 6.0
+#
+WSN_LOG_FILE_PATH   = "./static/log"
+WSN_LOG_FILE_NAME   = "WSN_Data_log.csv"
+WSN_LOG_FILE_PREFIX = "WSN_Data_log"
+WSN_LOG_FILE_SUFFIX = ".csv"
+WSN_STAMP_TIME      = "server time"
+WSN_STAMP_DELAY     = "delay time"
+WSN_STAMP_FREQ      = "accelometer ODR"
 
 #
 # gloval
@@ -65,6 +73,34 @@ while t_1 - t_0 < TEST_DURATION:
         gData.append(x)
         gData.append(y)
         gData.append(z)
+val_odr = float(n)/(t-t_0)
+print ("ASD--> record: %d rows, ODR: %f" % (n, val_odr ), flush=True)
 
-print ("ASD--> record %d rows, start: %f, end: %f; %f sec" % (n, t_0, t, t-t_0 ), flush=True)
+fmark = "ADXL335"
+fname  = WSN_LOG_FILE_PATH
+fname += '/' + WSN_LOG_FILE_PREFIX
+fname += '_' + datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d%H%M%S')
+fname += '_' + fmark
+fname += WSN_LOG_FILE_SUFFIX
 
+print ('ASD--> writing data to log file "%s"' % (fname), flush=True)
+
+head1 = ("server time    : %s(%f)\n" %  ( (datetime.datetime.fromtimestamp(t_0).strftime('%Y-%m-%d %H:%M:%S'), t_0) ))
+head2 = ("delay time     : %.3f\n" % ( 0. ))
+head3 = ("accelometer ODR: %.3f Hz\n" % val_odr) 
+head4 = (" Row #, Time-Stamp, X-AXIS, Y-AXIS, Z-AXIS\n")
+
+f = open(fname, "w")
+
+f.write(head1)
+f.write(head2)
+f.write(head3)
+f.write(head4)
+for i in range(n):
+        idx = i*4
+        row = ("%d,%.3f,%.2f,%.2f,%.2f\n" % (i+1, gData[idx]-t_0, gData[idx+1], gData[idx+2], gData[idx+3]))
+        f.write(row)
+f.write("End of Data\n")        
+f.close()
+
+print ('ASD--> completed !', flush=True)
