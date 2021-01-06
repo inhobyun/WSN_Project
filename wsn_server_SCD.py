@@ -62,8 +62,8 @@ ACCEPT_WAIT_TIME  = 9               # time period to wait client connection
 MAX_X_LIMIT       = 9600            # X-Axis point limit 
 #
 WSN_LOG_FILE_PATH   = "./static/log"
-WSN_LOG_FILE_NAME   = "WSN_Data_log.csv"
-WSN_LOG_FILE_PREFIX = "WSN_Data_log"
+WSN_LOG_FILE_NAME   = "WSN_log.csv"
+WSN_LOG_FILE_PREFIX = "WSN_log"
 WSN_LOG_FILE_SUFFIX = ".csv"
 WSN_STAMP_TIME      = "server time"
 WSN_STAMP_DELAY     = "delay time"

@@ -19,6 +19,7 @@ by Inho Byun, Researcher/KAIST
                     updated 2020-12-22; data log file name
                     updated 2020-12-28; DEV_OPEN
                     updated 2021-01-04; BTLEDisconnectError handling
+                    updated 2021-01-07; BDT data writing update
 """
 import asyncio
 from bluepy.btle import Scanner, DefaultDelegate, UUID, Peripheral
@@ -829,9 +830,9 @@ def SCD_BDT_text_block():
     time_delay = int.from_bytes(gBDTdata[idx+ 9:idx+13], byteorder='little', signed=True)
     ODR_adxl   = gBDTdata[idx+13]
     idx += 17 # skip start maker & container
-    gBDTtextBlock  = ("%s: %s(%d)\n" %  ( WSN_STAMP_TIME, (datetime.datetime.fromtimestamp(float(time_unix)).strftime('%Y-%m-%d %H:%M:%S'), time_unix) ))
-    gBDTtextBlock += ("%s: %.3f\n" % ( WSN_STAMP_DELAY, float(time_delay)/1000. ))
-    gBDTtextBlock += ("%s: %d Hz\n" % ( WSN_STAMP_FREQ, STE_FREQUENCY[ ODR_adxl ] )) 
+    gBDTtextBlock  = ("%s: %s(%d)\n" %  ( WSN_STAMP_TIME, datetime.datetime.fromtimestamp(float(time_unix)).strftime('%Y-%m-%d %H:%M:%S'), time_unix ) )
+    gBDTtextBlock += ("%s: %.3f\n" % ( WSN_STAMP_DELAY, float(time_delay)/1000. ) )
+    gBDTtextBlock += ("%s: %d Hz\n" % ( WSN_STAMP_FREQ, STE_FREQUENCY[ ODR_adxl ] ) ) 
     gBDTtextBlock += ("Row #, Time-Stamp, X-AXIS, Y-AXIS, Z-AXIS\n")
     line = 1
     while (idx < EOD_pos):
@@ -1035,14 +1036,11 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     #
     try:
         server_msg_handling( p )
-    except BTLEDisconnectError:
-        print ("WSN-C> BTLE disconnected while message loop ... reconnecting ...", flush=True)
+    except Exception as e:
+        print ('WSN-S> error "%r" while message loop ... reconnecting ...' % (e), flush=True)
         p = SCD_scan_and_connect(False)
         if  SCD_clear_memory(p) == None:
             p = SCD_scan_and_connect(False)
-    except:
-        print ("WSN-C> unknown error while message loop !", flush=True)
-        break
     #
     # if last server communication time is longer than poll time, polling via http
     #
