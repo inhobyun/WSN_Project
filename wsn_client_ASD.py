@@ -285,20 +285,6 @@ def get_g_value (chNumber):
         return g_val
 
 #############################################
-# Define ASD_connect
-#############################################
-def ASD_init():
-    global ADC
-    try:
-        ADC = ADS1256.ADS1256()
-        ADC.ADS1256_init()
-    except Exception as e:
-        GPIO.cleanup()
-        print ('ASD--> ADS1256 init fail, "%r" !' % (e), flush=True)
-        sys.exit(-1)
-    return 
-
-#############################################
 # run STE & BLK data transfer
 #
 def ASD_run_STE_and_BDT():
@@ -459,7 +445,13 @@ if len(sys.argv) > 3:
 #
 # ASD init
 #
-ASD_init()
+try:
+    ADC = ADS1256.ADS1256()
+    ADC.ADS1256_init()
+except Exception as e:
+    GPIO.cleanup()
+    print ('ASD--> ADS1256 init fail, "%r" !' % (e), flush=True)
+    sys.exit(-1)
 #
 # connect server
 #
