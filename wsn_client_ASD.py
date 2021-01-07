@@ -289,7 +289,7 @@ def ASD_init():
         GPIO.cleanup()
         print ('ASD--> ADS1256 init fail, "%r" !' % (e), flush=True)
         sys.exit(-1)
-   return 
+    return 
 
 #############################################
 # run STE & BLK data transfer
