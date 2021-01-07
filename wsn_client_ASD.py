@@ -41,12 +41,14 @@ WSN_STAMP_FREQ      = "accelometer ODR"
 gSTEstartTime = 0.    # STE start timestamp
 gSTElastTime  = 0.    # last STE timestamp
 gSTEcnt       = 0     # data # during STE
-gSTEfrequency = 0.    # STE speed = data # / duration 
+gSTEfrequency = 0.    # STE speed = data # / duration
+gSTEisRolling = False 
 # BDT - Block Data Transfer
 gBDTdata      = []
 gBDTtextBlock = ''
 gBDTtextLen   = 0
 gBDTtextPos   = 0
+gBDTisRolled  = False
 # IDLE
 gIDLElastTime = 0.    # last BLE traffic on connection
 
@@ -332,7 +334,7 @@ def ASD_BDT_text_block():
     gBDTtextBlock += ("Row #, Time-Stamp, X-AXIS, Y-AXIS, Z-AXIS\n")
     for i in range(gSTEcnt):
         idx = i*4
-        gBDTtextBlock += ("%d,%.5f,%.2f,%.2f,%.2f\n" % (i+1, gBDTdata[idx]-t_0, gBDTdata[idx+1], gBDTdata[idx+2], gBDTdata[idx+3]))
+        gBDTtextBlock += ("%d,%.5f,%.2f,%.2f,%.2f\n" % (i+1, gBDTdata[idx], gBDTdata[idx+1], gBDTdata[idx+2], gBDTdata[idx+3]))
     gBDTtextBlock += ("End of Data\n")
     gBDTtextLen = len(gBDTtextBlock)
     print ("ASD--> text block [%d] bytes recorded !" % gBDTtextLen, flush=True)
@@ -371,7 +373,6 @@ def ASD_BDT_get_text(returnMax = TCP_PACKET_MAX):
 def server_msg_handling():
     global gTCPrxMsg
     global gTCPtxMsg
-    global gSTElastData
     global gSTElastTime
     global gSTEisRolling
     global gBDTisRolled
