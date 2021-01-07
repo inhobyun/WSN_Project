@@ -299,6 +299,10 @@ def ASD_run_STE_and_BDT():
     # rolls STE
     #
     print ("ASD--> recording => ", end='', flush=True)
+    #
+    if len(gBDTdata) != 0:
+        del gBDTdata
+    #
     gSTEstartTime = gSTElastTime = time.time()
     gSTEcnt = 0
     while gSTElastTime - gSTEstartTime < STE_RUN_TIME:
@@ -328,6 +332,11 @@ def ASD_BDT_text_block():
     global gBDTtextLen
     
     print ("ASD--> text block creation from BDT => ", end='', flush=True)
+    #
+    if gBDTtextBlock != '':
+        del gBDTtextBlock
+        gBDTtextBlock = ''
+    #
     gBDTtextBlock  = ("%s: %s(%f)\n" %  ( ( WSN_STAMP_TIME, datetime.datetime.fromtimestamp(gSTEstartTime).strftime('%Y-%m-%d %H:%M:%S'), gSTEstartTime) ))
     gBDTtextBlock += ("%s: %.3f\n" % ( WSN_STAMP_DELAY, 0. ))
     gBDTtextBlock += ("%s: %.3f Hz\n" % ( WSN_STAMP_FREQ, gSTEfrequency) ) 
