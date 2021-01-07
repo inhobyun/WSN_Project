@@ -305,7 +305,7 @@ def ASD_run_STE_and_BDT():
         z = get_g_value (5)
         gSTElastTime = time.time()
         gSTEcnt += 1
-        gBDTdata.append(t)
+        gBDTdata.append(gSTElastTime)
         gBDTdata.append(x)
         gBDTdata.append(y)
         gBDTdata.append(z)
