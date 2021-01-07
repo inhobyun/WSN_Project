@@ -286,11 +286,9 @@ def get_g_value (chNumber):
 
 #############################################
 # Define ASD_connect
-#
-# should implement "BTLEDisconnectError" exception
-#
 #############################################
 def ASD_init():
+    global ADC
     try:
         ADC = ADS1256.ADS1256()
         ADC.ADS1256_init()
