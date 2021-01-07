@@ -92,8 +92,8 @@ for i in range(rows):
         idx = i*4
         gBDTtextBlock += ("%d,%.5f,%.2f,%.2f,%.2f\n" % (i+1, gBDTdata[idx]-t_0, gBDTdata[idx+1], gBDTdata[idx+2], gBDTdata[idx+3]))
 gBDTtextBlock += ("End of Data\n")
-gBDTtextLen = len(gBDTtextList)
-print ("formtted", flush=True)        
+gBDTtextLen = len(gBDTtextBlock)
+print ("formatted", flush=True)        
 
 print ('ASD--> writing data to log file => ', end='', flush=True)
 fmark = "ADXL335"
@@ -104,7 +104,7 @@ fname += '_' + fmark
 fname += WSN_LOG_FILE_SUFFIX
 f = open(fname, "w")
 for i in range(gBDTtextLen):
-        f.write(gBDTtextList[i])
+        f.write(gBDTtextBlock[i])
 f.close()
 print ('"%s" created' % (fname), flush=True)    
 
