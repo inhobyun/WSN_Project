@@ -276,6 +276,15 @@ def hex_str( vBytes ):
     return vString
 
 #############################################
+# get_g_value 
+#
+def get_g_value (chNumber):
+        v_val  = ADC.ADS1256_GetChannalValue(chNumber)*5.0/0x7fffff
+        g_val  = v_val - 1.5 # ZERO g BIAS typical 1.5, x & y: 1.35~1.65, z: 1.2~1.8
+        g_val *= 0.3 # 1g = typical 300mV, 270~330mV
+        return g_val
+
+#############################################
 # Define ASD_connect
 #
 # should implement "BTLEDisconnectError" exception
@@ -343,6 +352,8 @@ def ASD_BDT_text_block():
     gBDTtextBlock += ("End of Data\n")
     gBDTtextLen = len(gBDTtextBlock)
     print ("ASD--> text block [%d] bytes recorded !" % gBDTtextLen, flush=True)
+    #
+    return
 
 #############################################
 # create text memory block from BDT w/o non-data
@@ -367,6 +378,7 @@ def ASD_BDT_get_text(returnMax = TCP_PACKET_MAX):
         else:
             rtn = ''
             gBDTtextPos += 1
+    #        
     return rtn    
 
 #############################################
