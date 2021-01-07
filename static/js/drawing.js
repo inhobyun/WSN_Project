@@ -6,7 +6,7 @@ function drawGraph(data, color_val, y_min_id, y_max_id, x_min_id, x_max_id) {
     // Clear the chart box.
     document.getElementById('chart-box').innerHTML = '';    
     // set the dimensions and margins of the graph
-    var margin = {top: 30, left: 30, bottom: 30, right: 30},
+    var margin = {top: 30, left: 60, bottom: 30, right: 30},
         width = 1640 - margin.left - margin.right, /* window width about 1920px; left width 180~280px; */
         height = 720 - margin.top - margin.bottom; /* window height about 820px; */
     // append the svg object to the body of the page
