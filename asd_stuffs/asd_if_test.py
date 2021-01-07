@@ -21,11 +21,11 @@ import RPi.GPIO as GPIO
 #
 # constant values
 #
-STE_RUN_TIME = 6.0
+STE_RUN_TIME = 3.0
 #
 WSN_LOG_FILE_PATH   = "./static/log"
-WSN_LOG_FILE_NAME   = "WSN_Data_log.csv"
-WSN_LOG_FILE_PREFIX = "WSN_Data_log"
+WSN_LOG_FILE_NAME   = "WSN_log.csv"
+WSN_LOG_FILE_PREFIX = "WSN_log"
 WSN_LOG_FILE_SUFFIX = ".csv"
 WSN_STAMP_TIME      = "server time"
 WSN_STAMP_DELAY     = "delay time"

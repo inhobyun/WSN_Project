@@ -74,7 +74,7 @@ RESCAN_INTERVAL   = 50.    # 1 min.; looping to rescan BLE after scan failed
 RESCAN_PERIOD     = 43200. # 12 hrs; time period to rescan BLE to connect  
 SCD_IDLE_INTERVAL = 60.    # time interval to make BLE traffic to keep connection
 #
-STE_RUN_TIME    = 2.3    # STE rolling time in secconds for SENSOR data recording
+STE_RUN_TIME    = 3.3    # STE rolling time in secconds for SENSOR data recording
 STE_FREQUENCY   = (400, 800, 1600, 3200, 6400)  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz
 #
 WSN_STAMP_TIME      = "server time"
