@@ -347,7 +347,7 @@ def ASD_BDT_text_block():
 #############################################
 # create text memory block from BDT w/o non-data
 #
-def SCD_BDT_get_text(returnMax = TCP_PACKET_MAX):
+def ASD_BDT_get_text(returnMax = TCP_PACKET_MAX):
     global gBDTtextBlock
     global gBDTtextLen
     global gBDTtextPos
@@ -372,7 +372,7 @@ def SCD_BDT_get_text(returnMax = TCP_PACKET_MAX):
 #############################################
 # server message handling
 #
-def server_msg_handling( p ):
+def server_msg_handling():
     global gTCPrxMsg
     global gTCPtxMsg
     global gSTElastData
@@ -403,8 +403,8 @@ def server_msg_handling( p ):
     elif gTCPrxMsg == TCP_BDT_RUN_MSG:
         # start BDT
         print ("WSN-C> BDT running => ", end='', flush=True)
-        SCD_run_STE_and_BDT()
-        SCD_BDT_text_block()
+        ASD_run_STE_and_BDT()
+        ASD_BDT_text_block()
         gBDTisRolled = True
         gBDTtextPos = 0
         print ('completed', flush=True)
@@ -412,7 +412,7 @@ def server_msg_handling( p ):
         # request BDT data
         if gBDTisRolled:
             print ("WSN-C> request BDT data ...", flush=True)
-            gTCPtxMsg = SCD_BDT_get_text()
+            gTCPtxMsg = ASD_BDT_get_text()
             if gTCPtxMsg.find("End") != -1:
                 gBDTisRolled = False
         else:
@@ -481,7 +481,7 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     # does message handling
     #
     try:
-        server_msg_handling( p )
+        server_msg_handling()
     except Exception as e:
         print ('WSN-S> error "%r" while message loop ... exit ...' % (e), flush=True)
         break
