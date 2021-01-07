@@ -19,6 +19,7 @@ by Inho Byun, Researcher/KAIST
                     updated 2020-12-22; data log file name
                     updated 2020-12-28; DEV_OPEN
                     updated 2021-01-04; BTLEDisconnectError handling
+                    updated 2021-01-07; BDT data writing update
 """
 import asyncio
 from bluepy.btle import Scanner, DefaultDelegate, UUID, Peripheral
@@ -73,8 +74,12 @@ RESCAN_INTERVAL   = 50.    # 1 min.; looping to rescan BLE after scan failed
 RESCAN_PERIOD     = 43200. # 12 hrs; time period to rescan BLE to connect  
 SCD_IDLE_INTERVAL = 60.    # time interval to make BLE traffic to keep connection
 #
-STE_RUN_TIME    = 2.3    # STE rolling time in secconds for SENSOR data recording
-STE_FREQUENCY   = (400, 800, 1600, 3200, 6400)  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz 
+STE_RUN_TIME    = 3.3    # STE rolling time in secconds for SENSOR data recording
+STE_FREQUENCY   = (400, 800, 1600, 3200, 6400)  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz
+#
+WSN_STAMP_TIME      = "server time"
+WSN_STAMP_DELAY     = "delay time"
+WSN_STAMP_FREQ      = "accelometer ODR" 
 #
 # global variables
 #
@@ -825,12 +830,14 @@ def SCD_BDT_text_block():
     time_delay = int.from_bytes(gBDTdata[idx+ 9:idx+13], byteorder='little', signed=True)
     ODR_adxl   = gBDTdata[idx+13]
     idx += 17 # skip start maker & container
-    gBDTtextBlock  = ("server time    : %s(%d)\n" %  ( (datetime.datetime.fromtimestamp(float(time_unix)).strftime('%Y-%m-%d %H:%M:%S'), time_unix) ))
-    gBDTtextBlock += ("delay time     : %.3f\n" % ( float(time_delay)/1000. ))
-    gBDTtextBlock += ("accelometer ODR: %d Hz\n" % STE_FREQUENCY[ ODR_adxl ]) 
-    gBDTtextBlock += (" Row #, Time-Stamp, X-AXIS, Y-AXIS, Z-AXIS\n")
-    line = 1
+    gBDTtextBlock  = ("%s: %s(%d)\n" %  ( WSN_STAMP_TIME, datetime.datetime.fromtimestamp(float(time_unix)).strftime('%Y-%m-%d %H:%M:%S'), time_unix ) )
+    gBDTtextBlock += ("%s: %.3f\n" % ( WSN_STAMP_DELAY, float(time_delay)/1000. ) )
+    gBDTtextBlock += ("%s: %d Hz\n" % ( WSN_STAMP_FREQ, STE_FREQUENCY[ ODR_adxl ] ) ) 
+    gBDTtextBlock += ("Row #, Time-Stamp, X-AXIS, Y-AXIS, Z-AXIS\n")
+    line = 0
     while (idx < EOD_pos):
+        if line > 0:
+            gBDTtextBlock += ( "\n" )
         ## sensor_type =  gBDTdata[idx  ] & 0x0f
         time_stamp  = (gBDTdata[idx  ] & 0xf0) >> 4
         time_stamp +=  gBDTdata[idx+1] << 4
@@ -843,16 +850,15 @@ def SCD_BDT_text_block():
             if idx >= EOD_pos:
                 break
             if (n == 0):
-                ##gBDTtextBlock += ( "%6d, %10.3f" % (line,(float(time_stamp)/1000.)))
-                gBDTtextBlock += ( "%d,%.3f" % (line,(float(time_stamp)/1000.)))                          
+                line += 1
+                gBDTtextBlock += ( "%d,%.5f" % ( line, (float(time_stamp)/1000.) ) )                          
             elif (n % 3) == 0:
                 line += 1
-                ##gBDTtextBlock += ( "\n%6d,           " % line )
                 gBDTtextBlock += ( "\n%d," % line )
-            ##gBDTtextBlock += ( ", %6d" % (int.from_bytes(gBDTdata[idx:idx+2], byteorder='little', signed=True)) )
-            gBDTtextBlock += ( ",%d" % (int.from_bytes(gBDTdata[idx:idx+2], byteorder='little', signed=True)) )
-            idx += 2
-        gBDTtextBlock += ( "\n" )     
+            gBDTtextBlock += ( ",%.1f" % ( float(int.from_bytes(gBDTdata[idx:idx+2], byteorder='little', signed=True)) / 10. ) ) # UoM : g
+            idx += 2 
+    if gBDTtextBlock[len(gBDTtextBlock)-1] != '\n':
+        gBDTtextBlock += '\n'
     gBDTtextBlock += ("End of Data\n")
     gBDTtextLen = len(gBDTtextBlock)
     gBDTtextPos = 0
@@ -1033,14 +1039,11 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     #
     try:
         server_msg_handling( p )
-    except BTLEDisconnectError:
-        print ("WSN-C> BTLE disconnected while message loop ... reconnecting ...", flush=True)
+    except Exception as e:
+        print ('WSN-S> error "%r" while message loop ... reconnecting ...' % (e), flush=True)
         p = SCD_scan_and_connect(False)
         if  SCD_clear_memory(p) == None:
             p = SCD_scan_and_connect(False)
-    except:
-        print ("WSN-C> unknown error while message loop !", flush=True)
-        break
     #
     # if last server communication time is longer than poll time, polling via http
     #
