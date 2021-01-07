@@ -206,6 +206,7 @@ async def tcp_RX(loop):
             rx_data = await asyncio.wait_for ( gTCPreader.read(TCP_PACKET_MAX), timeout=10.0 )
         except asyncio.TimeoutError:
             print('timeout', flush=True)
+            print ("\33[2A", flush=True)
         except ConnectionResetError:
             print('connection error !', flush=True)
             gTCPwriter = gTCPreader = None
@@ -269,15 +270,6 @@ async def tcp_TX(tx_msg, loop):
 #############################################
 
 #############################################
-# convert hex() string to format like "hh.hh.hh"
-#
-def hex_str( vBytes ):
-    #
-    vString = ''.join(['.' + ch if i % 2 == 0 and i != 0 else ch for i, ch in enumerate(vBytes.hex())])
-    #
-    return vString
-
-#############################################
 # get_g_value 
 #
 def get_g_value (chNumber):
@@ -302,6 +294,7 @@ def ASD_run_STE_and_BDT():
     #
     if len(gBDTdata) != 0:
         del gBDTdata
+        gBDTdata = []
     #
     gSTEstartTime = gSTElastTime = time.time()
     gSTEcnt = 0
