@@ -29,7 +29,7 @@ import RPi.GPIO as GPIO
 #############################################
 #
 STE_RUN_TIME    = 3.0    # STE rolling time in secconds for SENSOR data recording
-STE_FREQUENCY   = (400, 800, 1600, 3200, 6400)  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz
+## STE_FREQUENCY   = (400, 800, 1600, 3200, 6400)  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz
 #
 WSN_STAMP_TIME      = "server time"
 WSN_STAMP_DELAY     = "delay time"
@@ -37,24 +37,16 @@ WSN_STAMP_FREQ      = "accelometer ODR"
 #
 # global variables
 #
-gScannedCount = 0     # count of scanned BLE devices
 # STE - Short Time Experiment
-gSTEcfgMode   = bytes(35)  # Sensor Mode
-gSTEnotiCnt   = 0     # count of notifications from connected device
-gSTEstartTime = 0.    # notification start timestamp
-gSTElastTime  = 0.    # last notification timestamp
-gSTElastData  = None  # last notification data
-gSTEisRolling = False # flag wether STE is on rolling
+gSTEstartTime = 0.    # STE start timestamp
+gSTElastTime  = 0.    # last STE timestamp
+gSTEcnt       = 0     # data # during STE
+gSTEfrequency = 0.    # STE speed = data # / duration 
 # BDT - Block Data Transfer
-gBDTnotiCnt   = 0
-gBDTstartTime = 0.   
-gBDTlastTime  = 0.
-gBDTdata      = bytearray(SCD_MAX_FLASH)
+gBDTdata      = []
 gBDTtextBlock = ''
 gBDTtextLen   = 0
 gBDTtextPos   = 0
-gBDTcrc32     = bytearray(4)
-gBDTisRolled = False
 # IDLE
 gIDLElastTime = 0.    # last BLE traffic on connection
 
@@ -283,85 +275,73 @@ def hex_str( vBytes ):
     #
     return vString
 
-   return
-
-
 #############################################
 # Define ASD_connect
 #
 # should implement "BTLEDisconnectError" exception
 #
 #############################################
-def ASD_connect( is_first = True ):
-
-   return p    
-
+def ASD_init():
+    try:
+        ADC = ADS1256.ADS1256()
+        ADC.ADS1256_init()
+    except Exception as e:
+        GPIO.cleanup()
+        print ('ASD--> ADS1256 init fail, "%r" !' % (e), flush=True)
+        sys.exit(-1)
+   return 
 
 #############################################
 # run STE & BLK data transfer
 #
 def ASD_run_STE_and_BDT():
-    global gBDTisRolled
-    global gBDTnotiCnt
-    global gBDTstartTime
-    global gBDTlastTime    
+    global gSTEstartTime
+    global gSTElastTime
+    global gSTEcnt   
+    global gSTEfrequency
+    global gBDTdata
     #
-    # rolls STE for certain time period
+    # rolls STE
     #
-    # start STE w/ memory writing
-    print ("ASD--> Recording STE starting ...", flush=True)
-    p.setDelegate( NotifyDelegate(p) )
-    SCD_set_STE_config(p, True, True)
-    SCD_toggle_STE_rolling(p, True, True)
-    # take rolling time
-    tm = time.time()
-    while time.time() - tm <= STE_RUN_TIME:
-        wait_flag = p.waitForNotifications(0.33)
-        if wait_flag :
-            continue
-     # stop STE
-    SCD_toggle_STE_rolling(p, False, False) 
-    SCD_print_STE_status()
+    print ("ASD--> recording => ", end='', flush=True)
+    gSTEstartTime = gSTElastTime = time.time()
+    gSTEcnt = 0
+    while gSTElastTime - gSTEstartTime < STE_RUN_TIME:
+        x = get_g_value (3)
+        y = get_g_value (4)
+        z = get_g_value (5)
+        gSTElastTime = time.time()
+        gSTEcnt += 1
+        gBDTdata.append(t)
+        gBDTdata.append(x)
+        gBDTdata.append(y)
+        gBDTdata.append(z)
+    duration = gSTElastTime-gSTEstartTime        
+    gSTEfrequency = float(gSTEcnt) / duration
+    print (" %d rows, duration: %f, ODR: %f" % (gSTEcnt, duration, gSTEfrequency), flush=True)
     #
-    # start BDT
-    #
-    print ("ASD--> Bulk Data Transfer after a while ...", flush=True)
-    time.sleep(0.7)
-    p.setDelegate( NotifyDelegate(p) )
-    print ("ASD--> BDT Starting ...", flush=True)
-    time.sleep(0.7)
-    p.writeCharacteristic( SCD_BDT_DATA_FLOW_HND+1, struct.pack('<H', 1) )
-    time.sleep(0.7)
-    p.writeCharacteristic( SCD_BDT_CONTROL_HND, b'\x01' )
-    ret_val = b'x01'
-    while ret_val == b'x01':  
-        wait_flag = p.waitForNotifications(8.0)
-        if wait_flag :
-            continue
-        ret_val = p.readCharacteristic( SCD_BDT_STATUS_HND )
-    print ("\nASD--> Bulk Data Transfer completed...status is [%s], time [%.3f], count [%d]" % \
-            (ret_val.hex(), (gBDTlastTime-gBDTstartTime), gBDTnotiCnt), flush=True )
-    #
-    if ret_val == b'x02':
-        gBDTisRolled = True        
     return
 
-
 #############################################
-# create text memory block from BDT w/o non-data
+# create text memory block from BDT
 #
 def ASD_BDT_text_block():
-    global gBDTnotiCnt
+    global gSTEcnt
+    global gSTEfrequency
     global gBDTdata
     global gBDTtextBlock
     global gBDTtextLen
-    global gBDTtextPos
     
-    print ("ASD--> text block creation from BDT ...", flush=True)
-    if gBDTtextBlock != '':
-        del gBDTtextBlock
-        gBDTtextBlock = ''
-    #    
+    print ("ASD--> text block creation from BDT => ", end='', flush=True)
+    gBDTtextBlock  = ("%s: %s(%f)\n" %  ( ( WSN_STAMP_TIME, datetime.datetime.fromtimestamp(gSTEstartTime).strftime('%Y-%m-%d %H:%M:%S'), gSTEstartTime) ))
+    gBDTtextBlock += ("%s: %.3f\n" % ( WSN_STAMP_DELAY, 0. ))
+    gBDTtextBlock += ("%s: %.3f Hz\n" % ( WSN_STAMP_FREQ, gSTEfrequency) ) 
+    gBDTtextBlock += ("Row #, Time-Stamp, X-AXIS, Y-AXIS, Z-AXIS\n")
+    for i in range(gSTEcnt):
+        idx = i*4
+        gBDTtextBlock += ("%d,%.5f,%.2f,%.2f,%.2f\n" % (i+1, gBDTdata[idx]-t_0, gBDTdata[idx+1], gBDTdata[idx+2], gBDTdata[idx+3]))
+    gBDTtextBlock += ("End of Data\n")
+    gBDTtextLen = len(gBDTtextBlock)
     print ("ASD--> text block [%d] bytes recorded !" % gBDTtextLen, flush=True)
 
 #############################################
@@ -399,13 +379,9 @@ def server_msg_handling( p ):
     global gSTElastTime
     global gSTEisRolling
     global gBDTisRolled
+    global gBDTtextPos
     global gIDLElastTime
 
-    # idling check
-    t = time.time()
-    if t - gIDLElastTime > SCD_IDLE_INTERVAL:
-        SCD_run_STE_for_idling(p)
-        gIDLElastTime = t
     # message handling
     if gTCPrxMsg == TCP_DEV_READY_MSG or gTCPrxMsg == TCP_DEV_OPEN_MSG:
         # polling messages that server or manually sent
@@ -418,33 +394,20 @@ def server_msg_handling( p ):
     elif gTCPrxMsg == TCP_STE_START_MSG:
         # start STE rolling w/o memory writing
         print ("WSN-C> start STE rolling...", flush=True)
-        p.setDelegate( NotifyDelegate(p) )
-        SCD_set_STE_config(p, False)
-        SCD_toggle_STE_rolling(p, True, False)
-        ## gIDLElastTime = time.time()
     elif gTCPrxMsg == TCP_STE_REQ_MSG:
         # request STE data
         if gSTEisRolling:
             print ("WSN-C> handover STE data ...", flush=True)
-            # if not enable STE notification
-            gSTElastData = p.readCharacteristic(SCD_STE_RESULT_HND)
-            gSTElastTime = time.time()
-            gTCPtxMsg = SCD_string_STE_data(gSTElastTime, gSTElastData)
-            ## gIDLElastTime = gSTElastTime   
         else:
             print ("WSN-C> invalid message, STE has not been started !", flush=True)    
     elif gTCPrxMsg == TCP_BDT_RUN_MSG:
         # start BDT
-        print ("WSN-C> start BDT running ...")
-        if not gSTEisRolling:                
-            SCD_run_STE_and_BDT(p)
-            if SCD_clear_memory(p) == None:
-                p = SCD_scan_and_connect(False)
-            SCD_BDT_text_block()
-            gBDTisRolled = True    
-            gIDLElastTime = time.time()
-        else:
-            print ("WSN-C> invalid message, BDT is not allowed during rolling !", flush=True)     
+        print ("WSN-C> BDT running => ", end='', flush=True)
+        SCD_run_STE_and_BDT()
+        SCD_BDT_text_block()
+        gBDTisRolled = True
+        gBDTtextPos = 0
+        print ('completed', flush=True)
     elif gTCPrxMsg == TCP_BDT_REQ_MSG:
         # request BDT data
         if gBDTisRolled:
@@ -457,10 +420,6 @@ def server_msg_handling( p ):
     elif gTCPrxMsg == TCP_STE_STOP_MSG or gTCPrxMsg == TCP_DEV_CLOSE_MSG:
         # stop STE or disconnect
         print ("WSN-C> stop STE rolling ...", flush=True)
-        SCD_set_STE_config (p, False)
-        SCD_toggle_STE_rolling (p, False, False)
-        SCD_print_STE_status()
-        ## gIDLElastTime = time.time()
     elif gTCPrxMsg == TCP_DEV_CLOSE_MSG:
         # exit from loop
         print ("WSN-C> close device ...", flush=True)
@@ -488,24 +447,9 @@ if len(sys.argv) > 3:
     TCP_HTTP_PORT = int(sys.argv[3])
 
 #
-# scan and connect SCD
+# ASD init
 #
-p = SCD_scan_and_connect(True)
-#
-# set STE configuration
-#
-SCD_set_STE_config(p, False, True)
-#
-# read Device Info. such as Name, Manufacurer Name, etc.
-#
-SCD_print_info(p)
-#
-# check STE is rolling or not, memory is empty or not; stop rolling & cleanup memory
-#
-SCD_check_STE_rolling(p)
-SCD_toggle_STE_rolling(p, False, False)
-if  SCD_clear_memory(p) == None:
-    p = SCD_scan_and_connect(False)
+ASD_init()
 #
 # connect server
 #
@@ -515,7 +459,7 @@ loop.run_until_complete( http_TX(TCP_DEV_OPEN_MSG, loop) )
 #
 # loop if not TCP_DEV_CLOSE_MSG 
 #
-gTCPlastTime = gIDLElastTime = time.time()
+gTCPlastTime = time.time()
 while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     #
     # if too many null messages
@@ -539,10 +483,8 @@ while gTCPrxMsg != TCP_DEV_CLOSE_MSG:
     try:
         server_msg_handling( p )
     except Exception as e:
-        print ('WSN-S> error "%r" while message loop ... reconnecting ...' % (e), flush=True)
-        p = SCD_scan_and_connect(False)
-        if  SCD_clear_memory(p) == None:
-            p = SCD_scan_and_connect(False)
+        print ('WSN-S> error "%r" while message loop ... exit ...' % (e), flush=True)
+        break
     #
     # if last server communication time is longer than poll time, polling via http
     #
