@@ -21,7 +21,7 @@ import sys
 import time
 from urllib import request, parse
 
-import ADS1256
+import wsn_ADS1256 as ADS1256
 import RPi.GPIO as GPIO
 
 #############################################
