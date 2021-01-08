@@ -604,7 +604,8 @@ def post_BDTtoFile():
     fname  = WSN_LOG_FILE_PATH
     fname += '/' + WSN_LOG_FILE_PREFIX
     fname += '_' + datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d%H%M%S')
-    fname += '_' + fmark
+    if fmark != '':
+        fname += '_' + fmark
     fname += WSN_LOG_FILE_SUFFIX
     f = open(fname, "w")
     for idx in range(n):
@@ -642,17 +643,18 @@ def post_graphTime():
     time_stamp += '+' + stamp_heder(row,WSN_STAMP_DELAY)
     row = f.readline()
     freq_stamp = stamp_heder(row,WSN_STAMP_FREQ)
-    freq = ''.join([c for c in freq_stamp if c in '0123456789'])
+    freq_str = ''.join([c for c in freq_stamp if c in '0123456789.'])
     row = f.readline()
     # init    
     x = []
     y = []
-    n = 0
+    x_base = n_base = n = 0
     # read x, y, z accelometer values
     while n < MAX_X_LIMIT:
         try:
             row = f.readline()
-        except:
+        except Exception as e:
+            print('WSN-S> error line at [%d], "%r"' % (n, e), flush=True)
             break
         if not row:
             break
@@ -665,7 +667,7 @@ def post_graphTime():
             try:
                 col = row.split(',')
                 if col[1] == '':
-                    x_val = x_base + (n - n_base) / float(freq)
+                    x_val = x_base + (n - n_base) / float(freq_str)
                 else:
                     x_val = float(col[1])
                     if n==0:
@@ -726,7 +728,7 @@ def post_graphFreq():
     time_stamp += '+' + stamp_heder(row,WSN_STAMP_DELAY)
     row = f.readline()
     freq_stamp = stamp_heder(row,WSN_STAMP_FREQ)
-    freq = ''.join([c for c in freq_stamp if c in '0123456789'])
+    freq_str = ''.join([c for c in freq_stamp if c in '0123456789.'])
     row = f.readline()
     # init       
     y = []
@@ -735,7 +737,8 @@ def post_graphFreq():
     while n < MAX_X_LIMIT:
         try:
             row = f.readline()
-        except:
+        except Exception as e:
+            print('WSN-S> error line at [%d], "%r"' % (n, e), flush=True)
             break
         if not row:
             break
@@ -762,7 +765,7 @@ def post_graphFreq():
     f.close()          
     # prepare fourier Transform
     print("WSN-S> prepare FFT", flush=True)
-    sampling_frequency = float(freq)
+    sampling_frequency = float(freq_str)
     amplitude = np.ndarray( n )
     # copy amplitude
     idx = 0
