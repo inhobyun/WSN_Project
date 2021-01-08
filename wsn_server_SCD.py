@@ -784,10 +784,14 @@ def post_graphFreq():
     x = []
     y = []
     idx = 1
-    n = tp_count/2
-    while idx < n:   
-        x_val = float(frequencies[idx])
-        y_val = abs(float(fourier_transform[idx]))
+    n = int(tp_count/2)
+    while idx < n:
+        try:   
+            x_val = float(frequencies[idx])
+            y_val = abs(float(fourier_transform[idx]))
+        except Exception as e:
+            print('WSN-S> error point at [%d], "%r"' % (idx, e), flush=True)
+            x_val = y_val = 0.
         x.append(x_val)
         y.append(y_val)
         idx += 1
