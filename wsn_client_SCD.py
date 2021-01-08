@@ -258,6 +258,7 @@ async def tcp_RX(loop):
             rx_data = await asyncio.wait_for ( gTCPreader.read(TCP_PACKET_MAX), timeout=10.0 )
         except asyncio.TimeoutError:
             print('timeout', flush=True)
+            print ("\33[2A", flush=True)
         except ConnectionResetError:
             print('connection error !', flush=True)
             gTCPwriter = gTCPreader = None
