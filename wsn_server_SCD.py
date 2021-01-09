@@ -435,26 +435,31 @@ def post_monStart():
         post_monStop()
         return    
     # get the data to post
-    if from_client != None:
+    if from_client != None and from_client != '':
         from_client = from_client.replace(')','')
         from_client = from_client.replace('(','')
         vals = from_client.split(',')     
-        # get the status
-        val_x = float(vals[2])
-        val_y = float(vals[4])
-        val_z = float(vals[6])
-        # ===========================================
-        # analyz more to display status afterward....
-        # ===========================================
-        if max(val_x, val_y, val_z) >= 0.7 or (val_x > 0.2 and val_y > 0.2  and val_z > 0.2):        
-            status = ['VIBRATION', 'ABNORMAL']
-        elif max(val_x, val_y, val_z) >= 0.2:
-            status = ['VIBRATION', 'NORMAL']
-        elif val_x == 0.0 and val_y == 0.0  and val_z == 0.0: 
-            status = ['STOP', 'NORMAL']
+        try:
+            # get the status
+            val_x = float(vals[2])
+            val_y = float(vals[4])
+            val_z = float(vals[6])
+        except Exception as e:
+            print('WSN-S> error during monitoring, "%r"' % (e), flush=True)
+            status = ['UNKNOWN', 'UNKNOWN']
         else:    
-            status = ['STOP(noisy)', 'UNKNOWN']
-        # ===========================================
+            # ===========================================
+            # analyz more to display status afterward....
+            # ===========================================
+            if max(val_x, val_y, val_z) >= 0.7 or (val_x > 0.2 and val_y > 0.2  and val_z > 0.2):        
+                status = ['VIBRATION', 'ABNORMAL']
+            elif max(val_x, val_y, val_z) >= 0.2:
+                status = ['VIBRATION', 'NORMAL']
+            elif val_x == 0.0 and val_y == 0.0  and val_z == 0.0: 
+                status = ['STOP', 'NORMAL']
+            else:    
+                status = ['STOP', 'UNKNOWN']
+            # ===========================================
         rows = {'row' : vals, 'status' : status, 'timer' : 'on' }
     else:                          
         rows = {'row' : [time_stamp(),'?','?','?','?','?','?','?','?','?','?','?'],
