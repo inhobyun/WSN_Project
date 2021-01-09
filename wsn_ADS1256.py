@@ -44,7 +44,7 @@ def module_init():
     #
     # SPI frequency MAX = 3.6M; 
     #
-    SPI.max_speed_hz = 3000000 ## 1572864 / 2097152 / 2726297
+    SPI.max_speed_hz = 2999296 # max speed: 3.6MHz
     SPI.mode = 0b01
     return 0
 

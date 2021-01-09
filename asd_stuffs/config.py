@@ -63,7 +63,7 @@ def module_init():
     GPIO.setup(CS_PIN, GPIO.OUT)
     #GPIO.setup(DRDY_PIN, GPIO.IN)
     GPIO.setup(DRDY_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    SPI.max_speed_hz = 3000000 ## 1572864 / 2097152 / 2726297 / MAX = 3.6M /
+    SPI.max_speed_hz = 2999296 # 2999296// max speed: 3.6MHz; theoritical max sample rate: 3.6/26 = 138.5KHz
     SPI.mode = 0b01
     return 0;
 
