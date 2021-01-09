@@ -36,9 +36,9 @@ int main(void)
     cnt = 0;
     t0 = t1 = time(NULL);
     while ( t1 - t0 < 1.0 ) {
-	a0_val = (ADS1256_GetChannalValue(0)*5.0/0x7FFFFF)*1000000;
-        a1_val = (ADS1256_GetChannalValue(1)*5.0/0x7FFFFF)*1000000;
-	a2_val = (ADS1256_GetChannalValue(2)*5.0/0x7FFFFF)*1000000;
+	a0_val = (ADS1256_GetChannalValue(2)*5.0/0x7FFFFF)*1000000;
+        a1_val = (ADS1256_GetChannalValue(3)*5.0/0x7FFFFF)*1000000;
+	a2_val = (ADS1256_GetChannalValue(4)*5.0/0x7FFFFF)*1000000;
 	t1 = time(NULL);
 	cnt++;
 	printf("ASD--> [%f][%f][%f] at %f\r\n", a0_val, a1_val, a2_val, t1);
@@ -47,5 +47,17 @@ int main(void)
     printf("\r\n");
     printf("ASD--> count: %d, time period: %f %f\r\n", cnt, (t1-t0), (t1-t0)/cnt); 
 	
+    cnt = 0;
+    t0 = t1 = time(NULL);
+    while ( t1 - t0 < 1.0 ) {
+	a0_val = (ADS1256_GetChannalValue(2)*5.0/0x7FFFFF)*1000000;
+        a1_val = (ADS1256_GetChannalValue(3)*5.0/0x7FFFFF)*1000000;
+	a2_val = (ADS1256_GetChannalValue(4)*5.0/0x7FFFFF)*1000000;
+	t1 = time(NULL);
+	cnt++;
+    }
+    printf("\r\n");
+    printf("ASD--> count: %d, time period: %f %f\r\n", cnt, (t1-t0), (t1-t0)/cnt); 
+
     return 0;
 }

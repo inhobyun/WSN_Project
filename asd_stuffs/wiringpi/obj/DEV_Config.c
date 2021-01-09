@@ -71,7 +71,7 @@ int DEV_ModuleInit(void)
 	
     //3.spi init
     //wiringPiSPISetup(0,3200000,1);
-	wiringPiSPISetupMode(0,3200000,1);
+	wiringPiSPISetupMode(0,3000000,1);
     return 0;
 }
 
