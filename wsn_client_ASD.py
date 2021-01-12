@@ -66,7 +66,7 @@ TCP_HOST_NAME   = "125.131.73.31"   # Default Host Name
 TCP_PORT        = 8088              # Default TCP Port Name
 ##TCP_HTTP_PORT = 5000              # origin flask WEB server port
 TCP_HTTP_PORT   = 8081              # WEB server http port
-TCP_PACKET_MAX  = 1024              # max TCP packet size
+TCP_PACKET_MAX  = 10240             # max TCP packet size
 TCP_POLL_TIME   = 300.              # max time interval to poll TCP port
 #
 TCP_DEV_READY_MSG = 'DEV_READY'     # server message to check client ready

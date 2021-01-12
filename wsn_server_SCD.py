@@ -12,7 +12,7 @@ by Inho Byun, Researcher/KAIST
                     updated 2020-12-22; data log file name
                     updated 2020-12-28; DEV_OPEN
                     updated 2020-12-31; argv Bug fix
-                    updated 2021-01-06; graphy drawing updated
+                    updated 2021-01-06; graph drawing updated
 """
 import datetime
 from flask import Flask, redirect, request
@@ -41,7 +41,7 @@ TCP_HOST_NAME   = socket.gethostname()
 TCP_PORT        = 8088              # Default TCP Port Name
 ##TCP_HTTP_PORT   = 5000            # origin flask WEB server port
 TCP_HTTP_PORT   = 8081              # Default WEB server port
-TCP_PACKET_MAX  = 1024              # max TCP packet size
+TCP_PACKET_MAX  = 10240             # max TCP packet size
 TCP_POLL_TIME   = 300.              # max time interval to poll TCP port
 TCP_ERR_CNT_MAX = 8                 # max unknown error count before reconnection
 #
@@ -221,8 +221,7 @@ def read_from_socket(blockingTimer = 8):
     rx_msg = ''
     gSocketServer.setblocking(blockingTimer)
     try:
-        while True:
-            data = gSocketConn.recv(TCP_PACKET_MAX)
+        data = gSocketConn.recv(TCP_PACKET_MAX)
     except TimeoutError:
         print ("timeout !", flush=True)
     except Exception as e:
