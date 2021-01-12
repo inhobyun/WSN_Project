@@ -222,10 +222,11 @@ def read_from_socket(blockingTimer = 8):
     rx_msg = ''
     gSocketServer.setblocking(blockingTimer)
     try:
-        d = gSocketConn.recv(TCP_PACKET_MAX)
-        while d:
-            data += d
-            d = gSocketConn.recv(TCP_PACKET_MAX)            
+        while True:
+            d = gSocketConn.recv(TCP_PACKET_MAX)
+            if not d:
+                break
+            data.append(d)            
     except TimeoutError:
         print ("timeout !", flush=True)
     except Exception as e:
@@ -257,9 +258,9 @@ def write_to_socket(tx_msg):
     print ("TCP-S> [TX] try => ", end = '', flush=True)
     try:
         gSocketConn.send(tx_msg.encode())
-    except:
+    except Exception as e:
         gTCPerrCnt += 1
-        print ("error !", flush=True)
+        print ('error "%r"!' % (e), flush=True)
     else:
         print ('"%r" sent to WSN client' % tx_msg, flush=True)
         gTCPlastTime = time.time()
