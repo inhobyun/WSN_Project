@@ -41,7 +41,7 @@ TCP_HOST_NAME   = socket.gethostname()
 TCP_PORT        = 8088              # Default TCP Port Name
 ##TCP_HTTP_PORT   = 5000            # origin flask WEB server port
 TCP_HTTP_PORT   = 8081              # Default WEB server port
-TCP_PACKET_MAX  = 1024              # max TCP packet size
+TCP_PACKET_MAX  = 10240             # max TCP packet size
 TCP_POLL_TIME   = 300.              # max time interval to poll TCP port
 TCP_ERR_CNT_MAX = 8                 # max unknown error count before reconnection
 #
@@ -218,21 +218,18 @@ def read_from_socket(blockingTimer = 8):
     #
     accept_socket(3)
     print ("TCP-S> [RX] wait => ", end = '', flush=True)
-    data = b""
     rx_msg = ''
     gSocketServer.setblocking(blockingTimer)
     try:
         while True:
-            d = gSocketConn.recv(TCP_PACKET_MAX)
-            if not d:
-                break
-            data.append(d)            
+            data = gSocketConn.recv(TCP_PACKET_MAX)
     except TimeoutError:
         print ("timeout !", flush=True)
     except Exception as e:
         gTCPerrCnt += 1
         print ('error "%r"!' % (e), flush=True)
     else:
+        data = "".join(data) 
         rx_msg = data.decode()
         n = len(rx_msg)
         if n < 40:
