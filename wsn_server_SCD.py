@@ -218,15 +218,19 @@ def read_from_socket(blockingTimer = 8):
     #
     accept_socket(3)
     print ("TCP-S> [RX] wait => ", end = '', flush=True)
+    data = b""
     rx_msg = ''
+    gSocketServer.setblocking(blockingTimer)
     try:
-        gSocketServer.setblocking(blockingTimer)
-        data = gSocketConn.recv(TCP_PACKET_MAX)        
+        d = gSocketConn.recv(TCP_PACKET_MAX)
+        while d:
+            data += d
+            d = gSocketConn.recv(TCP_PACKET_MAX)            
     except TimeoutError:
         print ("timeout !", flush=True)
-    except:
+    except Exception as e:
         gTCPerrCnt += 1
-        print ("error !", flush=True)
+        print ('error "%r"!' % (e), flush=True)
     else:
         rx_msg = data.decode()
         n = len(rx_msg)

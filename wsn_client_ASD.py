@@ -411,7 +411,7 @@ def server_msg_handling():
         # request BDT data
         if gBDTisRolled:
             print ("WSN-C> request BDT data ...", flush=True)
-            gTCPtxMsg = ASD_BDT_get_text()
+            gTCPtxMsg = ASD_BDT_get_text( 10240 ) ## send bigger than TCP_PACKET_MAX
             if gTCPtxMsg.find("End") != -1:
                 gBDTisRolled = False
         else:
