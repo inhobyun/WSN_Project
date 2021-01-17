@@ -281,7 +281,7 @@ def get_g_value (chNumber):
 #############################################
 # run STE & BLK data transfer
 #
-def ASD_run_STE_and_BDT():
+def ASD_run_STE_and_BDT(isZon = True):
     global gSTEstartTime
     global gSTElastTime
     global gSTEcnt   
@@ -296,19 +296,32 @@ def ASD_run_STE_and_BDT():
         del gBDTdata
         gBDTdata = []
     #
-    gSTEstartTime = gSTElastTime = time.time()
-    gSTEcnt = 0
-    while gSTElastTime - gSTEstartTime < STE_RUN_TIME:
-        x = get_g_value (3)
-        y = get_g_value (4)
-        z = get_g_value (5)
-        gSTElastTime = time.time()
-        gSTEcnt += 1
-        gBDTdata.append(gSTElastTime-gSTEstartTime)
-        gBDTdata.append(x)
-        gBDTdata.append(y)
-        gBDTdata.append(z)
-    duration = gSTElastTime-gSTEstartTime        
+    if isZon == True:
+        gSTEstartTime = gSTElastTime = time.time()
+        gSTEcnt = 0    
+        while gSTElastTime - gSTEstartTime < STE_RUN_TIME:
+            x = get_g_value (3)
+            y = get_g_value (4)
+            z = get_g_value (5)
+            gSTElastTime = time.time()
+            gSTEcnt += 1
+            gBDTdata.append(gSTElastTime-gSTEstartTime)
+            gBDTdata.append(x)
+            gBDTdata.append(y)
+            gBDTdata.append(z)
+        duration = gSTElastTime-gSTEstartTime        
+    else:
+        gSTEstartTime = gSTElastTime = time.time()
+        gSTEcnt = 0    
+        while gSTElastTime - gSTEstartTime < STE_RUN_TIME:
+            x = get_g_value (3)
+            y = get_g_value (4)
+            gSTElastTime = time.time()
+            gSTEcnt += 1
+            gBDTdata.append(gSTElastTime-gSTEstartTime)
+            gBDTdata.append(x)
+            gBDTdata.append(y)
+        duration = gSTElastTime-gSTEstartTime        
     gSTEfrequency = float(gSTEcnt) / duration
     print (" %d rows, duration: %f, ODR: %f" % (gSTEcnt, duration, gSTEfrequency), flush=True)
     #
@@ -317,7 +330,7 @@ def ASD_run_STE_and_BDT():
 #############################################
 # create text memory block from BDT
 #
-def ASD_BDT_text_block():
+def ASD_BDT_text_block(isZon = True):
     global gSTEcnt
     global gSTEfrequency
     global gBDTdata
@@ -334,9 +347,14 @@ def ASD_BDT_text_block():
     gBDTtextBlock += ("%s: %.3f\n" % ( WSN_STAMP_DELAY, 0. ))
     gBDTtextBlock += ("%s: %.3f Hz\n" % ( WSN_STAMP_FREQ, gSTEfrequency) ) 
     gBDTtextBlock += ("Row #, Time-Stamp, X-AXIS, Y-AXIS, Z-AXIS\n")
-    for i in range(gSTEcnt):
-        idx = i*4
-        gBDTtextBlock += ("%d,%.5f,%.2f,%.2f,%.2f\n" % (i+1, gBDTdata[idx], gBDTdata[idx+1], gBDTdata[idx+2], gBDTdata[idx+3]))
+    if isZon == True:
+        for i in range(gSTEcnt):
+            idx = i*4
+            gBDTtextBlock += ("%d,%.5f,%.2f,%.2f,%.2f\n" % (i+1, gBDTdata[idx], gBDTdata[idx+1], gBDTdata[idx+2], gBDTdata[idx+3]))
+    else:
+        for i in range(gSTEcnt):
+            idx = i*3
+            gBDTtextBlock += ("%d,%.5f,%.2f,%.2f,\n" % (i+1, gBDTdata[idx], gBDTdata[idx+1], gBDTdata[idx+2]))
     gBDTtextBlock += ("End of Data\n")
     gBDTtextLen = len(gBDTtextBlock)
     print ("ASD--> text block [%d] bytes recorded !" % gBDTtextLen, flush=True)
@@ -402,8 +420,8 @@ def server_msg_handling():
     elif gTCPrxMsg == TCP_BDT_RUN_MSG:
         # start BDT
         print ("WSN-C> BDT running => ", end='', flush=True)
-        ASD_run_STE_and_BDT()
-        ASD_BDT_text_block()
+        ASD_run_STE_and_BDT(False)
+        ASD_BDT_text_block(False)
         gBDTisRolled = True
         gBDTtextPos = 0
         print ('completed', flush=True)
