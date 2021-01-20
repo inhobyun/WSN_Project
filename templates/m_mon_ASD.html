@@ -1,0 +1,51 @@
+<!--
+    html for Sensor Data Minitoring & Analysis System(WSN application)
+-->
+{% extends "m_base.html" %}
+
+{% block head %}
+    <script src="https://d3js.org/d3.v4.js"></script>
+    <script type="text/javascript" src="/static/js/drawing.js"></script>
+    <script type="text/javascript" src="/static/js/monitorASD.js"></script>
+    <script type="text/javascript" src="/static/js/misc.js"></script>
+{% endblock %}
+
+{% block foot %}
+    <div><b>Push [Start] button to run monitoring...</b></div>
+{% endblock %}
+
+{% block body_bottom %}
+{% endblock %}
+
+{% block left %}
+    <div style="text-align:center;"><b>ASD Sensor Data Monitoring</b></div><br> 
+    <div style="text-align:  left; padding-left:8px;">
+        <label for="tm_interval">Display interval</label>
+        <input type="number" id="tm_interval" name="tm_interval" value="6" min="6" max="10">
+        <label for="tm_interval">sec</label>
+    </div><br>    
+    <div style="text-align: right; padding-right:8px; padding-bottom:8px;">
+        <button class="button-l" id="btn_startASD" onclick="monASDbegin('N')"> Start </button>
+        <br><br>
+        <button class="button-l" id="btn_stopASD"  onclick="monASDstop('N')" disabled> Stop </button>
+    </div>
+{% endblock %}
+
+{% block right %}
+    <div style="text-align:left"><b>Accelerometer Sensor Data - Frequency Monitoring</b></div>
+    <div style="text-align:left">
+        <label id="time_label"></label>Measured Time : </label>
+        <label id="time_stamp" style="font-weight:bold; color:blueviolet;"></label>
+        
+        <label id="freq_label"></label>, Frequency : </label>
+        <label id="freq_stamp" style="font-weight:bold; color:blueviolet;"></label>
+        
+        <label id="mode_label"></label>, Draw Mode : </label>
+        <label id="mode_stamp" style="font-weight:bold; color:blueviolet;"></label>
+    </div> 
+        
+    <div class="form">
+        <div id="chart-box"></div>
+    </div>
+
+{% endblock %}
