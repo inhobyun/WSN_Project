@@ -2,6 +2,55 @@
 // js for Sensor Data Minitoring & Analysis System(WSN application)
 //
 
+function drawMonGraph(data, color_val) {
+    // Clear the chart box.
+    document.getElementById('chart-box').innerHTML = '';    
+    // set the dimensions and margins of the graph
+    var margin = {top: 30, left: 70, bottom: 30, right: 30},
+        width = 1640 - margin.left - margin.right, /* window width about 1920px; left width 180~280px; */
+        height = 720 - margin.top - margin.bottom; /* window height about 820px; */
+    // append the svg object to the body of the page
+    var svg = d3.select("#chart-box")
+        .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    // dirawing parms
+    const y_min  = d3.min(data.y);
+    const y_max  = d3.max(data.y);
+    const x_min  = d3.min(data.x);
+    const x_max  = d3.max(data.x);
+    // Add X axis
+    var x = d3.scaleLinear()
+        .domain([ x_min, x_max ])
+        .range([ 0, width ]);
+    svg.append("g")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x));
+    // Add Y axis
+    var y = d3.scaleLinear()
+        .domain([ y_min, y_max ])
+        .range([ height, 0 ]);
+    svg.append("g")
+        .call(d3.axisLeft(y));
+    //
+    var points = [];
+    data.x.forEach((value, i) => {
+        points.push({x: value, y: data.y[i]});
+    });
+    // Add the line
+    svg.append("path")
+        .datum(points)
+        .attr("fill", "none")
+        .attr("stroke", color_val)
+        .attr("stroke-width", 1.0)
+        .attr("d", d3.line()
+            .x(function(d) { return x(d.x) })
+            .y(function(d) { return y(d.y) })
+        );
+}
+
 function drawGraph(data, color_val, y_min_id, y_max_id, x_min_id, x_max_id) {
     // Clear the chart box.
     document.getElementById('chart-box').innerHTML = '';    

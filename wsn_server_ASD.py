@@ -283,13 +283,12 @@ def stamp_heder(header, target):
 #############################################
 # get one line from text lines
 #
-def get_line(buf):
-    p = buf.find('\n') 
-    if p != -1:
-        rtn_buf = buf[0:p]
-    else:
-        rtn_buf = ''
-    return rtn_buf
+def get_line(buf, pos):
+    cnt = len(buf[pos:])
+    n = 0
+    while buf[pos+n] != '\n' and n < cnt:
+        n += 1
+    return buf[pos:pos+n]
 
 #############################################
 #############################################
@@ -512,7 +511,6 @@ def post_monASDstart():
     #
     global gSTElockFlag
     global gBDTlockFlag
-    global gBDTtextList
 
     # check client socket connect
     if (gSocketConn == None):
@@ -541,7 +539,7 @@ def post_monASDstart():
     # getting data from SENSOR client
     ########################################
     # init data buffer
-    gBDTtextList = []
+    buf = ''
     while True:
         # send BDT request
         ##accept_socket()
@@ -553,37 +551,38 @@ def post_monASDstart():
         while from_client == '':
             from_client = read_from_socket(blockingTimer = 8)
         if from_client.find('End of Data') == -1:
-            gBDTtextList.append(from_client)
+            buf += from_client
         else:
-            gBDTtextList.append(from_client)
+            buf += from_client
             break
+    print("WSN-S> got BDT %d bytes" % len(buf), flush=True)
     ########################################
     # parse data from SENSOR client
     ########################################
     idx = 0
     # read sensor data from text list    
-    print("WSN-S> start to process BDT text lines", flush=True)
+    print("WSN-S> start to process BDT data", flush=True)
     # check 4 header lines
-    row = get_line(gBDTtextList[idx])
-    idx += len(row)
+    row = get_line(buf, idx)
+    idx += len(row)+1
     time_stamp = stamp_heder(row,WSN_STAMP_TIME)
-    row = get_line(gBDTtextList[idx])
-    idx += len(row)
+    row = get_line(buf, idx)
+    idx += len(row)+1
     time_stamp += '+' + stamp_heder(row,WSN_STAMP_DELAY)
-    row = get_line(gBDTtextList[idx])
-    idx += len(row)
+    row = get_line(buf, idx)
+    idx += len(row)+1
     freq_stamp = stamp_heder(row,WSN_STAMP_FREQ)
     freq_str = ''.join([c for c in freq_stamp if c in '0123456789.'])
-    row = get_line(gBDTtextList[idx])
-    idx += len(row)
+    row = get_line(buf, idx)
+    idx += len(row)+1
     # init       
     y = []
     n = 0
     # read x, y, z accelerometer values
     while n < MAX_X_LIMIT:
         try:
-            row = get_line(gBDTtextList[idx])
-            idx += len(row)
+            row = get_line(buf, idx)
+            idx += len(row)+1
         except Exception as e:
             print('WSN-S> error line at [%d], "%r"' % (n, e), flush=True)
             break
