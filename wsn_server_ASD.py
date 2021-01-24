@@ -281,6 +281,17 @@ def stamp_heder(header, target):
     return rtn_stamp
 
 #############################################
+# get one line from text lines
+#
+def get_line(buf):
+    p = buf.find('\n') 
+    if p != -1:
+        rtn_buf = buf[0,p]
+    else:
+        rtn_buf = ''
+    return rtn_buf
+
+#############################################
 #############################################
 #         
 # flask stuffs
@@ -497,10 +508,107 @@ def post_monStop():
 @app.route('/post_monASDstart', methods=['POST'])
 def post_monASDstart():
     data = json.loads(request.data)
+    value = data['value']
+    #
+    global gSTElockFlag
+    global gBDTlockFlag
+    global gBDTtextList
+
+    # check client socket connect
+    if (gSocketConn == None):
+        print("WSN-S> SENSOR client is not connected", flush=True)
+        return
+
+    # check STE, BDT lock flag
+    if (value==0 and  gSTElockFlag) or gBDTlockFlag:
+        print("WSN-S> SENSOR client is locked", flush=True)
+        write_to_socket(TCP_STE_STOP_MSG)
+        gSTElockFlag = False                     
+        return
     
-    #
-    # getting data
-    #
+    ########################################
+    # run SENSOR client
+    ########################################   
+    # send BDT run
+    write_to_socket(TCP_BDT_RUN_MSG)
+    time.sleep(1.0)
+    # wait till echo-back
+    write_to_socket(TCP_BDT_END_MSG)
+    from_client = ''
+    while from_client != TCP_BDT_END_MSG:
+        from_client = read_from_socket(blockingTimer = 8)
+    ########################################
+    # getting data from SENSOR client
+    ########################################
+    # init data buffer
+    gBDTtextList = []
+    while True:
+        # send BDT request
+        ##accept_socket()
+        time.sleep(0.1)
+        write_to_socket(TCP_BDT_REQ_MSG)
+        time.sleep(0.1)
+        # get data from client
+        from_client = ''
+        while from_client == '':
+            from_client = read_from_socket(blockingTimer = 8)
+        if from_client.find('End of Data') == -1:
+            gBDTtextList.append(from_client)
+        else:
+            gBDTtextList.append(from_client)
+            break
+    ########################################
+    # parse data from SENSOR client
+    ########################################
+    idx = 0
+    # read sensor data from text list    
+    print("WSN-S> start to process BDT text lines", flush=True)
+    # check 4 header lines
+    row = get_line(gBDTtextList[idx])
+    idx += len(row)
+    time_stamp = stamp_heder(row,WSN_STAMP_TIME)
+    row = get_line(gBDTtextList[idx])
+    idx += len(row)
+    time_stamp += '+' + stamp_heder(row,WSN_STAMP_DELAY)
+    row = get_line(gBDTtextList[idx])
+    idx += len(row)
+    freq_stamp = stamp_heder(row,WSN_STAMP_FREQ)
+    freq_str = ''.join([c for c in freq_stamp if c in '0123456789.'])
+    row = get_line(gBDTtextList[idx])
+    idx += len(row)
+    # init       
+    y = []
+    n = 0
+    # read x, y, z accelerometer values
+    while n < MAX_X_LIMIT:
+        try:
+            row = get_line(gBDTtextList[idx])
+            idx += len(row)
+        except Exception as e:
+            print('WSN-S> error line at [%d], "%r"' % (n, e), flush=True)
+            break
+        if not row:
+            break
+        if row.find('End') != -1:
+            print("WSN-S> end-of-data at [%d]" % n, flush=True)
+            break        
+        if len(row) < 7:
+            print("WSN-S> incomplete line at [%d]" % n, flush=True)
+        else: 
+            try:
+                col = row.split(',')
+                # ===========================================
+                # here, handle more options afterward 
+                # - option: sum(abs(x), abx(y), abx(z))
+                # - ...
+                # ===========================================
+                y_val = abs(float(col[2])) + abs(float(col[3])) + abs(float(col[4]))
+                # ===========================================
+                y.append(y_val)
+            except Exception as e:
+                print('WSN-S> error line at [%d], "%r"' % (n, e), flush=True)
+            n += 1        
+    print("WSN-S> processes [%d] lines of data" % n, flush=True)    
 
     # prepare fourier Transform
     print("WSN-S> prepare FFT", flush=True)
@@ -563,7 +671,6 @@ def post_STEandBDT():
     #
     global gSTElockFlag
     global gBDTlockFlag
-    global gBDTtextList
 
     # check client socket connect
     if (gSocketConn == None):
