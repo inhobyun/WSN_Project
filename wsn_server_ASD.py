@@ -286,7 +286,7 @@ def stamp_heder(header, target):
 def get_line(buf):
     p = buf.find('\n') 
     if p != -1:
-        rtn_buf = buf[0,p]
+        rtn_buf = buf[0:p]
     else:
         rtn_buf = ''
     return rtn_buf
