@@ -543,9 +543,9 @@ def post_monASDstart():
     while True:
         # send BDT request
         ##accept_socket()
-        ##time.sleep(0.1)
+        ##time.sleep(0.05)
         write_to_socket(TCP_BDT_REQ_MSG)
-        ##time.sleep(0.1)
+        time.sleep(0.02)
         # get data from client
         from_client = ''
         while from_client == '':
