@@ -10,7 +10,7 @@
 
     <script>
         const color_val = 'blue';
-        const max_loop = 99;
+        var interval;
         var loop;
         var tid = null;
 
@@ -18,12 +18,12 @@
             // control UI before function run
             disableAllMenus(is_mobile);           
             document.getElementById("btn_startASD").disabled = true;
-            loop = max_loop;
             monASDstart(0, is_mobile);
         }
         
         function monASDstart(value, is_mobile) {
-            const interval = document.getElementById('tm_interval').value;
+            interval = document.getElementById('tm_interval').value;
+            loop = document.getElementById('max_loop').value;
             axios.post('/post_monASDstart', {
                 value: value,
             }).then(response => {
@@ -76,9 +76,13 @@
 {% block left %}
     <div style="text-align:center;"><b>ASD Sensor Data Monitoring</b></div><br> 
     <div style="text-align:  left; padding-left:8px;">
-        <label for="tm_interval">Display interval</label>
-        <input type="number" id="tm_interval" name="tm_interval" value="1" min="1" max="60">
+        <label for="tm_interval">Interval time</label>
+        <input type="number" id="tm_interval" name="tm_interval" value="1" min="0" max="60">
         <label for="tm_interval">sec</label>
+        <br>
+        <label for="max_loop">No. of loop</label>
+        <input type="number" id="max_loop" name="max_loop" value="99" min="10" max="9999">
+        <label for="max_loop">times</label>
     </div><br>    
     <div style="text-align: right; padding-right:8px; padding-bottom:8px;">
         <button class="button-l" id="btn_startASD" onclick="monASDbegin('N')"> Start </button>

@@ -254,6 +254,7 @@ async def tcp_TX(tx_msg, loop):
                 print('unknown error !', flush=True)
                 sys.exit(-1)
             else:
+                '''
                 n = len(tx_msg)
                 if n < 40:        
                     print('"%r" sent' % tx_msg, flush=True)
@@ -261,6 +262,8 @@ async def tcp_TX(tx_msg, loop):
                     txt = tx_msg[0:40]
                     txt.replace('\n','\\n')
                     print('"%r"...; %d bytes sent' % (txt, n), flush=True)
+                '''    
+                print('"%r"...; %d bytes sent' % (txt, n), flush=True)
                 gTCPlastTime = time.time()        
         else:
             print('AIO-C> [TX] nothing to send !', flush=True)    
@@ -297,6 +300,14 @@ def ASD_run_STE_and_BDT(isZon = True):
         gBDTdata = []
     #
     if isZon == True:
+        # intial noise skip
+        gSTEstartTime = gSTElastTime = time.time()
+        while gSTElastTime - gSTEstartTime < 0.2:
+            x = get_g_value (3)
+            y = get_g_value (4)
+            z = get_g_value (5)
+            gSTElastTime = time.time()
+        # recording
         gSTEstartTime = gSTElastTime = time.time()
         gSTEcnt = 0    
         while gSTElastTime - gSTEstartTime < STE_RUN_TIME:
@@ -311,6 +322,13 @@ def ASD_run_STE_and_BDT(isZon = True):
             gBDTdata.append(z)
         duration = gSTElastTime-gSTEstartTime        
     else:
+        # intial noise skip
+        gSTEstartTime = gSTElastTime = time.time()
+        while gSTElastTime - gSTEstartTime < 0.2:
+            x = get_g_value (3)
+            y = get_g_value (4)
+            gSTElastTime = time.time()
+        # recording
         gSTEstartTime = gSTElastTime = time.time()
         gSTEcnt = 0    
         while gSTElastTime - gSTEstartTime < STE_RUN_TIME:
