@@ -350,11 +350,11 @@ def ASD_BDT_text_block(isZon = True):
     if isZon == True:
         for i in range(gSTEcnt):
             idx = i*4
-            gBDTtextBlock += ("%d,%.5f,%.2f,%.2f,%.2f\n" % (i+1, gBDTdata[idx], gBDTdata[idx+1], gBDTdata[idx+2], gBDTdata[idx+3]))
+            gBDTtextBlock += ("%d,%.5f,%.5f,%.5f,%.5f\n" % (i+1, gBDTdata[idx], gBDTdata[idx+1], gBDTdata[idx+2], gBDTdata[idx+3]))
     else:
         for i in range(gSTEcnt):
             idx = i*3
-            gBDTtextBlock += ("%d,%.5f,%.2f,%.2f,0.0\n" % (i+1, gBDTdata[idx], gBDTdata[idx+1], gBDTdata[idx+2]))
+            gBDTtextBlock += ("%d,%.5f,%.5f,%.5f,0.0\n" % (i+1, gBDTdata[idx], gBDTdata[idx+1], gBDTdata[idx+2]))
     gBDTtextBlock += ("End of Data\n")
     gBDTtextLen = len(gBDTtextBlock)
     print ("ASD--> text block [%d] bytes recorded !" % gBDTtextLen, flush=True)
