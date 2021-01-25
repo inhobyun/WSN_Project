@@ -515,14 +515,14 @@ def post_monASDstart():
     # check client socket connect
     if (gSocketConn == None):
         print("WSN-S> SENSOR client is not connected", flush=True)
-        return
+        return json.dumps({ 'x': [0], 'y': [0], 't': '-', 'f': '-', 'm': '-' })
 
     # check STE, BDT lock flag
     if (value==0 and  gSTElockFlag) or gBDTlockFlag:
         print("WSN-S> SENSOR client is locked", flush=True)
         write_to_socket(TCP_STE_STOP_MSG)
         gSTElockFlag = False                     
-        return
+        return json.dumps({ 'x': [0], 'y': [0], 't': '-', 'f': '-', 'm': '-' })
     
     ########################################
     # run SENSOR client

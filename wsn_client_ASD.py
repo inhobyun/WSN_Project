@@ -28,7 +28,7 @@ import RPi.GPIO as GPIO
 # target definitions to interface ASD(Analog Sensor Device)
 #############################################
 #
-STE_RUN_TIME    = 3.0    # STE rolling time in secconds for SENSOR data recording
+STE_RUN_TIME    = 1.0    # STE rolling time in secconds for SENSOR data recording
 ## STE_FREQUENCY   = (400, 800, 1600, 3200, 6400)  # of STE result 400 / 800 / 1600 / 3200 / 6400 Hz
 #
 WSN_STAMP_TIME      = "server time"

@@ -54,7 +54,7 @@
             axios.post('/post_monASDstop', {
                 //value: Number(value),
             }).then(response => {
-                const data = response.data;
+                //const data = response.data;
                 //console.log(data);
                 //
             }).catch(function (error) {
@@ -63,10 +63,6 @@
             // control UI after function run
             enableAllMenus(is_mobile);           
         }
-        
-        function dispASDdata(data) {        
-            alert('ASD monitoring has not been implemented yet !');
-        }   
     </script>
 
 {% endblock %}
