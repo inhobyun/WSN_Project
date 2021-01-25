@@ -17,10 +17,12 @@ function drawMonGraph(data, color_val) {
         .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     // dirawing parms
-    const y_min  = d3.min(data.y);
-    const y_max  = d3.max(data.y);
-    const x_min  = d3.min(data.x);
-    const x_max  = d3.max(data.x);
+    let y_min  = d3.min(data.y);
+    let y_max  = d3.max(data.y);
+    let x_min  = d3.min(data.x);
+    let x_max  = d3.max(data.x);
+    if (y_max < 0.001) { y_max = 0.001 }
+    if (y_min < 0.001) { y_min = 0.0 }
     // Add X axis
     var x = d3.scaleLinear()
         .domain([ x_min, x_max ])

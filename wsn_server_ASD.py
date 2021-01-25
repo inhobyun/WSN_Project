@@ -655,10 +655,10 @@ def post_monASDstop():
     global gSTElockFlag
 
     # send STE stop
-    write_to_socket(TCP_STE_STOP_MSG)
+    ## write_to_socket(TCP_STE_STOP_MSG)
     gSTElockFlag = False
 
-    return
+    return json.dumps({ 'x': [0], 'y': [0], 't': '-', 'f': '-', 'm': '-' })
 
 #############################################
 # analysis UI - STEandBDT
