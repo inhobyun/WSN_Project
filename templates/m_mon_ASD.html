@@ -9,14 +9,16 @@
     <script type="text/javascript" src="/static/js/misc.js"></script>
 
     <script>
+        const color_val = 'blue';
+        const max_loop = 99;
+        var loop;
         var tid = null;
-        var color_val = 'blue';
-        var max_loop = 10;
 
         function monASDbegin(is_mobile) {
             // control UI before function run
             disableAllMenus(is_mobile);           
             document.getElementById("btn_startASD").disabled = true;
+            loop = max_loop;
             monASDstart(0, is_mobile);
         }
         
@@ -31,7 +33,7 @@
                 document.getElementById("time_stamp").innerHTML = data.t;
                 document.getElementById("freq_stamp").innerHTML = data.f;
                 document.getElementById("mode_stamp").innerHTML = data.m;
-                if (value < max_loop) {
+                if (value < loop) {
                     tid = setTimeout(monASDstart, Number(interval)*1000, (value+1), is_mobile);
                     document.getElementById("btn_stopASD" ).disabled = false;
                 } else {
@@ -48,11 +50,12 @@
             disableAllMenus(is_mobile);           
             document.getElementById("btn_startASD").disabled = false;
             document.getElementById("btn_stopASD" ).disabled = true;
+            loop = 0;
             clearTimeout ( tid );
             axios.post('/post_monASDstop', {
                 //value: Number(value),
             }).then(response => {
-                const data = response.data; // empty data
+                const data = response.data; // empty data                
             }).catch(function (error) {
                 alert('Error occurred on submit: ' + error);
             });
