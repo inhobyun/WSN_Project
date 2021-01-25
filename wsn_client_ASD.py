@@ -263,7 +263,7 @@ async def tcp_TX(tx_msg, loop):
                     txt.replace('\n','\\n')
                     print('"%r"...; %d bytes sent' % (txt, n), flush=True)
                 '''    
-                print('"%r"...; %d bytes sent' % (txt, n), flush=True)
+                print('"%r"... sent', flush=True)
                 gTCPlastTime = time.time()        
         else:
             print('AIO-C> [TX] nothing to send !', flush=True)    
