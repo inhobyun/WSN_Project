@@ -276,9 +276,9 @@ async def tcp_TX(tx_msg, loop):
 # get_g_value 
 #
 def get_g_value (chNumber):
-        v_val  = ADC.ADS1256_GetChannalValue(chNumber)*5.0/0x7fffff
+        v_val  = ADC.ADS1256_GetChannalValue(chNumber)*5.0/0x7fffff # voltage value
         g_val  = v_val - 1.5 # ZERO g BIAS typical 1.5, x & y: 1.35~1.65, z: 1.2~1.8
-        g_val *= 0.3 # 1g = typical 300mV, 270~330mV
+        g_val  = g_val / 0.3 # 1g = typical 300mV, 270~330mV
         return g_val
 
 #############################################
