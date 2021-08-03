@@ -33,7 +33,8 @@ import time
 ##TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
 TCP_HOST_NAME   = socket.gethostname()
 TCP_PORT        = 8082              # Default TCP Port Name
-TCP_HTTP_PORT   = 5000              # origin flask WEB server port
+TCP_HTTP_PORT   = 8081              # flask WEB server port
+##TCP_HTTP_PORT   = 5000            # origin flask WEB server port
 TCP_PACKET_MAX  = 4096              # max TCP packet size
 TCP_POLL_TIME   = 300.              # max time interval to poll TCP port
 TCP_ERR_CNT_MAX = 8                 # max unknown error count before reconnection
