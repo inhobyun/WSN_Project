@@ -20,6 +20,7 @@ by Inho Byun, Researcher/KAIST
                     updated 2020-12-28; DEV_OPEN
                     updated 2021-01-04; BTLEDisconnectError handling
                     updated 2021-01-07; BDT data writing update
+                    updated 2021-08-03; updated port #
 """
 import asyncio
 from bluepy.btle import Scanner, DefaultDelegate, UUID, Peripheral
@@ -115,8 +116,8 @@ gIDLElastTime = 0.    # last BLE traffic on connection
 ##TCP_HOST_NAME = "10.2.2.3"        # TEST Host Name
 ##TCP_HOST_NAME = "192.168.0.3"     # TEST Host Name
 TCP_HOST_NAME   = "125.131.73.31"   # Default Host Name
-TCP_PORT        = 8081              # Default TCP Port Name
-##TCP_HTTP_PORT = 5000              # origin flask WEB server port
+TCP_PORT        = 8082              # Default TCP Port Name
+TCP_HTTP_PORT   = 5000                # origin flask WEB server port
 TCP_HTTP_PORT   = 8082              # WEB server http port
 TCP_PACKET_MAX  = 1024              # max TCP packet size
 TCP_POLL_TIME   = 300.              # max time interval to poll TCP port
