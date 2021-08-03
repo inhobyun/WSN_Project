@@ -38,9 +38,8 @@ import time
 ##TCP_HOST_NAME = "192.168.0.3"     # TEST Host Name
 ##TCP_HOST_NAME = "125.131.73.31"   # Default Host Name
 TCP_HOST_NAME   = socket.gethostname()
-TCP_PORT        = 8088              # Default TCP Port Name
-##TCP_HTTP_PORT   = 5000            # origin flask WEB server port
-TCP_HTTP_PORT   = 8081              # Default WEB server port
+TCP_PORT        = 8081              # Default TCP Port Name
+TCP_HTTP_PORT   = 5000              # Default WEB server port
 TCP_PACKET_MAX  = 4096              # max TCP packet size
 TCP_POLL_TIME   = 300.              # max time interval to poll TCP port
 TCP_ERR_CNT_MAX = 8                 # max unknown error count before reconnection
@@ -866,7 +865,7 @@ if __name__ == '__main__':
             #
             # flask web server running
             #
-            app.run(host='0.0.0.0', port=8081)
+            app.run(host='0.0.0.0', port=5000)
             #
     ## except KeyboardInterrupt: # does not work, seems caught by flask
     except:     
